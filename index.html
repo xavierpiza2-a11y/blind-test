@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0f0f1a">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>🎵 Blind Test Famille</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@700;800&display=swap" rel="stylesheet">
 <style>
 :root {
   --bg: #070711;
@@ -23,6 +23,7 @@
   --muted2: #94a3b8;
   --font-title: 'Syne', sans-serif;
   --font: 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Courier New', monospace;
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { -webkit-tap-highlight-color: transparent; }
@@ -34,7 +35,7 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 button { font-family: inherit; cursor: pointer; border: none; background: none; }
-input { font-family: inherit; }
+input, textarea { font-family: inherit; }
 
 /* ── SCREENS ── */
 .screen { display: none; min-height: 100dvh; flex-direction: column; }
@@ -101,9 +102,13 @@ input { font-family: inherit; }
 }
 .inp:focus { border-color: var(--orange); }
 .inp-code {
-  text-transform: uppercase; letter-spacing: 6px;
+  text-transform: uppercase; letter-spacing: 4px;
   font-weight: 800; font-size: 22px; text-align: center;
-  font-family: var(--font-title);
+  font-family: var(--font-mono);
+}
+textarea.inp {
+  resize: none; line-height: 1.6;
+  font-size: 14px;
 }
 
 /* ── BUTTONS ── */
@@ -141,6 +146,11 @@ input { font-family: inherit; }
   border: 1.5px solid rgba(59,130,246,.3);
   color: #93c5fd;
 }
+.btn-purple {
+  background: rgba(139,92,246,.15);
+  border: 1.5px solid rgba(139,92,246,.3);
+  color: #c4b5fd;
+}
 .btn-disabled {
   background: rgba(255,255,255,.04);
   border: 1.5px solid rgba(255,255,255,.06);
@@ -169,18 +179,19 @@ input { font-family: inherit; }
 
 /* ── CODE DISPLAY ── */
 .code-box {
-  background: rgba(249,115,22,.1);
-  border: 2px solid rgba(249,115,22,.3);
+  background: rgba(249,115,22,.08);
+  border: 2px solid rgba(249,115,22,.25);
   border-radius: 14px; padding: 16px;
   text-align: center; margin-bottom: 12px;
 }
-.code-label { font-size: 11px; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1px; }
+.code-label { font-size: 11px; color: var(--muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
 .code-val {
-  font-family: var(--font-title);
-  font-size: 44px; font-weight: 900;
-  letter-spacing: 10px; color: var(--orange);
+  font-family: var(--font-mono);
+  font-size: 46px; font-weight: 800;
+  letter-spacing: 8px; color: var(--orange);
+  line-height: 1;
 }
-.code-hint { font-size: 11px; color: var(--muted); margin-top: 6px; }
+.code-hint { font-size: 11px; color: var(--muted); margin-top: 8px; }
 
 /* ── PLAYER CHIPS ── */
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -189,6 +200,30 @@ input { font-family: inherit; }
   border: 1px solid rgba(255,255,255,.1);
   border-radius: 20px; padding: 6px 14px;
   font-size: 13px; color: var(--muted2);
+}
+
+/* ── IMPORT ZONE ── */
+.import-box {
+  background: rgba(139,92,246,.06);
+  border: 1.5px dashed rgba(139,92,246,.3);
+  border-radius: 14px; padding: 16px;
+  margin-bottom: 14px;
+}
+.import-title {
+  font-size: 13px; font-weight: 700;
+  color: #c4b5fd; margin-bottom: 8px;
+  display: flex; align-items: center; gap: 6px;
+}
+.import-hint {
+  font-size: 11px; color: var(--muted); margin-bottom: 10px;
+  line-height: 1.6;
+}
+.import-example {
+  background: rgba(255,255,255,.04);
+  border-radius: 8px; padding: 8px 12px;
+  font-family: var(--font-mono); font-size: 11px;
+  color: var(--muted2); margin-bottom: 10px;
+  line-height: 1.8;
 }
 
 /* ── QUESTION CARDS (setup) ── */
@@ -207,7 +242,7 @@ input { font-family: inherit; }
   background: rgba(239,68,68,.15);
   border: 1px solid rgba(239,68,68,.2);
   color: var(--red); border-radius: 8px;
-  padding: 4px 10px; font-size: 12px;
+  padding: 4px 10px; font-size: 12px; cursor: pointer;
 }
 .choice-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
 .choice-mark {
@@ -220,6 +255,22 @@ input { font-family: inherit; }
 .choice-mark.correct {
   background: var(--orange); border-color: var(--orange);
 }
+
+/* deezer row */
+.deezer-row {
+  display: flex; gap: 8px; align-items: flex-start;
+  margin-bottom: 8px;
+}
+.deezer-row .inp { margin-bottom: 0; flex: 1; }
+.btn-deezer {
+  flex-shrink: 0; padding: 12px 14px;
+  background: rgba(249,115,22,.15);
+  border: 1.5px solid rgba(249,115,22,.3);
+  color: var(--orange); border-radius: 12px;
+  font-size: 16px; cursor: pointer;
+  transition: all .15s; white-space: nowrap;
+}
+.btn-deezer:hover { background: rgba(249,115,22,.25); }
 
 /* ── DEEZER PLAYER ── */
 .deezer-wrap {
@@ -243,15 +294,6 @@ input { font-family: inherit; }
   border: 1px solid var(--border);
 }
 .game-qnum { color: var(--orange); font-weight: 800; font-family: var(--font-title); font-size: 16px; }
-.game-timer {
-  font-family: var(--font-title); font-size: 28px; font-weight: 900;
-  transition: color .3s;
-  min-width: 50px; text-align: center;
-}
-.game-timer.warn { color: var(--red); animation: timerPulse .5s ease-in-out infinite; }
-.game-timer.ok { color: var(--green); }
-.game-timer.expired { color: var(--muted); }
-@keyframes timerPulse { 0%,100%{transform:scale(1)}50%{transform:scale(1.1)} }
 .game-answers { color: var(--muted2); font-size: 13px; font-weight: 600; }
 
 /* ── TIMER ARC ── */
@@ -410,15 +452,6 @@ input { font-family: inherit; }
 /* ── ERR ── */
 .err { color: var(--red); font-size: 13px; text-align: center; margin-bottom: 8px; }
 
-/* ── HINT BOX ── */
-.hint-box {
-  background: rgba(251,191,36,.07);
-  border: 1px solid rgba(251,191,36,.2);
-  border-radius: 10px; padding: 8px 14px;
-  font-size: 13px; color: #fde68a;
-  font-style: italic; margin-bottom: 12px;
-}
-
 /* ── BIG QUESTION ── */
 .big-question {
   text-align: center; padding: 20px 0 16px;
@@ -469,8 +502,19 @@ input { font-family: inherit; }
   0%,100%{transform:scaleY(.4)}50%{transform:scaleY(1)}
 }
 
-/* ── SCROLL ── */
-.scroll-content { flex: 1; overflow-y: auto; }
+/* ── import parsed preview ── */
+.parsed-list {
+  max-height: 180px; overflow-y: auto;
+  margin-top: 8px;
+}
+.parsed-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,.05);
+  font-size: 13px;
+}
+.parsed-item:last-child { border-bottom: none; }
+.parsed-artist { color: var(--orange); font-weight: 700; min-width: 120px; }
+.parsed-title { color: var(--muted2); flex: 1; }
 </style>
 </head>
 <body>
@@ -522,9 +566,26 @@ input { font-family: inherit; }
         <input class="inp" id="setupTitle" placeholder="Nom de la soirée (ex: Blind Test Noël)" value="Blind Test Famille">
       </div>
 
+      <!-- IMPORT ZONE -->
+      <div class="import-box">
+        <div class="import-title">✨ Import rapide d'une playlist</div>
+        <div class="import-hint">
+          Colle ta liste ici, une musique par ligne au format :<br>
+          <strong>Artiste - Titre de la chanson</strong><br>
+          Les bonnes réponses et les faux choix seront générés automatiquement.
+        </div>
+        <div class="import-example">Michael Jackson - Thriller<br>Daft Punk - Get Lucky<br>Stromae - Papaoutai<br>Queen - Bohemian Rhapsody</div>
+        <textarea class="inp" id="importText" rows="5"
+          placeholder="Colle ta liste ici...&#10;Artiste - Titre&#10;Artiste - Titre"></textarea>
+        <div id="importPreview"></div>
+        <button class="btn btn-purple" onclick="importPlaylist()">✨ Générer les manches</button>
+      </div>
+
+      <div class="divider">ou ajoute manuellement</div>
+
       <div id="setupQuestions"></div>
 
-      <button class="btn btn-secondary" onclick="addQuestion()">➕ Ajouter une musique</button>
+      <button class="btn btn-secondary" onclick="addQuestion()">➕ Ajouter une manche</button>
       <button class="btn btn-primary" onclick="launchSetup()">🚀 Ouvrir la salle !</button>
     </div>
   </div>
@@ -611,9 +672,8 @@ input { font-family: inherit; }
       <div id="mjPhaseReveal" style="display:none">
         <div class="card">
           <p class="card-title">🎵 Manche <span id="revealQNum"></span></p>
-          <p style="font-size:14px;color:var(--muted2);margin-bottom:12px">Bonne réponse :</p>
+          <p style="font-size:14px;color:var(--muted2);margin-bottom:8px">Bonne réponse :</p>
           <p style="font-family:var(--font-title);font-size:20px;font-weight:900;color:var(--orange);margin-bottom:16px" id="revealAnswer"></p>
-
           <div id="revealResults"></div>
         </div>
 
@@ -736,7 +796,7 @@ input { font-family: inherit; }
 // ═══════════════════════════════════════════════════════════
 const POLL_MS = 1500;
 const ANSWER_TIME = 20;
-const CIRCUMFERENCE = 2 * Math.PI * 24; // 150.796...
+const CIRCUMFERENCE = 2 * Math.PI * 24;
 
 function ts() { return Date.now(); }
 function genCode() { return Math.random().toString(36).substring(2,7).toUpperCase(); }
@@ -761,7 +821,7 @@ const G = {
   isMJ: false,
   roomCode: null,
   room: null,
-  player: null,      // { id, name, avatar }
+  player: null,
   pollTimer: null,
   timerInterval: null,
 };
@@ -776,6 +836,7 @@ function showScreen(id) {
 }
 function clearErr(id) { const e=document.getElementById(id); if(e) e.textContent=''; }
 function setErr(id,msg) { const e=document.getElementById(id); if(e) e.textContent=msg; }
+function escH(s) { return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
 
 // ═══════════════════════════════════════════════════════════
 // HOME
@@ -819,6 +880,79 @@ async function joinRoom() {
 }
 
 // ═══════════════════════════════════════════════════════════
+// IMPORT PLAYLIST
+// ═══════════════════════════════════════════════════════════
+function parsePlaylist(text) {
+  return text.split('\n')
+    .map(l => l.trim())
+    .filter(l => l.length > 0)
+    .map(l => {
+      const sep = l.indexOf(' - ');
+      if (sep === -1) return null;
+      const artist = l.substring(0, sep).trim();
+      const title  = l.substring(sep + 3).trim();
+      return (artist && title) ? { artist, title } : null;
+    })
+    .filter(Boolean);
+}
+
+function importPlaylist() {
+  const text = document.getElementById('importText').value;
+  const parsed = parsePlaylist(text);
+
+  if (parsed.length === 0) {
+    document.getElementById('importPreview').innerHTML =
+      '<p class="err" style="margin-bottom:8px">Aucune ligne valide. Format attendu : Artiste - Titre</p>';
+    return;
+  }
+
+  // Build questions : good answer + 3 random wrong artists from same list
+  const allArtists = [...new Set(parsed.map(p => p.artist))];
+
+  const questions = parsed.map(p => {
+    const correct = p.artist;
+    // Pick 3 different wrong artists
+    const others = allArtists.filter(a => a !== correct);
+    const shuffled = others.sort(() => Math.random() - .5).slice(0, 3);
+    // If not enough distinct artists, pad with generic placeholders
+    while (shuffled.length < 3) shuffled.push('— Artiste inconnu —');
+    // Build 4 choices and place correct one at random position
+    const pos = Math.floor(Math.random() * 4);
+    const choices = [...shuffled];
+    choices.splice(pos, 0, correct);
+
+    return {
+      id: ts() + Math.random(),
+      url: '',
+      title: p.title,
+      choices,
+      answer: pos
+    };
+  });
+
+  setupQs = questions;
+  renderSetupQuestions();
+
+  // Show preview
+  document.getElementById('importPreview').innerHTML = `
+    <div style="background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);
+      border-radius:10px;padding:10px 14px;margin-bottom:10px">
+      <p style="color:var(--green);font-size:13px;font-weight:700;margin-bottom:6px">
+        ✅ ${questions.length} manche${questions.length>1?'s':''} générée${questions.length>1?'s':''} !
+      </p>
+      <p style="color:var(--muted2);font-size:12px">
+        Il te reste à coller les liens Deezer pour chaque manche ci-dessous.
+        Clique 🔍 pour ouvrir la recherche Deezer du bon titre directement.
+      </p>
+    </div>`;
+
+  // Scroll to questions
+  setTimeout(() => {
+    document.getElementById('setupQuestions').scrollIntoView({ behavior: 'smooth' });
+  }, 200);
+}
+
+// ═══════════════════════════════════════════════════════════
 // SETUP (MJ)
 // ═══════════════════════════════════════════════════════════
 let setupQs = [];
@@ -827,7 +961,7 @@ function buildSetup() {
   renderSetupQuestions();
 }
 function newQ() {
-  return { id: ts()+Math.random(), url:'', choices:['','','',''], answer:0 };
+  return { id: ts()+Math.random(), url:'', title:'', choices:['','','',''], answer:0 };
 }
 function addQuestion() {
   setupQs.push(newQ());
@@ -839,34 +973,41 @@ function removeQuestion(idx) {
   setupQs.splice(idx, 1);
   renderSetupQuestions();
 }
-function updateQ(idx, field, val) {
-  setupQs[idx][field] = val;
-  if (field === 'url') renderSetupQuestions(); // refresh deezer preview
-}
-function updateChoice(qIdx, cIdx, val) {
-  setupQs[qIdx].choices[cIdx] = val;
-}
 function setAnswer(qIdx, cIdx) {
   setupQs[qIdx].answer = cIdx;
   renderSetupQuestions();
 }
 
 function extractTrackId(url) {
-  const m = url.match(/track\/(\d+)/);
+  const m = (url||'').match(/track\/(\d+)/);
   return m ? m[1] : null;
+}
+
+function openDeezerSearch(qIdx) {
+  const q = setupQs[qIdx];
+  const query = q.title
+    ? encodeURIComponent(q.choices[q.answer] + ' ' + q.title)
+    : encodeURIComponent(q.choices[q.answer]);
+  window.open('https://www.deezer.com/search/' + query, '_blank');
 }
 
 function renderSetupQuestions() {
   const LABELS = ['🅰️','🅱️','🅲️','🅳️'];
-  document.getElementById('setupQuestions').innerHTML = setupQs.map((q,idx) => `
+  document.getElementById('setupQuestions').innerHTML = setupQs.map((q, idx) => `
     <div class="q-card">
       <div class="q-header">
-        <span class="q-num">🎵 Manche ${idx+1}</span>
-        ${setupQs.length > 1 ? `<button class="q-del" onclick="removeQuestion(${idx})">✕ Supprimer</button>` : ''}
+        <span class="q-num">🎵 Manche ${idx+1}${q.title ? ' — <span style="color:var(--muted2);font-weight:500">'+escH(q.title)+'</span>' : ''}</span>
+        ${setupQs.length > 1 ? `<button class="q-del" onclick="removeQuestion(${idx})">✕</button>` : ''}
       </div>
-      <input class="inp" placeholder="🔗 Lien Deezer  https://www.deezer.com/track/XXXXXXX"
-        value="${escH(q.url)}"
-        oninput="setupQs[${idx}].url=this.value" onblur="updateQ(${idx},'url',this.value)">
+
+      <div class="deezer-row">
+        <input class="inp" placeholder="🔗 Lien Deezer  https://www.deezer.com/track/XXXXXXX"
+          value="${escH(q.url)}"
+          oninput="setupQs[${idx}].url=this.value"
+          onblur="renderSetupQuestions()">
+        <button class="btn-deezer" onclick="openDeezerSearch(${idx})" title="Rechercher sur Deezer">🔍</button>
+      </div>
+
       ${q.url && extractTrackId(q.url) ?
         `<div class="deezer-wrap"><iframe scrolling="no" frameborder="0" allowtransparency="true"
           allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
@@ -874,22 +1015,22 @@ function renderSetupQuestions() {
           style="width:100%;height:80px;border-radius:12px"></iframe></div>` :
         (q.url ? '<div class="deezer-warn">⚠️ URL invalide — colle un lien Deezer complet</div>' : '')
       }
+
       <p style="font-size:11px;color:var(--muted);margin-bottom:8px">
         Clique sur le bouton de la bonne réponse pour la sélectionner ↓
       </p>
-      ${q.choices.map((c,ci) => `
+      ${q.choices.map((c, ci) => `
         <div class="choice-row">
           <button class="choice-mark ${q.answer===ci?'correct':''}"
             onclick="setAnswer(${idx},${ci})" title="Bonne réponse">
             ${q.answer===ci ? '✅' : LABELS[ci]}
           </button>
-          <input class="inp" style="margin-bottom:0;flex:1" placeholder="Choix ${ci+1} (artiste)"
+          <input class="inp" style="margin-bottom:0;flex:1" placeholder="Artiste ${ci+1}"
             value="${escH(c)}"
             oninput="setupQs[${idx}].choices[${ci}]=this.value">
         </div>`).join('')}
     </div>`).join('');
 }
-function escH(s) { return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
 
 async function launchSetup() {
   const title = document.getElementById('setupTitle').value.trim() || 'Blind Test';
@@ -973,7 +1114,6 @@ function updateMJAnswerBar() {
   const total = players.length;
   const answered = Object.keys(r.answers?.[r.currentQ]||{}).length;
   const pct = total > 0 ? Math.round(answered/total*100) : 0;
-
   document.getElementById('mjAnsBarLabel').textContent = `${answered} / ${total}`;
   document.getElementById('mjAnsBarFill').style.width = pct + '%';
   document.getElementById('mjAnswerCount').textContent = `${answered}/${total}`;
@@ -1050,7 +1190,8 @@ function renderPlayerLobby() {
 function renderPlayerLobbyChips() {
   const r = G.room;
   const players = Object.values(r.players||{});
-  document.getElementById('playerLobbyCount').textContent = `👥 ${players.length} joueur${players.length>1?'s':''} connecté${players.length>1?'s':''}`;
+  document.getElementById('playerLobbyCount').textContent =
+    `👥 ${players.length} joueur${players.length>1?'s':''} connecté${players.length>1?'s':''}`;
   document.getElementById('playerLobbyChips').innerHTML = players.map(p =>
     `<div class="chip">${p.avatar} ${escH(p.name)}</div>`
   ).join('');
@@ -1073,15 +1214,11 @@ function renderPlayerGame() {
     document.getElementById('pPhaseMusic').style.display = 'block';
     document.getElementById('pPhaseReveal').style.display = 'none';
 
-    // Timer display
     const elapsed = (ts() - r.musicStartedAt) / 1000;
     const left = Math.max(0, ANSWER_TIME - elapsed);
     updateTimerArc('p', left);
 
-    // Status
     const statusBox = document.getElementById('pStatusBox');
-    const canAnswer = left > 0 && !myAnswer;
-
     if (myAnswer !== undefined) {
       statusBox.innerHTML = '<div class="status-box status-answered">✅ Réponse enregistrée !</div>';
     } else if (left <= 0) {
@@ -1090,7 +1227,6 @@ function renderPlayerGame() {
       statusBox.innerHTML = '';
     }
 
-    // Choices
     document.getElementById('pChoices').innerHTML = q.choices.map((c, ci) => {
       let cls = 'idle';
       let disabled = '';
@@ -1098,7 +1234,6 @@ function renderPlayerGame() {
         cls = myAnswer.choice === ci ? 'selected' : 'idle';
         disabled = 'disabled';
       } else if (left <= 0) {
-        cls = 'idle';
         disabled = 'disabled';
       }
       return `
@@ -1131,7 +1266,6 @@ async function playerAnswer(ci) {
   const elapsed = (ts() - r.musicStartedAt) / 1000;
   const left = Math.max(0, ANSWER_TIME - elapsed);
 
-  // Can't answer if time expired or already answered
   if (left <= 0 || r.answers?.[r.currentQ]?.[p.id]) return;
 
   const correct = ci === q.answer;
@@ -1201,13 +1335,11 @@ function tickTimer() {
   const elapsed = (ts() - r.musicStartedAt) / 1000;
   const left = Math.max(0, ANSWER_TIME - elapsed);
 
-  // Update appropriate timer based on current role
   if (G.isMJ) {
     updateTimerArc('mj', left);
     updateMJAnswerBar();
   } else {
     updateTimerArc('p', left);
-    // Lock choices when time runs out
     if (left <= 0 && r.phase === 'music' && !r.answers?.[r.currentQ]?.[G.player?.id]) {
       renderPlayerGame();
     }
@@ -1222,9 +1354,7 @@ function updateTimerArc(prefix, left) {
   const pct = left / ANSWER_TIME;
   const offset = CIRCUMFERENCE * (1 - pct);
   arcEl.style.strokeDashoffset = offset;
-
-  const secs = Math.ceil(left);
-  numEl.textContent = secs;
+  numEl.textContent = Math.ceil(left);
 
   if (left <= 0) {
     arcEl.style.stroke = 'var(--muted)';
@@ -1258,44 +1388,28 @@ async function poll() {
   const prev = G.room;
   G.room = fresh;
 
-  // Phase changed?
   const phaseChanged = prev?.phase !== fresh.phase;
   const qChanged = prev?.currentQ !== fresh.currentQ;
 
   if (G.isMJ) {
-    // MJ: update answer bar + handle phase changes from players
-    if (fresh.phase === 'music') {
-      updateMJAnswerBar();
-    } else if (fresh.phase === 'reveal' && prev?.phase === 'music') {
-      // Should not happen (MJ controls this), but handle anyway
-    } else if (fresh.phase === 'scores' && prev?.phase !== 'scores') {
-      stopTimer();
-      renderScores();
-      showScreen('screenScores');
+    if (fresh.phase === 'music') updateMJAnswerBar();
+    else if (fresh.phase === 'scores' && prev?.phase !== 'scores') {
+      stopTimer(); renderScores(); showScreen('screenScores');
     }
-    // Update lobby player list
     if (fresh.phase === 'lobby') updateMJLobby();
   } else {
-    // Player
     if (fresh.phase === 'lobby') {
       renderPlayerLobbyChips();
     } else if (fresh.phase === 'music') {
       if (phaseChanged || qChanged) {
-        stopTimer();
-        renderPlayerGame();
-        showScreen('screenPlayerGame');
-        startTimer();
+        stopTimer(); renderPlayerGame(); showScreen('screenPlayerGame'); startTimer();
       } else {
-        // Just refresh choices / status
         renderPlayerGame();
       }
     } else if (fresh.phase === 'reveal' && (phaseChanged || qChanged)) {
-      stopTimer();
-      renderPlayerGame();
+      stopTimer(); renderPlayerGame();
     } else if (fresh.phase === 'scores' && prev?.phase !== 'scores') {
-      stopTimer();
-      renderScores();
-      showScreen('screenScores');
+      stopTimer(); renderScores(); showScreen('screenScores');
     }
   }
 }
@@ -1318,13 +1432,8 @@ function updateMJLobby() {
   if (waiting) waiting.style.display = count === 0 ? 'flex' : 'none';
 
   const btn = document.getElementById('lobbyStartBtn');
-  if (count > 0) {
-    btn.disabled = false;
-    btn.className = 'btn btn-green';
-  } else {
-    btn.disabled = true;
-    btn.className = 'btn btn-disabled';
-  }
+  btn.disabled = count === 0;
+  btn.className = count > 0 ? 'btn btn-green' : 'btn btn-disabled';
 }
 
 // ═══════════════════════════════════════════════════════════
