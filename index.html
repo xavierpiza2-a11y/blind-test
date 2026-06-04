@@ -9,22 +9,23 @@
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@700;800&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#070711;--bg2:#0f0f1e;--card:#13132a;--border:rgba(255,255,255,.07);
+  --bg:#1a0533;--bg2:#2d0a5e;--card:rgba(255,255,255,.08);--border:rgba(255,255,255,.12);
   --orange:#f97316;--orange2:#ea580c;--green:#10b981;--red:#ef4444;
-  --text:#f1f5f9;--muted:#64748b;--muted2:#94a3b8;
+  --text:#f1f5f9;--muted:rgba(255,255,255,.45);--muted2:rgba(255,255,255,.65);
   --font-title:'Syne',sans-serif;--font:'Inter',sans-serif;
   --font-mono:'JetBrains Mono','Courier New',monospace;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{-webkit-tap-highlight-color:transparent}
-body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100dvh;-webkit-font-smoothing:antialiased}
+body{font-family:var(--font);background:linear-gradient(160deg,#1a0533 0%,#2d0a5e 50%,#1a0533 100%);background-attachment:fixed;color:var(--text);min-height:100dvh;-webkit-font-smoothing:antialiased}
 button{font-family:inherit;cursor:pointer;border:none;background:none}
 input,textarea{font-family:inherit}
 .screen{display:none;min-height:100dvh;flex-direction:column}
 .screen.active{display:flex}
 .bg-glow{position:fixed;inset:0;z-index:0;pointer-events:none;
-  background:radial-gradient(ellipse 60% 50% at 15% 40%,rgba(249,115,22,.12) 0%,transparent 70%),
-             radial-gradient(ellipse 50% 40% at 85% 20%,rgba(59,130,246,.08) 0%,transparent 70%)}
+  background:radial-gradient(ellipse 60% 50% at 15% 40%,rgba(249,115,22,.15) 0%,transparent 60%),
+             radial-gradient(ellipse 50% 40% at 85% 20%,rgba(139,92,246,.2) 0%,transparent 60%),
+             radial-gradient(ellipse 40% 40% at 60% 80%,rgba(59,130,246,.1) 0%,transparent 60%)}
 .rel{position:relative;z-index:1}
 .wrap{max-width:480px;margin:0 auto;padding:24px 16px 48px;position:relative;z-index:1;flex:1;display:flex;flex-direction:column}
 .hero{text-align:center;padding:40px 0 28px}
@@ -32,47 +33,48 @@ input,textarea{font-family:inherit}
 @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
 .hero-title{font-family:var(--font-title);font-size:38px;font-weight:900;background:linear-gradient(135deg,#fb923c 0%,#f97316 40%,#fbbf24 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-1px;line-height:1}
 .hero-sub{color:var(--muted);font-size:14px;margin-top:8px}
-.card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:18px;margin-bottom:14px}
-.card-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:14px}
-.inp{width:100%;padding:12px 16px;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.1);border-radius:12px;color:var(--text);font-size:15px;outline:none;transition:border-color .15s;margin-bottom:10px}
-.inp:focus{border-color:var(--orange)}
+.card{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:18px;padding:18px;margin-bottom:14px;backdrop-filter:blur(12px)}
+.card-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.5);margin-bottom:14px}
+.inp{width:100%;padding:12px 16px;background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.18);border-radius:12px;color:var(--text);font-size:15px;outline:none;transition:border-color .15s;margin-bottom:10px}
+.inp::placeholder{color:rgba(255,255,255,.35)}
+.inp:focus{border-color:var(--orange);background:rgba(255,255,255,.14)}
 .inp-code{text-transform:uppercase;letter-spacing:4px;font-weight:800;font-size:22px;text-align:center;font-family:var(--font-mono)}
 textarea.inp{resize:none;line-height:1.6;font-size:14px}
 .btn{width:100%;padding:14px;border-radius:14px;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:10px;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:8px}
 .btn:active{transform:scale(.97)}
 .btn-primary{background:linear-gradient(135deg,var(--orange),var(--orange2));color:white;box-shadow:0 4px 24px rgba(249,115,22,.35)}
-.btn-secondary{background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.12);color:var(--text)}
+.btn-secondary{background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.2);color:var(--text)}
 .btn-green{background:linear-gradient(135deg,#059669,#10b981);color:white;box-shadow:0 4px 20px rgba(16,185,129,.3)}
-.btn-red{background:rgba(239,68,68,.15);border:1.5px solid rgba(239,68,68,.3);color:var(--red)}
-.btn-purple{background:rgba(139,92,246,.15);border:1.5px solid rgba(139,92,246,.3);color:#c4b5fd}
-.btn-disabled{background:rgba(255,255,255,.04);border:1.5px solid rgba(255,255,255,.06);color:var(--muted);cursor:not-allowed}
-.btn-back{background:rgba(255,255,255,.07);border-radius:10px;padding:8px 14px;color:var(--muted2);font-size:16px;margin-bottom:0}
-.divider{display:flex;align-items:center;gap:12px;color:var(--muted);font-size:12px;margin:4px 0 14px}
-.divider::before,.divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.08)}
-.code-box{background:rgba(249,115,22,.08);border:2px solid rgba(249,115,22,.25);border-radius:14px;padding:16px;text-align:center;margin-bottom:12px}
-.code-label{font-size:11px;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px}
+.btn-red{background:rgba(239,68,68,.2);border:1.5px solid rgba(239,68,68,.4);color:#fca5a5}
+.btn-purple{background:rgba(139,92,246,.25);border:1.5px solid rgba(139,92,246,.5);color:#c4b5fd}
+.btn-disabled{background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.1);color:rgba(255,255,255,.3);cursor:not-allowed}
+.btn-back{background:rgba(255,255,255,.1);border-radius:10px;padding:8px 14px;color:rgba(255,255,255,.75);font-size:16px;margin-bottom:0}
+.divider{display:flex;align-items:center;gap:12px;color:rgba(255,255,255,.3);font-size:12px;margin:4px 0 14px}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.12)}
+.code-box{background:rgba(249,115,22,.12);border:2px solid rgba(249,115,22,.35);border-radius:14px;padding:16px;text-align:center;margin-bottom:12px}
+.code-label{font-size:11px;color:rgba(255,255,255,.5);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px}
 .code-val{font-family:var(--font-mono);font-size:46px;font-weight:800;letter-spacing:8px;color:var(--orange);line-height:1}
-.code-hint{font-size:11px;color:var(--muted);margin-top:8px}
+.code-hint{font-size:11px;color:rgba(255,255,255,.4);margin-top:8px}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
-.chip{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:6px 14px;font-size:13px;color:var(--muted2)}
-.saved-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+.chip{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);border-radius:20px;padding:6px 14px;font-size:13px;color:rgba(255,255,255,.8)}
+.saved-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.08)}
 .saved-item:last-child{border-bottom:none}
 .saved-icon{font-size:24px;flex-shrink:0}
 .saved-info{flex:1;min-width:0;cursor:pointer}
 .saved-info:hover .saved-name{color:var(--orange)}
 .saved-name{font-weight:700;font-size:15px;transition:color .15s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.saved-meta{font-size:12px;color:var(--muted);margin-top:2px}
-.saved-del{padding:6px 10px;border-radius:8px;font-size:14px;background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.2);color:var(--red);cursor:pointer;flex-shrink:0}
-.import-box{background:rgba(139,92,246,.06);border:1.5px dashed rgba(139,92,246,.3);border-radius:14px;padding:16px;margin-bottom:14px}
+.saved-meta{font-size:12px;color:rgba(255,255,255,.4);margin-top:2px}
+.saved-del{padding:6px 10px;border-radius:8px;font-size:14px;background:rgba(239,68,68,.2);border:1px solid rgba(239,68,68,.3);color:#fca5a5;cursor:pointer;flex-shrink:0}
+.import-box{background:rgba(139,92,246,.12);border:1.5px dashed rgba(139,92,246,.45);border-radius:14px;padding:16px;margin-bottom:14px}
 .import-title{font-size:13px;font-weight:700;color:#c4b5fd;margin-bottom:8px}
-.import-hint{font-size:11px;color:var(--muted);margin-bottom:10px;line-height:1.6}
-.import-example{background:rgba(255,255,255,.04);border-radius:8px;padding:8px 12px;font-family:var(--font-mono);font-size:11px;color:var(--muted2);margin-bottom:10px;line-height:1.8}
-.q-card{background:rgba(249,115,22,.05);border:1px solid rgba(249,115,22,.15);border-radius:16px;padding:16px;margin-bottom:14px}
+.import-hint{font-size:11px;color:rgba(255,255,255,.5);margin-bottom:10px;line-height:1.6}
+.import-example{background:rgba(255,255,255,.07);border-radius:8px;padding:8px 12px;font-family:var(--font-mono);font-size:11px;color:rgba(255,255,255,.55);margin-bottom:10px;line-height:1.8}
+.q-card{background:rgba(249,115,22,.08);border:1px solid rgba(249,115,22,.25);border-radius:16px;padding:16px;margin-bottom:14px}
 .q-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
 .q-num{font-weight:800;color:var(--orange);font-size:13px}
-.q-del{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.2);color:var(--red);border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer}
+.q-del{background:rgba(239,68,68,.2);border:1px solid rgba(239,68,68,.3);color:#fca5a5;border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer}
 .choice-row{display:flex;gap:8px;margin-bottom:8px;align-items:center}
-.choice-mark{width:36px;height:36px;border-radius:10px;border:2px solid rgba(255,255,255,.1);background:var(--bg2);flex-shrink:0;font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s}
+.choice-mark{width:36px;height:36px;border-radius:10px;border:2px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);flex-shrink:0;font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s}
 .choice-mark.correct{background:var(--orange);border-color:var(--orange)}
 .deezer-row{display:flex;gap:8px;align-items:stretch;margin-bottom:8px}
 .deezer-row .inp{margin-bottom:0;flex:1}
@@ -102,9 +104,9 @@ textarea.inp{resize:none;line-height:1.6;font-size:14px}
 .search-dots{display:flex;justify-content:center;gap:6px;margin-bottom:8px}
 .search-dot{width:8px;height:8px;border-radius:50%;background:var(--orange);animation:dotBounce 1.2s ease-in-out infinite}
 .search-dot:nth-child(2){animation-delay:.2s}.search-dot:nth-child(3){animation-delay:.4s}
-.game-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding:12px 16px;background:var(--card);border-radius:14px;border:1px solid var(--border)}
+.game-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding:12px 16px;background:rgba(255,255,255,.1);border-radius:14px;border:1px solid rgba(255,255,255,.15);backdrop-filter:blur(8px)}
 .game-qnum{color:var(--orange);font-weight:800;font-family:var(--font-title);font-size:16px}
-.game-answers{color:var(--muted2);font-size:13px;font-weight:600}
+.game-answers{color:rgba(255,255,255,.7);font-size:13px;font-weight:600}
 .timer-arc-wrap{position:relative;width:56px;height:56px}
 .timer-arc-wrap svg{position:absolute;top:0;left:0;transform:rotate(-90deg)}
 .timer-arc-wrap .timer-num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--font-title);font-size:18px;font-weight:900}
@@ -380,64 +382,94 @@ textarea.inp{resize:none;line-height:1.6;font-size:14px}
   </div>
 </div>
 
-<!-- MJ LOBBY -->
-<div id="screenMJLobby" class="screen">
-  <div class="wrap">
-    <div class="rel" style="padding-top:24px;text-align:center;margin-bottom:24px">
-      <div style="font-size:48px;margin-bottom:10px">🎮</div>
-      <h2 id="lobbyTitle" style="font-family:var(--font-title);font-size:22px;font-weight:900;margin-bottom:4px"></h2>
-      <p id="lobbySubtitle" style="color:var(--muted);font-size:13px"></p>
+<!-- MJ LOBBY — style Kahoot -->
+<div id="screenMJLobby" class="screen kah-screen">
+  <div class="kah-topbar">
+    <div style="font-size:28px">🎤</div>
+    <div class="kah-question-label" id="lobbyTitle">Blind Test</div>
+    <div class="kah-score-wrap">
+      <span class="kah-score-num" id="lobbySubtitle" style="font-size:13px;letter-spacing:0">—</span>
+      <span class="kah-score-lbl">manches</span>
     </div>
-    <div class="rel">
-      <div class="code-box">
+  </div>
+
+  <div class="kah-stage" style="justify-content:flex-start;padding-top:20px;overflow-y:auto">
+    <div style="width:100%;max-width:440px">
+      <!-- Code -->
+      <div class="code-box" style="margin-bottom:16px">
         <div class="code-label">Code de la salle</div>
         <div class="code-val" id="lobbyCODE"></div>
         <div class="code-hint">Les joueurs entrent ce code sur leur téléphone</div>
       </div>
-      <div class="card">
+      <!-- Players -->
+      <div class="card" style="margin-bottom:16px">
         <p class="card-title" id="lobbyPlayerCount">👥 En attente des joueurs...</p>
         <div class="chips" id="lobbyPlayers"></div>
         <div class="waiting-dots" id="lobbyWaiting">
           <div class="waiting-dot"></div><div class="waiting-dot"></div><div class="waiting-dot"></div>
         </div>
       </div>
-      <button class="btn btn-disabled" id="lobbyStartBtn">🎵 Démarrer le blind test !</button>
     </div>
+  </div>
+
+  <div style="padding:0 16px 24px;flex-shrink:0;max-width:440px;width:100%;margin:0 auto">
+    <button class="btn btn-disabled" id="lobbyStartBtn">🎵 Démarrer le blind test !</button>
   </div>
 </div>
 
-<!-- MJ GAME -->
-<div id="screenMJGame" class="screen">
-  <div class="wrap"><div class="rel">
-    <div class="game-header">
-      <span class="game-qnum" id="mjQNum"></span>
-      <div class="timer-arc-wrap">
-        <svg width="56" height="56" viewBox="0 0 56 56">
-          <circle cx="28" cy="28" r="24" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="4"/>
-          <circle id="mjTimerArc" cx="28" cy="28" r="24" fill="none" stroke="#10b981" stroke-width="4" stroke-dasharray="150.8" stroke-dashoffset="0" stroke-linecap="round"/>
-        </svg>
-        <div class="timer-num" id="mjTimerNum" style="color:var(--green)">20</div>
-      </div>
-      <span class="game-answers" id="mjAnswerCount"></span>
+<!-- MJ GAME — style Kahoot -->
+<div id="screenMJGame" class="screen kah-screen">
+
+  <!-- TOP BAR MJ -->
+  <div class="kah-topbar">
+    <div class="kah-timer-wrap">
+      <svg width="52" height="52" viewBox="0 0 52 52">
+        <circle cx="26" cy="26" r="22" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="4"/>
+        <circle id="mjTimerArc" cx="26" cy="26" r="22" fill="none" stroke="#10b981" stroke-width="4"
+          stroke-dasharray="138.2" stroke-dashoffset="0" stroke-linecap="round"
+          style="transform:rotate(-90deg);transform-origin:center"/>
+      </svg>
+      <span class="kah-timer-num" id="mjTimerNum">20</span>
     </div>
-    <div id="mjPhaseMusic">
-      <div class="deezer-wrap" id="mjDeezerWrap"></div>
-      <div class="ans-bar">
+    <div class="kah-question-label" id="mjQNum">Manche 1</div>
+    <div class="kah-score-wrap">
+      <span class="kah-score-num" id="mjAnswerCount" style="font-size:16px">0/0</span>
+      <span class="kah-score-lbl">réponses</span>
+    </div>
+  </div>
+
+  <!-- PHASE MUSIC -->
+  <div id="mjPhaseMusic" class="kah-stage" style="justify-content:flex-start;padding-top:12px;overflow-y:auto">
+    <div style="width:100%;max-width:440px;display:flex;flex-direction:column;gap:12px">
+      <!-- Deezer player -->
+      <div class="deezer-wrap" id="mjDeezerWrap" style="margin-bottom:0"></div>
+      <!-- Barre de réponses -->
+      <div class="card" style="margin-bottom:0">
         <div class="ans-bar-label"><span>Réponses reçues</span><span id="mjAnsBarLabel">0/0</span></div>
-        <div class="ans-bar-track"><div class="ans-bar-fill" id="mjAnsBarFill" style="width:0%"></div></div>
+        <div class="ans-bar-track" style="margin-top:8px"><div class="ans-bar-fill" id="mjAnsBarFill" style="width:0%"></div></div>
       </div>
-      <button class="btn btn-red" id="btnMjStop">⏹ Stopper la musique</button>
     </div>
-    <div id="mjPhaseReveal" style="display:none">
+  </div>
+
+  <!-- PHASE REVEAL -->
+  <div id="mjPhaseReveal" class="kah-stage" style="display:none;justify-content:flex-start;padding-top:12px;overflow-y:auto">
+    <div style="width:100%;max-width:440px">
+      <div class="kah-reveal-answer" style="margin-bottom:16px">
+        <div class="kah-reveal-label">🎵 Manche <span id="revealQNum"></span> — Bonne réponse</div>
+        <div class="kah-reveal-name" id="revealAnswer"></div>
+      </div>
       <div class="card">
-        <p class="card-title">🎵 Manche <span id="revealQNum"></span></p>
-        <p style="font-size:14px;color:var(--muted2);margin-bottom:8px">Bonne réponse :</p>
-        <p style="font-family:var(--font-title);font-size:20px;font-weight:900;color:var(--orange);margin-bottom:16px" id="revealAnswer"></p>
+        <p class="card-title">Résultats</p>
         <div id="revealResults"></div>
       </div>
-      <button class="btn btn-primary" id="btnNextRound">➡️ Manche suivante</button>
     </div>
-  </div></div>
+  </div>
+
+  <!-- BOUTON BAS -->
+  <div style="padding:0 16px 24px;flex-shrink:0;max-width:440px;width:100%;margin:0 auto">
+    <button class="btn btn-red" id="btnMjStop">⏹ Stopper la musique</button>
+    <button class="btn btn-primary" id="btnNextRound" style="display:none">➡️ Manche suivante</button>
+  </div>
 </div>
 
 <!-- PLAYER LOBBY -->
@@ -561,8 +593,7 @@ function dbOff(r){ if(r) off(r); }
 
 // ─── CONSTANTS ───────────────────────────────────────────
 const ANSWER_TIME  = 20;
-const CIRC         = 2*Math.PI*24; // MJ timer r=24 → 150.796
-const CIRC_P       = 2*Math.PI*22; // Player timer r=22 → 138.23
+const CIRC         = 2*Math.PI*22; // r=22 → 138.23 (MJ + joueur)
 const AVATARS      = ['🦁','🐯','🦊','🐸','🐧','🦋','🐉','🦄','🐺','🦈','🐻','🐼','🦅','🐬','🦉'];
 
 function ts()         { return Date.now(); }
@@ -721,8 +752,7 @@ async function doLaunch(){
   await dbSet('rooms/'+code,room);
   G.isMJ=true; G.roomCode=code; G.room=room;
   document.getElementById('lobbyCODE').textContent=code;
-  document.getElementById('lobbyTitle').textContent=title;
-  document.getElementById('lobbySubtitle').textContent=valid.length+' manche'+(valid.length>1?'s':'');
+  setLobbyMeta(title, valid.length);
   show('screenMJLobby');
   startWatch();
 }
@@ -787,6 +817,12 @@ function updateMJLobby(){
   btn.disabled=!n; btn.className='btn '+(n?'btn-green':'btn-disabled');
 }
 
+// Met à jour le sous-titre manches dans le lobby
+function setLobbyMeta(title, count){
+  document.getElementById('lobbyTitle').textContent = title;
+  document.getElementById('lobbySubtitle').textContent = count;
+}
+
 async function doStartGame(){
   await dbSet('rooms/'+G.roomCode,{...G.room,phase:'music',currentQ:0,musicStartedAt:ts()});
 }
@@ -797,9 +833,14 @@ function renderMJGame(){
   const total=Object.keys(r.players||{}).length, ans=Object.keys(r.answers?.[r.currentQ]||{}).length;
   document.getElementById('mjQNum').textContent=`Manche ${r.currentQ+1} / ${r.questions.length}`;
   document.getElementById('mjAnswerCount').textContent=`${ans}/${total}`;
+
+  const stopBtn = document.getElementById('btnMjStop');
+  const nextBtn = document.getElementById('btnNextRound');
+
   if(r.phase==='music'){
-    document.getElementById('mjPhaseMusic').style.display='block';
+    document.getElementById('mjPhaseMusic').style.display='flex';
     document.getElementById('mjPhaseReveal').style.display='none';
+    stopBtn.style.display='flex'; nextBtn.style.display='none';
     const t=tid(q.url);
     document.getElementById('mjDeezerWrap').innerHTML=t?
       `<iframe scrolling="no" frameborder="0" allowtransparency="true" allow="autoplay;clipboard-write;encrypted-media;fullscreen;picture-in-picture"
@@ -808,12 +849,13 @@ function renderMJGame(){
     updateAnsBar();
   } else if(r.phase==='reveal'){
     document.getElementById('mjPhaseMusic').style.display='none';
-    document.getElementById('mjPhaseReveal').style.display='block';
+    document.getElementById('mjPhaseReveal').style.display='flex';
+    stopBtn.style.display='none'; nextBtn.style.display='flex';
     const players=Object.values(r.players||{}), answers=r.answers?.[r.currentQ]||{};
     const isLast=r.currentQ+1>=r.questions.length;
     document.getElementById('revealQNum').textContent=r.currentQ+1;
     document.getElementById('revealAnswer').textContent=q.choices[q.answer];
-    document.getElementById('btnNextRound').textContent=isLast?'🏆 Voir les scores':'➡️ Manche suivante';
+    nextBtn.textContent=isLast?'🏆 Voir les scores':'➡️ Manche suivante';
     document.getElementById('revealResults').innerHTML=players.map(p=>{
       const a=answers[p.id], ok=a&&a.choice===q.answer;
       return `<div class="reveal-row"><div class="reveal-name"><span>${p.avatar}</span><span>${esc(p.name)}</span></div>
@@ -956,18 +998,14 @@ function tick(){
 function updateArc(px,left){
   const n=document.getElementById(px+'TimerNum'), a=document.getElementById(px+'TimerArc');
   if(!n||!a) return;
-  const circ = px==='p' ? CIRC_P : CIRC;
-  a.style.strokeDasharray = circ;
-  a.style.strokeDashoffset = circ*(1-left/ANSWER_TIME);
+  a.style.strokeDasharray = CIRC;
+  a.style.strokeDashoffset = CIRC*(1-left/ANSWER_TIME);
   n.textContent=Math.ceil(left);
-  if(px==='p'){
-    // Kahoot style: white timer, turns red when urgent
-    const c = left<=5 ? '#fc8181' : 'white';
-    a.style.stroke=c; n.style.color=c;
-  } else {
-    const c=left<=0?'var(--muted)':left<=5?'var(--red)':'var(--green)';
-    a.style.stroke=c; n.style.color=c;
-  }
+  // MJ : vert → rouge ; Joueur : blanc → rouge
+  const c = left<=0 ? (px==='p'?'rgba(255,255,255,.3)':'var(--muted)')
+          : left<=5 ? '#fc8181'
+          : px==='p' ? 'white' : '#10b981';
+  a.style.stroke=c; n.style.color=c;
 }
 
 // ─── DEEZER MODAL ────────────────────────────────────────
