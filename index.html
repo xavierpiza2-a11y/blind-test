@@ -154,10 +154,7 @@ textarea.inp{resize:none;line-height:1.6;font-size:14px}
 .bar{width:3px;background:var(--orange);border-radius:2px;animation:barAnim 1s ease-in-out infinite}
 .bar:nth-child(1){height:6px}.bar:nth-child(2){height:12px;animation-delay:.1s}.bar:nth-child(3){height:18px;animation-delay:.2s}.bar:nth-child(4){height:10px;animation-delay:.15s}.bar:nth-child(5){height:14px;animation-delay:.05s}
 @keyframes barAnim{0%,100%{transform:scaleY(.4)}50%{transform:scaleY(1)}}
-.fb-status{position:fixed;bottom:12px;right:12px;z-index:999;font-size:11px;padding:5px 10px;border-radius:20px;font-weight:700;transition:all .3s}
-.fb-ok{background:rgba(16,185,129,.2);border:1px solid rgba(16,185,129,.3);color:var(--green)}
-.fb-err{background:rgba(239,68,68,.2);border:1px solid rgba(239,68,68,.3);color:var(--red)}
-.fb-load{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);color:var(--muted)}
+.fb-ok{} .fb-err{} .fb-load{}
 
 /* ══ KAHOOT PLAYER SCREEN ══════════════════════════════ */
 .kah-screen{
@@ -314,7 +311,7 @@ textarea.inp{resize:none;line-height:1.6;font-size:14px}
 </head>
 <body>
 <div class="bg-glow"></div>
-<div class="fb-status fb-load" id="fbStatus">⏳ Connexion...</div>
+
 
 <!-- HOME -->
 <div id="screenHome" class="screen active">
@@ -555,13 +552,7 @@ const app = initializeApp({
 });
 const db = getDatabase(app);
 
-const fbEl = document.getElementById('fbStatus');
-function fbStatus(s) {
-  fbEl.className = 'fb-status ' + (s==='ok'?'fb-ok':s==='err'?'fb-err':'fb-load');
-  fbEl.textContent = s==='ok'?'🟢 Connecté':s==='err'?'🔴 Hors ligne':'⏳ Connexion...';
-  if(s==='ok') setTimeout(()=>{ fbEl.style.opacity='0'; },3000);
-}
-get(ref(db,'.info/connected')).then(()=>fbStatus('ok')).catch(()=>fbStatus('err'));
+
 
 async function dbSet(path,val){ await set(ref(db,path),val); }
 async function dbGet(path){ const s=await get(ref(db,path)); return s.exists()?s.val():null; }
