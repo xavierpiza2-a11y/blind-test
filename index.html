@@ -158,6 +158,158 @@ textarea.inp{resize:none;line-height:1.6;font-size:14px}
 .fb-ok{background:rgba(16,185,129,.2);border:1px solid rgba(16,185,129,.3);color:var(--green)}
 .fb-err{background:rgba(239,68,68,.2);border:1px solid rgba(239,68,68,.3);color:var(--red)}
 .fb-load{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);color:var(--muted)}
+
+/* ══ KAHOOT PLAYER SCREEN ══════════════════════════════ */
+.kah-screen{
+  background: linear-gradient(160deg,#1a0533 0%,#2d0a5e 50%,#1a0533 100%);
+  display:none; flex-direction:column; min-height:100dvh;
+}
+.kah-screen.active{ display:flex; }
+
+/* TOP BAR */
+.kah-topbar{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:10px 16px; background:rgba(0,0,0,.25);
+  flex-shrink:0; gap:10px;
+}
+.kah-timer-wrap{
+  position:relative; width:52px; height:52px; flex-shrink:0;
+}
+.kah-timer-num{
+  position:absolute; inset:0; display:flex; align-items:center;
+  justify-content:center; font-family:var(--font-title);
+  font-size:18px; font-weight:900; color:white;
+}
+.kah-question-label{
+  flex:1; text-align:center; font-family:var(--font-title);
+  font-size:17px; font-weight:900; color:white;
+  background:rgba(255,255,255,.12); border-radius:12px;
+  padding:8px 14px; line-height:1.2;
+}
+.kah-score-wrap{
+  display:flex; flex-direction:column; align-items:center;
+  background:rgba(255,255,255,.12); border-radius:12px;
+  padding:6px 12px; min-width:52px; flex-shrink:0;
+}
+.kah-score-num{
+  font-family:var(--font-title); font-size:20px;
+  font-weight:900; color:white; line-height:1;
+}
+.kah-score-lbl{ font-size:10px; color:rgba(255,255,255,.6); margin-top:1px; }
+
+/* STAGE */
+.kah-stage{
+  flex:1; display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  padding:16px; min-height:0;
+}
+.kah-music-visual{
+  display:flex; flex-direction:column; align-items:center;
+  justify-content:center; gap:12px; width:100%;
+}
+.kah-note-bg{
+  font-size:72px;
+  filter:drop-shadow(0 0 32px rgba(249,115,22,.6));
+  animation:notePulse 1.5s ease-in-out infinite;
+}
+@keyframes notePulse{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+.kah-bars-center{
+  display:flex; align-items:flex-end; gap:4px; height:32px;
+}
+.kah-bar{
+  width:5px; border-radius:3px;
+  background:linear-gradient(180deg,#f97316,#fbbf24);
+  animation:kahBar 0.8s ease-in-out infinite;
+}
+.kah-bar:nth-child(1){height:10px;animation-delay:0s}
+.kah-bar:nth-child(2){height:22px;animation-delay:.1s}
+.kah-bar:nth-child(3){height:32px;animation-delay:.2s}
+.kah-bar:nth-child(4){height:28px;animation-delay:.15s}
+.kah-bar:nth-child(5){height:18px;animation-delay:.05s}
+.kah-bar:nth-child(6){height:12px;animation-delay:.25s}
+@keyframes kahBar{0%,100%{transform:scaleY(.35)}50%{transform:scaleY(1)}}
+.kah-playing-txt{
+  color:rgba(255,255,255,.7); font-size:13px; font-weight:600;
+  text-align:center;
+}
+
+/* STATUS (answered / expired) inside stage */
+.kah-answered{
+  background:rgba(16,185,129,.2); border:2px solid rgba(16,185,129,.5);
+  border-radius:14px; padding:12px 20px; text-align:center;
+  color:#6ee7b7; font-weight:700; font-size:15px; margin-top:8px;
+  width:100%; max-width:340px;
+}
+.kah-expired{
+  background:rgba(255,255,255,.08); border:2px solid rgba(255,255,255,.15);
+  border-radius:14px; padding:12px 20px; text-align:center;
+  color:rgba(255,255,255,.5); font-weight:700; font-size:14px; margin-top:8px;
+  width:100%; max-width:340px;
+}
+
+/* REVEAL */
+.kah-reveal-answer{
+  text-align:center; margin-bottom:16px;
+}
+.kah-reveal-label{
+  font-size:12px; color:rgba(255,255,255,.5); text-transform:uppercase;
+  letter-spacing:1px; margin-bottom:8px;
+}
+.kah-reveal-name{
+  font-family:var(--font-title); font-size:26px; font-weight:900;
+  color:white;
+}
+.kah-result-win{
+  background:rgba(16,185,129,.25); border:2px solid #10b981;
+  border-radius:16px; padding:14px 20px; text-align:center;
+  font-weight:800; font-size:18px; color:#6ee7b7;
+  margin-bottom:12px; width:100%; max-width:340px;
+}
+.kah-result-lose{
+  background:rgba(239,68,68,.2); border:2px solid rgba(239,68,68,.5);
+  border-radius:16px; padding:14px 20px; text-align:center;
+  font-weight:800; font-size:16px; color:#fca5a5;
+  margin-bottom:12px; width:100%; max-width:340px;
+}
+.kah-wait-lbl{
+  color:rgba(255,255,255,.45); font-size:13px; margin-top:8px;
+}
+
+/* CHOICES GRID */
+.kah-choices{
+  display:grid; grid-template-columns:1fr 1fr;
+  gap:0; flex-shrink:0;
+}
+.kah-btn{
+  display:flex; align-items:center; gap:12px;
+  padding:16px 18px; min-height:72px;
+  font-family:var(--font-title); font-size:16px; font-weight:800;
+  color:white; cursor:pointer; border:none;
+  transition:filter .12s, transform .1s;
+  text-align:left; line-height:1.2;
+  -webkit-tap-highlight-color:transparent;
+}
+.kah-btn:active:not(:disabled){ filter:brightness(.85); transform:scale(.97); }
+.kah-btn:disabled{ cursor:default; filter:brightness(.6); }
+.kah-btn .kah-icon{
+  width:32px; height:32px; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  font-size:18px;
+}
+/* 4 colors — top-left red, top-right blue, bottom-left yellow, bottom-right green */
+.kah-btn:nth-child(1){ background:#e53e3e; border-radius:0; }
+.kah-btn:nth-child(2){ background:#3182ce; border-radius:0; }
+.kah-btn:nth-child(3){ background:#d69e2e; border-radius:0; }
+.kah-btn:nth-child(4){ background:#38a169; border-radius:0; }
+/* Rounded corners only on the outer edges */
+.kah-btn:nth-child(1){ border-radius:0 0 0 0; }
+.kah-choices{ border-radius:0 0 16px 16px; overflow:hidden; }
+/* Selected state — lighter */
+.kah-btn.kah-selected{ filter:brightness(1.25); box-shadow:inset 0 0 0 4px white; }
+/* Reveal correct/wrong */
+.kah-btn.kah-correct{ filter:brightness(1.1); box-shadow:inset 0 0 0 4px white; }
+.kah-btn.kah-wrong  { filter:brightness(.45); }
+.kah-btn.kah-idle-dim{ filter:brightness(.45); }
 </style>
 </head>
 <body>
@@ -308,41 +460,52 @@ textarea.inp{resize:none;line-height:1.6;font-size:14px}
   </div>
 </div>
 
-<!-- PLAYER GAME -->
-<div id="screenPlayerGame" class="screen">
-  <div class="wrap"><div class="rel">
-    <div class="game-header">
-      <span class="game-qnum" id="pQNum"></span>
-      <div class="timer-arc-wrap">
-        <svg width="56" height="56" viewBox="0 0 56 56">
-          <circle cx="28" cy="28" r="24" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="4"/>
-          <circle id="pTimerArc" cx="28" cy="28" r="24" fill="none" stroke="#10b981" stroke-width="4" stroke-dasharray="150.8" stroke-dashoffset="0" stroke-linecap="round"/>
-        </svg>
-        <div class="timer-num" id="pTimerNum" style="color:var(--green)">20</div>
-      </div>
-      <span style="font-family:var(--font-title);font-weight:900;color:var(--orange);font-size:16px" id="pScore"></span>
+<!-- PLAYER GAME — style Kahoot -->
+<div id="screenPlayerGame" class="screen kah-screen">
+
+  <!-- TOP BAR -->
+  <div class="kah-topbar">
+    <div class="kah-timer-wrap">
+      <svg width="52" height="52" viewBox="0 0 52 52">
+        <circle cx="26" cy="26" r="22" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="4"/>
+        <circle id="pTimerArc" cx="26" cy="26" r="22" fill="none" stroke="white" stroke-width="4"
+          stroke-dasharray="138.2" stroke-dashoffset="0" stroke-linecap="round"
+          style="transform:rotate(-90deg);transform-origin:center"/>
+      </svg>
+      <span class="kah-timer-num" id="pTimerNum">20</span>
     </div>
-    <div id="pPhaseMusic">
-      <div class="music-playing">
-        <div class="bars"><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div></div>
-        <span>La musique joue chez le MJ...</span>
-      </div>
-      <div class="big-question">
-        <div class="big-question-label">Question</div>
-        <div class="big-question-text">🎵 Quel est l'artiste ?</div>
-      </div>
-      <div id="pStatusBox"></div>
-      <div class="choices-grid" id="pChoices"></div>
+    <div class="kah-question-label">Quel est l'artiste ?</div>
+    <div class="kah-score-wrap">
+      <span class="kah-score-num" id="pScore">0</span>
+      <span class="kah-score-lbl">pts</span>
     </div>
-    <div id="pPhaseReveal" style="display:none">
-      <div id="pResultBanner"></div>
-      <div class="card">
-        <p class="card-title">Bonne réponse</p>
-        <p style="font-family:var(--font-title);font-size:22px;font-weight:900;color:var(--orange)" id="pRevealAnswer"></p>
+  </div>
+
+  <!-- CENTER STAGE -->
+  <div class="kah-stage" id="pPhaseMusic">
+    <div class="kah-music-visual">
+      <div class="kah-note-bg">🎵</div>
+      <div class="kah-bars-center">
+        <div class="kah-bar"></div><div class="kah-bar"></div><div class="kah-bar"></div>
+        <div class="kah-bar"></div><div class="kah-bar"></div><div class="kah-bar"></div>
       </div>
-      <div class="status-box status-wait">⏳ En attente du Maître du Jeu...</div>
+      <p class="kah-playing-txt">La musique joue chez le Maître du Jeu...</p>
     </div>
-  </div></div>
+    <div id="pStatusBox"></div>
+  </div>
+
+  <!-- REVEAL CENTER -->
+  <div class="kah-stage" id="pPhaseReveal" style="display:none">
+    <div id="pResultBanner"></div>
+    <div class="kah-reveal-answer">
+      <div class="kah-reveal-label">Bonne réponse</div>
+      <div class="kah-reveal-name" id="pRevealAnswer"></div>
+    </div>
+    <div class="kah-wait-lbl">⏳ En attente du Maître du Jeu...</div>
+  </div>
+
+  <!-- CHOICES GRID -->
+  <div class="kah-choices" id="pChoices"></div>
 </div>
 
 <!-- SCORES -->
@@ -407,7 +570,8 @@ function dbOff(r){ if(r) off(r); }
 
 // ─── CONSTANTS ───────────────────────────────────────────
 const ANSWER_TIME  = 20;
-const CIRC         = 2*Math.PI*24; // 150.796
+const CIRC         = 2*Math.PI*24; // MJ timer r=24 → 150.796
+const CIRC_P       = 2*Math.PI*22; // Player timer r=22 → 138.23
 const AVATARS      = ['🦁','🐯','🦊','🐸','🐧','🦋','🐉','🦄','🐺','🦈','🐻','🐼','🦅','🐬','🦉'];
 
 function ts()         { return Date.now(); }
@@ -697,39 +861,68 @@ function renderPlayerLobbyChips(){
   document.getElementById('playerLobbyChips').innerHTML=players.map(p=>`<div class="chip">${p.avatar} ${esc(p.name)}</div>`).join('');
 }
 
-// ─── PLAYER GAME ─────────────────────────────────────────
+// ─── PLAYER GAME (Kahoot style) ──────────────────────────
+const KAH_ICONS = ['▲','◆','●','■'];
+const KAH_COLORS = ['#e53e3e','#3182ce','#d69e2e','#38a169'];
+
 function renderPlayerGame(){
-  const r=G.room,p=G.player,q=r.questions[r.currentQ];
+  const r=G.room, p=G.player, q=r.questions[r.currentQ];
   const myAns=r.answers?.[r.currentQ]?.[p.id];
-  const L=['🅰️','🅱️','🅲️','🅳️'];
-  document.getElementById('pQNum').textContent=`Manche ${r.currentQ+1} / ${r.questions.length}`;
-  document.getElementById('pScore').textContent=(r.scores?.[p.id]||0)+' pts';
+
+  // Score
+  document.getElementById('pScore').textContent = r.scores?.[p.id]||0;
+
   if(r.phase==='music'){
-    document.getElementById('pPhaseMusic').style.display='block';
+    document.getElementById('pPhaseMusic').style.display='flex';
     document.getElementById('pPhaseReveal').style.display='none';
     const left=Math.max(0,ANSWER_TIME-(ts()-r.musicStartedAt)/1000);
     updateArc('p',left);
+
+    // Status box
     const sb=document.getElementById('pStatusBox');
-    if(myAns!==undefined) sb.innerHTML='<div class="status-box status-answered">✅ Réponse enregistrée !</div>';
-    else if(left<=0)      sb.innerHTML='<div class="status-box status-expired">⏱️ Temps écoulé — en attente du MJ</div>';
-    else                  sb.innerHTML='';
+    if(myAns!==undefined)
+      sb.innerHTML='<div class="kah-answered">✅ Réponse enregistrée !</div>';
+    else if(left<=0)
+      sb.innerHTML='<div class="kah-expired">⏱️ Temps écoulé</div>';
+    else
+      sb.innerHTML='';
+
+    // Choices
     const choices=document.getElementById('pChoices');
     choices.innerHTML=q.choices.map((c,ci)=>{
-      let cls='idle',dis='';
-      if(myAns!==undefined){cls=myAns.choice===ci?'selected':'idle';dis='disabled';}
-      else if(left<=0){dis='disabled';}
-      return `<button class="choice-btn ${cls}" data-ci="${ci}" ${dis}><span class="choice-lbl">${L[ci]}</span><span class="choice-txt">${esc(c)}</span></button>`;
+      let extra='', dis='';
+      if(myAns!==undefined){
+        extra = myAns.choice===ci ? 'kah-selected' : 'kah-idle-dim';
+        dis='disabled';
+      } else if(left<=0){ dis='disabled'; extra='kah-idle-dim'; }
+      return `<button class="kah-btn ${extra}" data-ci="${ci}" ${dis}>
+        <span class="kah-icon">${KAH_ICONS[ci]}</span>
+        <span>${esc(c)}</span>
+      </button>`;
     }).join('');
     choices.querySelectorAll('[data-ci]').forEach(b=>b.addEventListener('click',()=>doAnswer(+b.dataset.ci)));
+
   } else if(r.phase==='reveal'){
     document.getElementById('pPhaseMusic').style.display='none';
-    document.getElementById('pPhaseReveal').style.display='block';
+    document.getElementById('pPhaseReveal').style.display='flex';
     const a=r.answers?.[r.currentQ]?.[p.id], ok=a&&a.choice===q.answer;
     document.getElementById('pRevealAnswer').textContent=q.choices[q.answer];
     document.getElementById('pResultBanner').innerHTML=a
-      ?(ok?`<div class="result-banner win">🎉 Bravo ! +${a.points} points</div>`
-          :`<div class="result-banner lose">😢 Raté ! C'était : ${esc(q.choices[q.answer])}</div>`)
-      :`<div class="result-banner lose">⏱️ Pas de réponse à temps</div>`;
+      ?(ok?`<div class="kah-result-win">🎉 Bravo ! +${a.points} points</div>`
+          :`<div class="kah-result-lose">😢 Raté ! C'était : ${esc(q.choices[q.answer])}</div>`)
+      :`<div class="kah-result-lose">⏱️ Pas de réponse à temps</div>`;
+
+    // Show choices with correct/wrong highlight
+    const choices=document.getElementById('pChoices');
+    choices.innerHTML=q.choices.map((c,ci)=>{
+      const isCorrect = ci===q.answer;
+      const isChosen  = a && a.choice===ci;
+      let extra = isCorrect ? 'kah-correct' : (isChosen ? 'kah-wrong' : 'kah-idle-dim');
+      return `<button class="kah-btn ${extra}" disabled>
+        <span class="kah-icon">${isCorrect?'✅': (isChosen?'❌':KAH_ICONS[ci])}</span>
+        <span>${esc(c)}</span>
+      </button>`;
+    }).join('');
   }
 }
 
@@ -772,10 +965,18 @@ function tick(){
 function updateArc(px,left){
   const n=document.getElementById(px+'TimerNum'), a=document.getElementById(px+'TimerArc');
   if(!n||!a) return;
-  a.style.strokeDashoffset=CIRC*(1-left/ANSWER_TIME);
+  const circ = px==='p' ? CIRC_P : CIRC;
+  a.style.strokeDasharray = circ;
+  a.style.strokeDashoffset = circ*(1-left/ANSWER_TIME);
   n.textContent=Math.ceil(left);
-  const c=left<=0?'var(--muted)':left<=5?'var(--red)':'var(--green)';
-  a.style.stroke=c; n.style.color=c;
+  if(px==='p'){
+    // Kahoot style: white timer, turns red when urgent
+    const c = left<=5 ? '#fc8181' : 'white';
+    a.style.stroke=c; n.style.color=c;
+  } else {
+    const c=left<=0?'var(--muted)':left<=5?'var(--red)':'var(--green)';
+    a.style.stroke=c; n.style.color=c;
+  }
 }
 
 // ─── DEEZER MODAL ────────────────────────────────────────
