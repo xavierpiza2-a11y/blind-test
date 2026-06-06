@@ -798,26 +798,82 @@ Réponds TOUJOURS en JSON valide uniquement, sans backticks ni markdown.`,
 
 // Génère 3 mauvaises réponses amusantes pour un artiste donné
 async function generateFunnyChoices(correctArtist,allArtists){
-  const seed=Math.random().toString(36).slice(2,6); // graine aléatoire pour forcer l'unicité
+  const seed=Math.random().toString(36).slice(2,6);
+
+  // Tire aléatoirement un "profil" de fausses réponses parmi 6 combinaisons possibles
+  const profiles=[
+    {
+      label:'2 sérieuses + 1 jeu de mots',
+      rules:`- Choix 1 : un vrai artiste du même genre musical (très crédible, peut tromper)
+- Choix 2 : un vrai artiste d'un genre proche (crédible mais moins évident)
+- Choix 3 : un jeu de mots / déformation drôle du nom correct ou d'un artiste connu (ex: "${correctArtist}" → version déformée, ou artiste existant détourné)`
+    },
+    {
+      label:'1 sérieuse + 2 jeux de mots',
+      rules:`- Choix 1 : un vrai artiste du même genre (crédible)
+- Choix 2 : jeu de mots sur le nom de "${correctArtist}" ou d'un artiste du même genre (sonorité proche, détournement)
+- Choix 3 : jeu de mots plus absurde, contrepèterie, ou mashup comique de deux artistes connus`
+    },
+    {
+      label:'1 sérieuse + 1 jeu de mots + 1 absurde',
+      rules:`- Choix 1 : un vrai artiste du même genre (crédible)
+- Choix 2 : jeu de mots ou déformation subtile du nom de "${correctArtist}" (presque vrai)
+- Choix 3 : nom complètement inventé et drôle, mais avec un rapport thématique à la musique ou à l'artiste (ex: son style, son pays, son époque)`
+    },
+    {
+      label:'3 jeux de mots de niveaux différents',
+      rules:`- Choix 1 : déformation légère et subtile du nom de "${correctArtist}" (quasi-identique, piège)
+- Choix 2 : jeu de mots moyen, rapport phonétique ou sémantique avec l'artiste ou son style
+- Choix 3 : jeu de mots complètement barré, mashup, ou anagramme approximatif d'un artiste connu`
+    },
+    {
+      label:'2 jeux de mots + 1 absurde',
+      rules:`- Choix 1 : jeu de mots subtil sur le nom ou le style de "${correctArtist}"
+- Choix 2 : déformation comique d'un artiste du même genre
+- Choix 3 : nom totalement inventé mais drôle, avec une logique interne (prénom + titre de noblesse, artiste + nationalité improbable, etc.)`
+    },
+    {
+      label:'1 piège quasi-identique + 1 jeu de mots + 1 absurde',
+      rules:`- Choix 1 : version quasi-identique du nom "${correctArtist}" avec une légère erreur (lettre, accent, prénom inversé) — piège maximal
+- Choix 2 : jeu de mots ou détournement du nom de l'artiste
+- Choix 3 : nom absurde et drôle sans rapport direct mais thématiquement lié au style musical`
+    }
+  ];
+
+  const profile = profiles[Math.floor(Math.random() * profiles.length)];
+
   const res=await callClaude(`
-[SEED:${seed}] Génère 3 mauvaises réponses pour un blind test. Bonne réponse : "${correctArtist}".
+[SEED:${seed}] PROFIL: "${profile.label}"
+Génère 3 mauvaises réponses pour un blind test. Bonne réponse : "${correctArtist}".
 Autres artistes de la playlist : ${allArtists.filter(a=>a!==correctArtist).slice(0,6).join(', ')||'aucun'}
 
-Règles STRICTES :
-- Choix 1 : un vrai artiste du même genre (crédible, peut tromper)
-- Choix 2 : un nom légèrement absurde mais pas impossible (ex: "MC Baguette", "DJ Flanelle", "Les Frères Mouliné")
-- Choix 3 : complètement barré et drôle (ex: "Patrick Sébastien & Stromae", "Mamie Yvette feat. Jul", "Céline Dion en colère")
-Sois CRÉATIF et VARIÉ, ne répète jamais les mêmes noms inventés.
+RÈGLES DU PROFIL :
+${profile.rules}
+
+CONTRAINTES :
+- Ne JAMAIS reprendre la bonne réponse "${correctArtist}" telle quelle
+- Ne jamais répéter les mêmes inventions que d'habitude (Mamie Yvette, DJ Baguette sont interdits)
+- Les jeux de mots doivent avoir un VRAI rapport avec "${correctArtist}" ou son univers musical
+- Les réponses doivent sembler plausibles au premier coup d'œil (pas trop faciles à éliminer)
 
 Réponds UNIQUEMENT avec ce JSON :
-{"choices":["réponse1","réponse2","réponse3"]}`);
+{"choices":["réponse1","réponse2","réponse3"],"profile":"${profile.label}"}`);
+
   if(res?.choices?.length===3) return res.choices;
+
+  // Fallback si l'API échoue
   const others=allArtists.filter(a=>a!==correctArtist);
-  const funny=['DJ Mamie Yvette','Les Inconnus feat. Céline Dion','Maître Gims de la Forêt','Patrick Sébastien International','MC Baguette','Stromae le Vengeur'];
   const result=[];
   if(others.length>0) result.push(others[Math.floor(Math.random()*others.length)]);
-  while(result.length<3) result.push(randItem(funny));
-  return result.slice(0,3);
+  if(others.length>1) result.push(others[Math.floor(Math.random()*others.length)]);
+  const fallbackFunny=[
+    correctArtist.split(' ').reverse().join(' '),
+    correctArtist+'ov',
+    'DJ '+correctArtist,
+    'Les '+(correctArtist.split(' ')[0]||'Bros')
+  ];
+  while(result.length<3) result.push(randItem(fallbackFunny));
+  return [...new Set(result)].slice(0,3);
 }
 
 // Commentaire entre manches
@@ -968,47 +1024,72 @@ initReconnect();
 
 // ── ORIENTATION PAYSAGE/PORTRAIT ──────────────────────────
 let forcedLandscape = false;
+
+// Injecte le CSS de rotation une seule fois
+(function(){
+  const s = document.createElement('style');
+  s.id = 'landscape-style';
+  s.textContent = `
+    html.landscape-forced {
+      transform: rotate(90deg);
+      transform-origin: top left;
+      width: 100vh;
+      height: 100vw;
+      overflow: hidden;
+      position: fixed;
+      top: 0;
+      left: 100%;
+    }
+    html.landscape-forced body {
+      width: 100vh;
+      height: 100vw;
+      overflow: hidden;
+    }
+  `;
+  document.head.appendChild(s);
+})();
+
 async function toggleOrientation(){
   const btn = document.getElementById('btnToggleOrientation');
-  // Tentative via Screen Orientation API (Android Chrome)
+
+  // Essai Screen Orientation API (Android Chrome en PWA installée)
   if(screen.orientation && screen.orientation.lock){
     try{
       if(!forcedLandscape){
         await screen.orientation.lock('landscape');
         forcedLandscape = true;
         btn.textContent = '↕';
-        btn.title = 'Revenir en portrait';
       }else{
-        await screen.orientation.lock('portrait');
+        await screen.orientation.unlock();
         forcedLandscape = false;
         btn.textContent = '⟳';
-        btn.title = 'Passer en paysage';
       }
       return;
-    }catch(e){
-      // API non supportée ou refusée → fallback CSS
-    }
+    }catch(e){ /* non supporté ou non fullscreen → fallback */ }
   }
-  // Fallback : rotation CSS de tout l'écran joueur
-  const el = document.getElementById('screenPlayerGame');
+
+  // Fallback universel : rotation CSS du <html>
+  const html = document.documentElement;
   if(!forcedLandscape){
-    el.style.cssText += ';transform:rotate(90deg);transform-origin:center;width:100dvh;height:100dvw;position:fixed;top:50%;left:50%;margin-top:-50dvw;margin-left:-50dvh;';
+    html.classList.add('landscape-forced');
     forcedLandscape = true;
     btn.textContent = '↕';
+    btn.title = 'Revenir en portrait';
   }else{
-    el.style.transform='';el.style.width='';el.style.height='';
-    el.style.position='';el.style.top='';el.style.left='';
-    el.style.marginTop='';el.style.marginLeft='';
+    html.classList.remove('landscape-forced');
     forcedLandscape = false;
     btn.textContent = '⟳';
+    btn.title = 'Passer en paysage';
   }
 }
-// Réinitialiser à la sortie de l'écran joueur
+
 function resetOrientation(){
-  if(forcedLandscape && screen.orientation?.unlock) screen.orientation.unlock();
+  document.documentElement.classList.remove('landscape-forced');
+  if(screen.orientation?.unlock) screen.orientation.unlock();
   forcedLandscape = false;
   const btn = document.getElementById('btnToggleOrientation');
-  if(btn){btn.textContent='⟳';btn.title='Passer en paysage';}
+  if(btn){ btn.textContent = '⟳'; btn.title = 'Passer en paysage'; }
+}
 }
 
 // JOIN
