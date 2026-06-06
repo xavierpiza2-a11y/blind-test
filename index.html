@@ -685,16 +685,27 @@ function launchConfetti(n=60){
 }
 
 // ── CLAUDE API (commentaires humoristiques + mauvaises réponses) ──
+const CLAUDE_API_KEY='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';
+// ⚠️ Pensez à restreindre cette clé sur console.anthropic.com
+
 async function callClaude(prompt){
   try{
     const r=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
-      headers:{'Content-Type':'application/json'},
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key':CLAUDE_API_KEY,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
       body:JSON.stringify({
-        model:'claude-sonnet-4-20250514',
+        model:'claude-sonnet-4-6',
         max_tokens:1000,
-        system:`Tu es le présentateur hilarant d'un blind test musical en famille. 
-Tu es drôle, taquin, tu fais des blagues sur les scores et les artistes. 
+        temperature:1,
+        system:`Tu es Dédé, le présentateur légendaire et hilarant d'un blind test musical en famille.
+Tu as un humour décapant, tu taquines les joueurs par leur prénom, tu fais des comparaisons absurdes.
+Chaque commentaire est UNIQUE — tu n'utilises jamais les mêmes formulations d'une manche à l'autre.
+Varie ton registre : parfois poétique, parfois brutal, parfois complètement à côté.
 Réponds TOUJOURS en JSON valide uniquement, sans backticks ni markdown.`,
         messages:[{role:'user',content:prompt}]
       })
@@ -702,27 +713,27 @@ Réponds TOUJOURS en JSON valide uniquement, sans backticks ni markdown.`,
     const data=await r.json();
     const text=data.content?.find(c=>c.type==='text')?.text||'{}';
     return JSON.parse(text.replace(/```json|```/g,'').trim());
-  }catch(e){return null;}
+  }catch(e){console.error('Claude API:',e);return null;}
 }
 
 // Génère 3 mauvaises réponses amusantes pour un artiste donné
 async function generateFunnyChoices(correctArtist,allArtists){
+  const seed=Math.random().toString(36).slice(2,6); // graine aléatoire pour forcer l'unicité
   const res=await callClaude(`
-Génère 3 mauvaises réponses drôles pour un blind test.
-La bonne réponse est : "${correctArtist}"
-Les autres artistes de la playlist : ${allArtists.filter(a=>a!==correctArtist).slice(0,6).join(', ')}
+[SEED:${seed}] Génère 3 mauvaises réponses pour un blind test. Bonne réponse : "${correctArtist}".
+Autres artistes de la playlist : ${allArtists.filter(a=>a!==correctArtist).slice(0,6).join(', ')||'aucun'}
 
-Règles :
-- 1 mauvaise réponse crédible (même genre musical, artiste réel)  
-- 1 mauvaise réponse légèrement absurde mais pas trop
-- 1 mauvaise réponse franchement drôle (inventée, genre "DJ Mamie Yvette", "Les Beatles feat. Stromae", etc.)
+Règles STRICTES :
+- Choix 1 : un vrai artiste du même genre (crédible, peut tromper)
+- Choix 2 : un nom légèrement absurde mais pas impossible (ex: "MC Baguette", "DJ Flanelle", "Les Frères Mouliné")
+- Choix 3 : complètement barré et drôle (ex: "Patrick Sébastien & Stromae", "Mamie Yvette feat. Jul", "Céline Dion en colère")
+Sois CRÉATIF et VARIÉ, ne répète jamais les mêmes noms inventés.
 
 Réponds UNIQUEMENT avec ce JSON :
 {"choices":["réponse1","réponse2","réponse3"]}`);
   if(res?.choices?.length===3) return res.choices;
-  // fallback
   const others=allArtists.filter(a=>a!==correctArtist);
-  const funny=['DJ Mamie Yvette','Les Inconnus feat. Celine Dion','Maître Gims de la Forêt','Patrick Sébastien International'];
+  const funny=['DJ Mamie Yvette','Les Inconnus feat. Céline Dion','Maître Gims de la Forêt','Patrick Sébastien International','MC Baguette','Stromae le Vengeur'];
   const result=[];
   if(others.length>0) result.push(others[Math.floor(Math.random()*others.length)]);
   while(result.length<3) result.push(randItem(funny));
@@ -734,20 +745,28 @@ async function generateInterludeComment(roundNum,scores,players,correctAnswer,an
   const sorted=[...players].sort((a,b)=>(scores[b.id]||0)-(scores[a.id]||0));
   const leader=sorted[0];
   const loser=sorted[sorted.length-1];
+  const nbCorrect=answeredCorrectly.length;
+  const seed=Math.random().toString(36).slice(2,6);
   const res=await callClaude(`
-Génère un commentaire drôle pour un blind test après la manche ${roundNum}.
-La bonne réponse était : "${correctAnswer}"
-Joueurs ayant trouvé : ${answeredCorrectly.join(', ')||'personne 😬'}
-Leader actuel : ${leader?.name||'?'} (${scores[leader?.id]||0} pts)
-Dernier : ${loser?.name||'?'} (${scores[loser?.id]||0} pts)
+[SEED:${seed}] Manche ${roundNum} terminée. Bonne réponse : "${correctAnswer}".
+Joueurs ayant trouvé (${nbCorrect}/${players.length}) : ${answeredCorrectly.join(', ')||'absolument personne 💀'}
+Scores actuels : ${sorted.map(p=>`${p.name} ${scores[p.id]||0}pts`).join(' | ')}
+Leader : ${leader?.name||'?'} | Lanterne rouge : ${loser?.name||'?'}
+
+Génère un commentaire UNIQUE et CRÉATIF (2 phrases max). Varie le style :
+- Moque-toi gentiment de ceux qui ont raté
+- Félicite avec exagération ceux qui ont trouvé
+- Fais une anecdote inventée sur l'artiste "${correctAnswer}"
+- Compare le score à quelque chose d'absurde
+N'utilise JAMAIS les formules génériques comme "Quelle manche !" ou "Bien joué !".
 
 Réponds UNIQUEMENT avec ce JSON :
-{"comment":"commentaire drôle et court (max 2 phrases)","emoji":"1 seul emoji"}`);
+{"comment":"commentaire unique et drôle","emoji":"1 emoji"}`);
   if(res?.comment) return res;
   const fallbacks=[
-    {comment:`Bonne réponse : ${correctAnswer} ! ${answeredCorrectly.length===0?'Personne n\'a trouvé... honteux 😅':''}`,emoji:randItem(FUNNY_EMOJIS)},
-    {comment:`${leader?.name} prend la tête ! Attention, les autres sont jaloux... 😤`,emoji:'🏆'},
-    {comment:`${correctAnswer} et personne n'a douté ? Ou si ? 🤔`,emoji:'🎵'}
+    {comment:`${correctAnswer}... ${nbCorrect===0?'et personne n\'a trouvé. La honte va durer longtemps.':'Même '+answeredCorrectly[0]+' a su. Respect.'}`,emoji:randItem(FUNNY_EMOJIS)},
+    {comment:`${leader?.name} écrase tout le monde comme un rouleau compresseur musical 🎸`,emoji:'🏆'},
+    {comment:`${loser?.name} prouve qu'on peut aimer la musique sans la connaître. C'est beau.`,emoji:'💀'}
   ];
   return randItem(fallbacks);
 }
@@ -755,15 +774,24 @@ Réponds UNIQUEMENT avec ce JSON :
 // Commentaire final
 async function generateFinalComments(players,scores){
   const sorted=[...players].sort((a,b)=>(scores[b.id]||0)-(scores[a.id]||0));
+  const seed=Math.random().toString(36).slice(2,6);
+  const ecartMax=sorted.length>1?(scores[sorted[0].id]||0)-(scores[sorted[sorted.length-1].id]||0):0;
   const res=await callClaude(`
-Génère des commentaires finaux drôles pour chaque joueur d'un blind test.
-Classement final :
+[SEED:${seed}] Blind test terminé ! Classement final :
 ${sorted.map((p,i)=>`${i+1}. ${p.name} : ${scores[p.id]||0} pts`).join('\n')}
+Écart entre 1er et dernier : ${ecartMax} pts
 
-Réponds UNIQUEMENT avec ce JSON :
+Génère des commentaires UNIQUES pour chaque joueur ET un commentaire global.
+- Le commentaire global doit résumer la soirée avec humour (2 phrases, JAMAIS "Quelle soirée !")
+- Chaque commentaire joueur : une phrase personnalisée selon son rang et son score
+- Pour le 1er : fierté exagérée ou suspicion de triche
+- Pour le dernier : consolation absurde ou encouragement douteux
+- Pour les autres : quelque chose de spécifique à leur position
+
+Réponds UNIQUEMENT avec ce JSON (IDs exacts) :
 {
-  "globalComment":"commentaire général hilarant sur la soirée (max 2 phrases)",
-  "playerComments":{"${sorted.map(p=>p.id).join('":"comment","')}":"comment"}
+  "globalComment":"commentaire global hilarant",
+  "playerComments":{${sorted.map(p=>`"${p.id}":"commentaire pour ${p.name}"`).join(',')}}
 }`);
   return res;
 }
