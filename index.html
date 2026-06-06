@@ -685,19 +685,14 @@ function launchConfetti(n=60){
 }
 
 // ── CLAUDE API (commentaires humoristiques + mauvaises réponses) ──
-const CLAUDE_API_KEY='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';
-// ⚠️ Pensez à restreindre cette clé sur console.anthropic.com
+// La clé API est sécurisée côté Cloudflare Worker — jamais exposée ici.
+const CLAUDE_WORKER_URL = 'https://blind-test.xavier-piza2.workers.dev';
 
 async function callClaude(prompt){
   try{
-    const r=await fetch('https://api.anthropic.com/v1/messages',{
+    const r=await fetch(CLAUDE_WORKER_URL,{
       method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'x-api-key':CLAUDE_API_KEY,
-        'anthropic-version':'2023-06-01',
-        'anthropic-dangerous-direct-browser-access':'true'
-      },
+      headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
         model:'claude-sonnet-4-6',
         max_tokens:1000,
@@ -713,7 +708,7 @@ Réponds TOUJOURS en JSON valide uniquement, sans backticks ni markdown.`,
     const data=await r.json();
     const text=data.content?.find(c=>c.type==='text')?.text||'{}';
     return JSON.parse(text.replace(/```json|```/g,'').trim());
-  }catch(e){console.error('Claude API:',e);return null;}
+  }catch(e){console.error('Claude Worker:',e);return null;}
 }
 
 // Génère 3 mauvaises réponses amusantes pour un artiste donné
