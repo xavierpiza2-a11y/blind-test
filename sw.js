@@ -1,8 +1,8 @@
 const CACHE = 'blindtest-v1';
 const ASSETS = [
-  '/blind-test/',
-  '/blind-test/index.html',
-  '/blind-test/manifest.json'
+  './',
+  './index.html',
+  './manifest.json'
 ];
 
 // Installation — mise en cache des ressources de base
@@ -23,10 +23,11 @@ self.addEventListener('activate', e => {
 
 // Fetch — réseau en priorité, cache en fallback
 self.addEventListener('fetch', e => {
-  // On ne cache pas les requêtes Firebase (temps réel)
+  // On ne cache pas les requêtes Firebase (temps réel) et API
   if (e.request.url.includes('firebasedatabase') ||
       e.request.url.includes('googleapis') ||
       e.request.url.includes('deezer.com') ||
+      e.request.url.includes('api.anthropic.com') ||
       e.request.url.includes('gstatic.com')) {
     return;
   }
