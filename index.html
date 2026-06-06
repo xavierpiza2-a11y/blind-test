@@ -54,6 +54,83 @@ button{cursor:pointer;border:none;background:none}
   background:linear-gradient(160deg,#1a0533 0%,#2d0a5e 50%,#1a0533 100%)}
 .kah-screen.active{display:flex}
 
+/* ── MODE PAYSAGE — écran joueur ── */
+@media (orientation: landscape) and (max-height: 500px) {
+  /* Force le scroll off, tout doit tenir */
+  #screenPlayerGame{
+    flex-direction: row !important;
+    align-items: stretch;
+    overflow: hidden;
+  }
+  /* Colonne gauche : topbar verticale + zone musique/révélation */
+  #screenPlayerGame .kah-topbar{
+    flex-direction: column;
+    width: 120px;
+    min-width: 120px;
+    height: 100dvh;
+    padding: 10px 8px;
+    gap: 10px;
+    border-right: 1px solid rgba(255,255,255,.08);
+    justify-content: space-between;
+    align-items: center;
+  }
+  #screenPlayerGame .kah-q-label{
+    font-size: 11px;
+    text-align: center;
+    writing-mode: horizontal-tb;
+    white-space: normal;
+    max-width: 100px;
+  }
+  /* Zone centrale : animation musique / révélation */
+  #screenPlayerGame .kah-stage{
+    flex: 1;
+    height: 100dvh;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+  }
+  #screenPlayerGame #pPhaseMusic{
+    flex-direction: column;
+    gap: 6px;
+  }
+  #screenPlayerGame .kah-music-visual{
+    transform: scale(0.7);
+    transform-origin: center;
+  }
+  #screenPlayerGame .kah-playing-txt{
+    font-size: 11px;
+    text-align: center;
+  }
+  /* Colonne droite : les 4 boutons réponse */
+  #screenPlayerGame .kah-choices{
+    width: 50vw;
+    max-width: 360px;
+    min-width: 200px;
+    height: 100dvh;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 6px;
+    padding: 8px;
+    flex-shrink: 0;
+  }
+  #screenPlayerGame .kah-btn{
+    height: auto !important;
+    min-height: 0;
+    flex: 1;
+    font-size: 13px;
+    padding: 8px 10px;
+    border-radius: 10px;
+  }
+  #screenPlayerGame .kah-btn .kah-icon{
+    width: 20px;
+    height: 20px;
+    font-size: 12px;
+  }
+}
+
 /* ═══════════════════════════════════════════
    WRAP
 ═══════════════════════════════════════════ */
@@ -514,6 +591,14 @@ textarea.inp{resize:none;line-height:1.6;font-size:14px}
      PLAYER GAME
 ══════════════════════════════════════════ -->
 <div id="screenPlayerGame" class="screen kah-screen">
+  <!-- Bouton bascule orientation -->
+  <button id="btnToggleOrientation" onclick="toggleOrientation()" title="Rotation écran" style="
+    position:fixed;top:8px;right:8px;z-index:999;
+    background:rgba(255,255,255,.12);border:none;border-radius:50%;
+    width:34px;height:34px;font-size:16px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    backdrop-filter:blur(4px);color:white;
+  ">⟳</button>
   <div class="kah-topbar">
     <div class="kah-timer-wrap">
       <svg width="52" height="52" viewBox="0 0 52 52">
@@ -881,6 +966,51 @@ async function doReconnect(){
 
 initReconnect();
 
+// ── ORIENTATION PAYSAGE/PORTRAIT ──────────────────────────
+let forcedLandscape = false;
+async function toggleOrientation(){
+  const btn = document.getElementById('btnToggleOrientation');
+  // Tentative via Screen Orientation API (Android Chrome)
+  if(screen.orientation && screen.orientation.lock){
+    try{
+      if(!forcedLandscape){
+        await screen.orientation.lock('landscape');
+        forcedLandscape = true;
+        btn.textContent = '↕';
+        btn.title = 'Revenir en portrait';
+      }else{
+        await screen.orientation.lock('portrait');
+        forcedLandscape = false;
+        btn.textContent = '⟳';
+        btn.title = 'Passer en paysage';
+      }
+      return;
+    }catch(e){
+      // API non supportée ou refusée → fallback CSS
+    }
+  }
+  // Fallback : rotation CSS de tout l'écran joueur
+  const el = document.getElementById('screenPlayerGame');
+  if(!forcedLandscape){
+    el.style.cssText += ';transform:rotate(90deg);transform-origin:center;width:100dvh;height:100dvw;position:fixed;top:50%;left:50%;margin-top:-50dvw;margin-left:-50dvh;';
+    forcedLandscape = true;
+    btn.textContent = '↕';
+  }else{
+    el.style.transform='';el.style.width='';el.style.height='';
+    el.style.position='';el.style.top='';el.style.left='';
+    el.style.marginTop='';el.style.marginLeft='';
+    forcedLandscape = false;
+    btn.textContent = '⟳';
+  }
+}
+// Réinitialiser à la sortie de l'écran joueur
+function resetOrientation(){
+  if(forcedLandscape && screen.orientation?.unlock) screen.orientation.unlock();
+  forcedLandscape = false;
+  const btn = document.getElementById('btnToggleOrientation');
+  if(btn){btn.textContent='⟳';btn.title='Passer en paysage';}
+}
+
 // JOIN
 document.getElementById('joinName').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('joinCode').focus();});
 document.getElementById('joinCode').addEventListener('keydown',e=>{if(e.key==='Enter')doJoin();});
@@ -1051,7 +1181,8 @@ function onRoom(fresh){
       else renderPlayerGame();
     }
     else if(fresh.phase==='reveal'&&(pc||qc)){stopTimer();renderPlayerGame();}
-    else if(fresh.phase==='scores'&&prev?.phase!=='scores'){stopTimer();showFinalScores();}
+    else if(fresh.phase==='scores'&&prev?.phase!=='scores'){stopTimer();resetOrientation();showFinalScores();}
+    else if(fresh.phase==='interlude'&&prev?.phase!=='interlude'){resetOrientation();}
   }
 }
 
