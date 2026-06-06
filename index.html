@@ -8,595 +8,103 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Blind Test">
 <meta name="mobile-web-app-capable" content="yes">
-<link rel="manifest" href="manifest.json">
+<link rel="manifest" href="./manifest.json">
 <title>🎵 Blind Test Famille</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@700;800&display=swap" rel="stylesheet">
 <style>
-/* ═══════════════════════════════════════════
-   VARIABLES & RESET
-═══════════════════════════════════════════ */
-:root{
-  --bg:#0d001f;
-  --card:rgba(255,255,255,.07);
-  --border:rgba(255,255,255,.1);
-  --orange:#f97316;--orange2:#ea580c;
-  --pink:#ec4899;--purple:#8b5cf6;
-  --green:#10b981;--red:#ef4444;--blue:#3b82f6;
-  --yellow:#f59e0b;
-  --text:#f1f5f9;--muted:#64748b;--muted2:#94a3b8;
-  --ft:'Syne',sans-serif;--fn:'Inter',sans-serif;
-  --fm:'JetBrains Mono','Courier New',monospace;
-  /* Kahoot colors */
-  --k1:#e53e3e;--k2:#3182ce;--k3:#d69e2e;--k4:#38a169;
-}
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{-webkit-tap-highlight-color:transparent;scroll-behavior:smooth}
-body{font-family:var(--fn);background:var(--bg);color:var(--text);min-height:100dvh;-webkit-font-smoothing:antialiased;overflow-x:hidden}
-button,input,textarea{font-family:inherit}
-button{cursor:pointer;border:none;background:none}
-
-/* ═══════════════════════════════════════════
-   ANIMATED BG
-═══════════════════════════════════════════ */
-.bg-wrap{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
-.bg-orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:.35;animation:orbFloat 8s ease-in-out infinite}
-.bg-orb1{width:400px;height:400px;background:radial-gradient(#8b5cf6,#4c1d95);top:-100px;left:-100px;animation-delay:0s}
-.bg-orb2{width:300px;height:300px;background:radial-gradient(#ec4899,#831843);bottom:-50px;right:-50px;animation-delay:3s}
-.bg-orb3{width:250px;height:250px;background:radial-gradient(#f97316,#9a3412);top:40%;left:60%;animation-delay:5s}
-@keyframes orbFloat{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(30px,-20px) scale(1.1)}66%{transform:translate(-20px,30px) scale(.9)}}
-
-/* ═══════════════════════════════════════════
-   SCREENS
-═══════════════════════════════════════════ */
-.screen{display:none;min-height:100dvh;flex-direction:column;position:relative;z-index:1}
-.screen.active{display:flex}
-.kah-screen{height:100dvh;max-height:100dvh;overflow:hidden;
-  background:linear-gradient(160deg,#1a0533 0%,#2d0a5e 50%,#1a0533 100%)}
-.kah-screen.active{display:flex}
-
-/* ═══════════════════════════════════════════
-   WRAP
-═══════════════════════════════════════════ */
-.wrap{max-width:480px;margin:0 auto;padding:24px 16px 48px;flex:1;display:flex;flex-direction:column}
-
-/* ═══════════════════════════════════════════
-   TYPOGRAPHY
-═══════════════════════════════════════════ */
-.title-grad{font-family:var(--ft);font-weight:900;background:linear-gradient(135deg,#fb923c,#f97316,#fbbf24);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.title-purple{font-family:var(--ft);font-weight:900;background:linear-gradient(135deg,#a78bfa,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-
-/* ═══════════════════════════════════════════
-   CARD
-═══════════════════════════════════════════ */
-.card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:18px;margin-bottom:14px;backdrop-filter:blur(12px)}
-.card-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:14px}
-
-/* ═══════════════════════════════════════════
-   INPUTS
-═══════════════════════════════════════════ */
-.inp{width:100%;padding:12px 16px;background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.12);border-radius:12px;color:var(--text);font-size:15px;outline:none;transition:border-color .15s;margin-bottom:10px}
-.inp:focus{border-color:var(--orange)}
-.inp-code{text-transform:uppercase;letter-spacing:4px;font-weight:800;font-size:22px;text-align:center;font-family:var(--fm)}
-textarea.inp{resize:none;line-height:1.6;font-size:14px}
-
-/* ═══════════════════════════════════════════
-   BUTTONS
-═══════════════════════════════════════════ */
-.btn{width:100%;padding:14px;border-radius:14px;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:10px;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:8px;border:none}
-.btn:active{transform:scale(.97)}
-.btn-primary{background:linear-gradient(135deg,var(--orange),var(--orange2));color:white;box-shadow:0 4px 24px rgba(249,115,22,.4)}
-.btn-secondary{background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.14);color:var(--text)}
-.btn-green{background:linear-gradient(135deg,#059669,#10b981);color:white;box-shadow:0 4px 20px rgba(16,185,129,.35)}
-.btn-red{background:rgba(239,68,68,.18);border:1.5px solid rgba(239,68,68,.35);color:var(--red)}
-.btn-purple{background:rgba(139,92,246,.18);border:1.5px solid rgba(139,92,246,.35);color:#c4b5fd}
-.btn-pink{background:linear-gradient(135deg,#ec4899,#be185d);color:white;box-shadow:0 4px 20px rgba(236,72,153,.35)}
-.btn-disabled{background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.07);color:var(--muted);cursor:not-allowed}
-.btn-back{background:rgba(255,255,255,.08);border-radius:10px;padding:8px 14px;color:var(--muted2);font-size:16px;margin-bottom:0}
-.btn-sm{width:auto;padding:8px 14px;font-size:13px;border-radius:10px;margin-bottom:0}
-
-/* ═══════════════════════════════════════════
-   DIVIDER
-═══════════════════════════════════════════ */
-.divider{display:flex;align-items:center;gap:12px;color:var(--muted);font-size:12px;margin:4px 0 14px}
-.divider::before,.divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.1)}
-
-/* ═══════════════════════════════════════════
-   HERO
-═══════════════════════════════════════════ */
-.hero{text-align:center;padding:40px 0 28px}
-.hero-icon{font-size:72px;margin-bottom:12px;filter:drop-shadow(0 0 32px rgba(249,115,22,.6));animation:heroFloat 3s ease-in-out infinite}
-@keyframes heroFloat{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-10px) rotate(3deg)}}
-
-/* ═══════════════════════════════════════════
-   CODE BOX
-═══════════════════════════════════════════ */
-.code-box{background:rgba(249,115,22,.1);border:2px solid rgba(249,115,22,.3);border-radius:16px;padding:18px;text-align:center;margin-bottom:14px}
-.code-label{font-size:11px;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px}
-.code-val{font-family:var(--fm);font-size:48px;font-weight:800;letter-spacing:8px;color:var(--orange);line-height:1;text-shadow:0 0 30px rgba(249,115,22,.5)}
-.code-hint{font-size:11px;color:var(--muted);margin-top:8px}
-
-/* CHIPS */
-.chips{display:flex;flex-wrap:wrap;gap:8px}
-.chip{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:6px 14px;font-size:13px;color:var(--muted2)}
-
-/* ═══════════════════════════════════════════
-   WAITING DOTS
-═══════════════════════════════════════════ */
-.waiting-dots{display:flex;justify-content:center;gap:8px;padding:20px 0}
-.waiting-dot{width:10px;height:10px;border-radius:50%;background:var(--orange);animation:dotB 1.2s ease-in-out infinite}
-.waiting-dot:nth-child(2){animation-delay:.2s}
-.waiting-dot:nth-child(3){animation-delay:.4s}
-@keyframes dotB{0%,80%,100%{transform:scale(.6);opacity:.4}40%{transform:scale(1);opacity:1}}
-
-/* ═══════════════════════════════════════════
-   SAVED GAMES
-═══════════════════════════════════════════ */
-.saved-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.06)}
-.saved-item:last-child{border-bottom:none}
-.saved-info{flex:1;min-width:0;cursor:pointer}
-.saved-info:hover .saved-name{color:var(--orange)}
-.saved-name{font-weight:700;font-size:15px;transition:color .15s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.saved-meta{font-size:12px;color:var(--muted);margin-top:2px}
-.saved-del{padding:6px 10px;border-radius:8px;font-size:14px;background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.2);color:var(--red);cursor:pointer;flex-shrink:0}
-
-/* ═══════════════════════════════════════════
-   SETUP — QUESTION CARDS
-═══════════════════════════════════════════ */
-.q-card{background:rgba(139,92,246,.07);border:1px solid rgba(139,92,246,.2);border-radius:16px;padding:16px;margin-bottom:14px;transition:border-color .2s}
-.q-card:hover{border-color:rgba(139,92,246,.4)}
-.q-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
-.q-num{font-weight:800;color:var(--purple);font-size:13px;display:flex;align-items:center;gap:6px}
-.q-del{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.2);color:var(--red);border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer}
-.choice-row{display:flex;gap:8px;margin-bottom:8px;align-items:center}
-.choice-mark{width:36px;height:36px;border-radius:10px;border:2px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);flex-shrink:0;font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s}
-.choice-mark.correct{background:var(--orange);border-color:var(--orange)}
-.ai-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(139,92,246,.2);border:1px solid rgba(139,92,246,.3);border-radius:8px;padding:3px 8px;font-size:11px;color:#c4b5fd;font-weight:600;margin-bottom:8px}
-
-/* DEEZER ROW */
-.deezer-row{display:flex;gap:8px;align-items:stretch;margin-bottom:8px}
-.deezer-row .inp{margin-bottom:0;flex:1}
-.btn-deezer{flex-shrink:0;padding:10px 14px;background:rgba(249,115,22,.15);border:1.5px solid rgba(249,115,22,.3);color:var(--orange);border-radius:12px;font-size:15px;cursor:pointer;transition:all .15s}
-.btn-deezer:hover{background:rgba(249,115,22,.3)}
-.deezer-wrap{border-radius:12px;overflow:hidden;margin-bottom:12px}
-.deezer-warn{color:var(--orange);font-size:12px;text-align:center;padding:8px;background:rgba(249,115,22,.08);border-radius:10px;margin-bottom:10px}
-
-/* ═══════════════════════════════════════════
-   DEEZER SEARCH MODAL
-═══════════════════════════════════════════ */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:300;display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(8px)}
-.modal-overlay.hidden{display:none}
-.modal-sheet{background:#130929;border:1px solid rgba(255,255,255,.12);border-radius:24px 24px 0 0;width:100%;max-width:480px;max-height:88dvh;display:flex;flex-direction:column;overflow:hidden;animation:slideUp .3s cubic-bezier(.34,1.56,.64,1)}
-@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
-.modal-header{padding:16px 20px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0}
-.modal-title{font-family:var(--ft);font-weight:900;font-size:16px;color:var(--orange)}
-.modal-close{background:rgba(255,255,255,.1);border-radius:8px;padding:6px 12px;color:var(--muted2);font-size:14px;cursor:pointer}
-.modal-search-row{padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0;display:flex;gap:8px}
-.modal-search-row .inp{margin-bottom:0;flex:1}
-.modal-body{flex:1;overflow-y:auto;padding:8px 16px 16px}
-.search-result{display:flex;align-items:center;gap:12px;padding:10px;border-radius:12px;cursor:pointer;transition:background .15s;margin-bottom:6px}
-.search-result:hover{background:rgba(249,115,22,.1)}
-.search-cover{width:48px;height:48px;border-radius:8px;object-fit:cover;flex-shrink:0;background:rgba(255,255,255,.05)}
-.search-info{flex:1;min-width:0}
-.search-title{font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.search-artist{font-size:12px;color:var(--muted2);margin-top:2px}
-.search-pick{flex-shrink:0;background:rgba(249,115,22,.15);border:1.5px solid rgba(249,115,22,.3);color:var(--orange);border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer}
-.search-empty{text-align:center;color:var(--muted);font-size:14px;padding:32px 0}
-.search-dots{display:flex;justify-content:center;gap:6px;margin-bottom:8px}
-.search-dot{width:8px;height:8px;border-radius:50%;background:var(--orange);animation:dotB 1.2s ease-in-out infinite}
-.search-dot:nth-child(2){animation-delay:.2s}.search-dot:nth-child(3){animation-delay:.4s}
-
-/* ═══════════════════════════════════════════
-   KAHOOT TOPBAR (MJ + Joueur)
-═══════════════════════════════════════════ */
-.kah-topbar{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(0,0,0,.3);flex-shrink:0;gap:10px}
-.kah-timer-wrap{position:relative;width:52px;height:52px;flex-shrink:0}
-.kah-timer-wrap svg{position:absolute;top:0;left:0}
-.kah-timer-num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--ft);font-size:18px;font-weight:900;color:white}
-.kah-q-label{flex:1;text-align:center;font-family:var(--ft);font-size:16px;font-weight:900;color:white;background:rgba(255,255,255,.12);border-radius:12px;padding:8px 12px;line-height:1.2}
-.kah-score-wrap{display:flex;flex-direction:column;align-items:center;background:rgba(255,255,255,.12);border-radius:12px;padding:6px 12px;min-width:56px;flex-shrink:0}
-.kah-score-num{font-family:var(--ft);font-size:20px;font-weight:900;color:white;line-height:1}
-.kah-score-lbl{font-size:10px;color:rgba(255,255,255,.6);margin-top:1px}
-
-/* ═══════════════════════════════════════════
-   KAHOOT STAGE
-═══════════════════════════════════════════ */
-.kah-stage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px 16px;min-height:0;overflow:hidden}
-
-/* Music visual */
-.kah-note-bg{font-size:64px;filter:drop-shadow(0 0 32px rgba(249,115,22,.6));animation:notePulse 1.5s ease-in-out infinite}
-@keyframes notePulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
-.kah-bars-center{display:flex;align-items:flex-end;gap:4px;height:28px;margin:10px 0}
-.kah-bar{width:5px;border-radius:3px;background:linear-gradient(180deg,#f97316,#fbbf24);animation:kahBar .8s ease-in-out infinite}
-.kah-bar:nth-child(1){height:10px}.kah-bar:nth-child(2){height:20px;animation-delay:.1s}.kah-bar:nth-child(3){height:28px;animation-delay:.2s}.kah-bar:nth-child(4){height:24px;animation-delay:.15s}.kah-bar:nth-child(5){height:16px;animation-delay:.05s}.kah-bar:nth-child(6){height:10px;animation-delay:.25s}
-@keyframes kahBar{0%,100%{transform:scaleY(.35)}50%{transform:scaleY(1)}}
-.kah-playing-txt{color:rgba(255,255,255,.7);font-size:13px;font-weight:600;text-align:center}
-
-/* Status boxes */
-.kah-answered{background:rgba(16,185,129,.2);border:2px solid rgba(16,185,129,.5);border-radius:14px;padding:10px 20px;text-align:center;color:#6ee7b7;font-weight:700;font-size:14px;margin-top:8px;width:100%;max-width:340px}
-.kah-expired{background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.15);border-radius:14px;padding:10px 20px;text-align:center;color:rgba(255,255,255,.5);font-weight:700;font-size:13px;margin-top:8px;width:100%;max-width:340px}
-
-/* ═══════════════════════════════════════════
-   KAHOOT CHOICES
-═══════════════════════════════════════════ */
-.kah-choices{display:grid;grid-template-columns:1fr 1fr;gap:6px;flex-shrink:0;padding:6px 10px 12px;width:100%}
-.kah-btn{display:flex;align-items:center;gap:10px;padding:0 14px;height:68px;font-family:var(--ft);font-size:15px;font-weight:800;color:white;cursor:pointer;border:none;transition:filter .12s,transform .12s;text-align:left;line-height:1.2;border-radius:12px;-webkit-tap-highlight-color:transparent;overflow:hidden;position:relative}
-.kah-btn::after{content:'';position:absolute;inset:0;background:white;opacity:0;transition:opacity .15s;border-radius:12px}
-.kah-btn:active:not(:disabled)::after{opacity:.15}
-.kah-btn:disabled{cursor:default}
-.kah-btn .kah-icon{width:26px;height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:15px}
-.kah-btn span:last-child{overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
-.kah-btn:nth-child(1){background:var(--k1)}
-.kah-btn:nth-child(2){background:var(--k2)}
-.kah-btn:nth-child(3){background:var(--k3)}
-.kah-btn:nth-child(4){background:var(--k4)}
-/* Animations d'entrée */
-.kah-btn.enter-1{animation:enterTL .4s cubic-bezier(.34,1.56,.64,1) both}
-.kah-btn.enter-2{animation:enterTR .4s cubic-bezier(.34,1.56,.64,1) .08s both}
-.kah-btn.enter-3{animation:enterBL .4s cubic-bezier(.34,1.56,.64,1) .16s both}
-.kah-btn.enter-4{animation:enterBR .4s cubic-bezier(.34,1.56,.64,1) .24s both}
-@keyframes enterTL{from{transform:translate(-60px,-40px) scale(.7);opacity:0}to{transform:translate(0,0) scale(1);opacity:1}}
-@keyframes enterTR{from{transform:translate(60px,-40px) scale(.7);opacity:0}to{transform:translate(0,0) scale(1);opacity:1}}
-@keyframes enterBL{from{transform:translate(-60px,40px) scale(.7);opacity:0}to{transform:translate(0,0) scale(1);opacity:1}}
-@keyframes enterBR{from{transform:translate(60px,40px) scale(.7);opacity:0}to{transform:translate(0,0) scale(1);opacity:1}}
-.kah-btn.kah-selected{filter:brightness(1.3);box-shadow:inset 0 0 0 3px white,0 0 20px rgba(255,255,255,.3)}
-.kah-btn.kah-correct{filter:brightness(1.2);box-shadow:inset 0 0 0 3px white,0 0 25px rgba(255,255,255,.4);animation:correctPulse .5s ease}
-@keyframes correctPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
-.kah-btn.kah-wrong{filter:brightness(.35)}
-.kah-btn.kah-idle-dim{filter:brightness(.4)}
-
-/* ═══════════════════════════════════════════
-   REVEAL PHASE
-═══════════════════════════════════════════ */
-.kah-reveal-box{text-align:center;width:100%;max-width:400px}
-.kah-reveal-label{font-size:11px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
-.kah-reveal-name{font-family:var(--ft);font-size:26px;font-weight:900;color:white;margin-bottom:16px;animation:revealPop .5s cubic-bezier(.34,1.56,.64,1)}
-@keyframes revealPop{from{transform:scale(.5);opacity:0}to{transform:scale(1);opacity:1}}
-.kah-result-win{background:rgba(16,185,129,.25);border:2px solid #10b981;border-radius:16px;padding:12px 20px;text-align:center;font-weight:800;font-size:17px;color:#6ee7b7;margin-bottom:10px;width:100%;max-width:340px;animation:revealPop .5s cubic-bezier(.34,1.56,.64,1) .2s both}
-.kah-result-lose{background:rgba(239,68,68,.2);border:2px solid rgba(239,68,68,.5);border-radius:16px;padding:12px 20px;text-align:center;font-weight:800;font-size:15px;color:#fca5a5;margin-bottom:10px;width:100%;max-width:340px;animation:revealPop .5s cubic-bezier(.34,1.56,.64,1) .2s both}
-.kah-wait-lbl{color:rgba(255,255,255,.45);font-size:13px;margin-top:8px}
-
-/* ═══════════════════════════════════════════
-   INTERLUDE (commentaire IA entre manches)
-═══════════════════════════════════════════ */
-.interlude-screen{background:linear-gradient(160deg,#1a0533,#2d0a5e,#1a0533);height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center}
-.interlude-emoji{font-size:80px;margin-bottom:16px;animation:interludeFloat 2s ease-in-out infinite}
-@keyframes interludeFloat{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-12px) scale(1.05)}}
-.interlude-comment{font-family:var(--ft);font-size:22px;font-weight:900;color:white;margin-bottom:20px;line-height:1.3;animation:commentSlide .5s cubic-bezier(.34,1.56,.64,1)}
-@keyframes commentSlide{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
-.interlude-mini-scores{width:100%;max-width:360px;margin-bottom:24px}
-.mini-score-row{display:flex;align-items:center;gap:10px;padding:8px 14px;border-radius:12px;margin-bottom:6px;background:rgba(255,255,255,.08);animation:scoreRowIn .4s ease both}
-@keyframes scoreRowIn{from{transform:translateX(-30px);opacity:0}to{transform:translateX(0);opacity:1}}
-.mini-score-pos{font-family:var(--ft);font-size:20px;width:28px;flex-shrink:0}
-.mini-score-name{flex:1;font-weight:700;font-size:14px}
-.mini-score-pts{font-family:var(--ft);font-weight:900;font-size:16px;color:var(--orange)}
-.interlude-loading{display:flex;align-items:center;gap:8px;color:rgba(255,255,255,.5);font-size:13px}
-
-/* ═══════════════════════════════════════════
-   FINAL SCORES
-═══════════════════════════════════════════ */
-.final-screen{background:linear-gradient(160deg,#1a0533,#2d0a5e,#1a0533);min-height:100dvh;display:flex;flex-direction:column;align-items:center;padding:24px;overflow-y:auto}
-.final-title{font-family:var(--ft);font-size:36px;font-weight:900;color:white;text-align:center;margin-bottom:4px;animation:titleDrop .6s cubic-bezier(.34,1.56,.64,1)}
-@keyframes titleDrop{from{transform:translateY(-40px);opacity:0}to{transform:translateY(0);opacity:1}}
-.final-comment-box{background:rgba(255,255,255,.1);border-radius:16px;padding:14px 20px;margin-bottom:20px;text-align:center;max-width:400px;font-size:15px;font-weight:600;color:white;animation:commentSlide .5s ease .3s both}
-.podium-wrap{display:flex;align-items:flex-end;justify-content:center;gap:8px;margin-bottom:20px;width:100%;max-width:400px}
-.podium-col{display:flex;flex-direction:column;align-items:center;gap:6px}
-.podium-avatar{font-size:28px}
-.podium-name{font-weight:800;font-size:12px;text-align:center;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.podium-pts{font-family:var(--ft);font-weight:900;font-size:14px;color:var(--orange)}
-.podium-block{width:80px;border-radius:8px 8px 0 0;display:flex;align-items:center;justify-content:center;font-size:28px;animation:podiumRise 1s cubic-bezier(.34,1.56,.64,1) both}
-.podium-1{background:linear-gradient(180deg,#f59e0b,#d97706);animation-delay:.2s}
-.podium-2{background:linear-gradient(180deg,#94a3b8,#64748b);animation-delay:.4s}
-.podium-3{background:linear-gradient(180deg,#cd7c4a,#9a5c30);animation-delay:.6s}
-@keyframes podiumRise{from{transform:scaleY(0);transform-origin:bottom}to{transform:scaleY(1);transform-origin:bottom}}
-.final-scores-list{width:100%;max-width:400px;margin-bottom:20px}
-.final-score-row{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:14px;margin-bottom:8px;background:rgba(255,255,255,.08);animation:scoreRowIn .5s ease both}
-.fscore-medal{font-size:24px;width:32px;flex-shrink:0}
-.fscore-avatar{font-size:22px}
-.fscore-info{flex:1;min-width:0}
-.fscore-name{font-weight:700;font-size:15px}
-.fscore-comment{font-size:11px;color:var(--muted2);margin-top:2px;font-style:italic}
-.fscore-pts{font-family:var(--ft);font-weight:900;font-size:18px;color:var(--orange)}
-
-/* ═══════════════════════════════════════════
-   CONFETTI
-═══════════════════════════════════════════ */
-.confetti-wrap{position:fixed;inset:0;pointer-events:none;z-index:500;overflow:hidden}
-.conf{position:absolute;width:10px;height:10px;border-radius:2px;animation:confFall linear forwards}
-@keyframes confFall{0%{transform:translateY(-20px) rotate(0deg);opacity:1}100%{transform:translateY(110vh) rotate(720deg);opacity:0}}
-
-/* ═══════════════════════════════════════════
-   MJ GAME — REVEAL RESULTS
-═══════════════════════════════════════════ */
-.reveal-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:14px}
-.reveal-row:last-child{border-bottom:none}
-.reveal-name{display:flex;align-items:center;gap:8px}
-.reveal-pts{font-weight:800;font-family:var(--ft)}
-.reveal-pts.pos{color:var(--green)}.reveal-pts.neg{color:var(--muted)}
-
-/* MJ ans bar */
-.ans-bar-label{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:6px}
-.ans-bar-track{background:rgba(255,255,255,.08);border-radius:6px;height:8px;overflow:hidden}
-.ans-bar-fill{background:linear-gradient(90deg,var(--orange),var(--pink));height:100%;border-radius:6px;transition:width .4s ease}
-
-/* ERR */
-.err{color:var(--red);font-size:13px;text-align:center;margin-bottom:8px}
-
-/* RECONNECT BANNER */
-.reconnect-banner{background:rgba(16,185,129,.12);border:1.5px solid rgba(16,185,129,.35);border-radius:16px;padding:16px;margin-bottom:14px;display:none}
-.reconnect-banner.visible{display:block}
-.reconnect-title{font-weight:800;font-size:14px;color:#6ee7b7;margin-bottom:4px}
-.reconnect-sub{font-size:12px;color:var(--muted2);margin-bottom:12px}
-.reconnect-actions{display:flex;gap:8px}
-.reconnect-actions .btn{margin-bottom:0;flex:1;padding:10px}
+  :root {
+    --bg-color: #1a0533;
+    --text-color: #ffffff;
+    --primary: #8b5cf6;
+    --secondary: #ec4899;
+  }
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    overflow-x: hidden;
+  }
+  h1, h2, h3 { font-family: 'Syne', sans-serif; text-align: center; }
+  .screen {
+    display: none;
+    padding: 20px;
+    min-height: 100vh;
+    box-sizing: border-box;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .screen.active { display: flex; }
+  button {
+    background: linear-gradient(45deg, var(--primary), var(--secondary));
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    border-radius: 30px;
+    cursor: pointer;
+    margin: 10px;
+    font-family: 'Inter', sans-serif;
+    transition: transform 0.2s;
+  }
+  button:active { transform: scale(0.95); }
+  input {
+    padding: 15px;
+    font-size: 1.2rem;
+    border-radius: 10px;
+    border: none;
+    margin: 10px;
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  #confettiWrap {
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    pointer-events: none; z-index: 9999; overflow: hidden;
+  }
+  .conf {
+    position: absolute; top: -10px;
+    animation: fall linear forwards;
+  }
+  @keyframes fall {
+    to { transform: translateY(105vh) rotate(720deg); }
+  }
 </style>
 </head>
 <body>
-<div class="bg-wrap">
-  <div class="bg-orb bg-orb1"></div>
-  <div class="bg-orb bg-orb2"></div>
-  <div class="bg-orb bg-orb3"></div>
-</div>
-<div class="confetti-wrap" id="confettiWrap"></div>
 
-<!-- ══════════════════════════════════════════
-     HOME
-══════════════════════════════════════════ -->
-<div id="screenHome" class="screen active">
-  <div class="wrap">
-    <div class="hero">
-      <div class="hero-icon">🎵</div>
-      <h1 class="title-grad" style="font-size:42px;letter-spacing:-1px;line-height:1">BLIND TEST</h1>
-      <p style="color:var(--muted);font-size:14px;margin-top:8px">La soirée qui va diviser les familles 😅</p>
-    </div>
+<div id="confettiWrap"></div>
 
-    <!-- Bannière de reconnexion (masquée par défaut) -->
-    <div class="reconnect-banner" id="reconnectBanner">
-      <div class="reconnect-title" id="reconnectTitle">🔄 Partie en cours détectée</div>
-      <div class="reconnect-sub" id="reconnectSub">Tu étais dans une partie. Veux-tu reprendre ?</div>
-      <div class="reconnect-actions">
-        <button class="btn btn-green btn-sm" id="btnReconnect" style="font-size:14px">▶️ Reprendre</button>
-        <button class="btn btn-red btn-sm" id="btnReconnectDismiss" style="font-size:14px">✕ Ignorer</button>
-      </div>
-    </div>
-    <div class="card">
-      <button class="btn btn-pink" id="btnMJ">🎤 Je suis le Maître du Jeu</button>
-      <button class="btn btn-secondary" id="btnSaved" style="margin-bottom:0">📂 Mes parties sauvegardées</button>
-    </div>
-    <div class="divider">ou</div>
-    <div class="card">
-      <p class="card-title">Rejoindre une partie</p>
-      <input class="inp" id="joinName" placeholder="Ton prénom (sois créatif 😏)" maxlength="20">
-      <input class="inp inp-code" id="joinCode" placeholder="CODE" maxlength="5">
-      <p class="err" id="joinErr"></p>
-      <button class="btn btn-secondary" id="joinBtn" style="margin-bottom:0">🚀 Rejoindre</button>
-    </div>
-  </div>
+<!-- ECRAN ACCUEIL -->
+<div id="screen-home" class="screen active">
+  <h1>🎵 Blind Test Famille</h1>
+  <button onclick="createGame()">Créer une partie (Maître du Jeu)</button>
+  <p>ou</p>
+  <input type="text" id="roomCodeInput" placeholder="CODE SALLE" maxlength="5">
+  <button onclick="joinGame()">Rejoindre</button>
 </div>
 
-<!-- ══════════════════════════════════════════
-     SAVED
-══════════════════════════════════════════ -->
-<div id="screenSaved" class="screen">
-  <div class="wrap">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;padding-top:16px">
-      <button class="btn-back" id="btnSavedBack">←</button>
-      <h2 class="title-purple" style="font-size:20px">📂 Mes parties</h2>
-    </div>
-    <div class="card" id="savedList"></div>
-    <button class="btn btn-pink" id="btnNewGame">➕ Nouvelle partie</button>
-  </div>
+<!-- ECRAN LOBBY -->
+<div id="screen-lobby" class="screen">
+  <h2>Salle : <span id="lobbyRoomCode" style="color:var(--secondary)"></span></h2>
+  <div id="playersList"></div>
+  <button id="btnStartGame" style="display:none;" onclick="startGame()">Lancer la partie !</button>
 </div>
 
-<!-- ══════════════════════════════════════════
-     SETUP
-══════════════════════════════════════════ -->
-<div id="screenSetup" class="screen">
-  <div class="wrap">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-top:16px">
-      <button class="btn-back" id="btnSetupBack">←</button>
-      <h2 class="title-purple" style="font-size:20px;flex:1">🎤 Créer la partie</h2>
-    </div>
-
-    <!-- Nom + save -->
-    <div style="display:flex;gap:8px;margin-bottom:14px">
-      <input class="inp" id="setupTitle" placeholder="Nom de la soirée" value="Blind Test Famille" style="margin-bottom:0;flex:1">
-      <button id="saveBtn" title="Sauvegarder" style="flex-shrink:0;padding:10px 16px;background:rgba(16,185,129,.15);border:1.5px solid rgba(16,185,129,.3);color:var(--green);border-radius:12px;font-size:18px;cursor:pointer">💾</button>
-    </div>
-
-    <!-- IMPORT RAPIDE -->
-    <div style="background:rgba(139,92,246,.07);border:1.5px dashed rgba(139,92,246,.3);border-radius:16px;padding:16px;margin-bottom:14px">
-      <div style="font-size:13px;font-weight:700;color:#c4b5fd;margin-bottom:6px">✨ Import ultra-rapide</div>
-      <div style="font-size:11px;color:var(--muted);margin-bottom:10px;line-height:1.6">
-        Colle une liste <strong>Artiste - Titre</strong> (une par ligne).<br>
-        Les questions, les mauvaises réponses <em>amusantes</em> et les liens Deezer sont générés automatiquement par IA 🤖
-      </div>
-      <div style="background:rgba(255,255,255,.04);border-radius:8px;padding:8px 12px;font-family:var(--fm);font-size:11px;color:var(--muted2);margin-bottom:10px;line-height:1.8">Michael Jackson - Thriller&#10;Daft Punk - Get Lucky&#10;Stromae - Papaoutai</div>
-      <textarea class="inp" id="importText" rows="4" placeholder="Colle ta liste ici..."></textarea>
-      <button class="btn btn-purple" id="btnImport" style="margin-bottom:0">✨ Générer avec l'IA</button>
-    </div>
-
-    <div class="divider">ou ajoute manuellement</div>
-    <div id="setupQuestions"></div>
-    <button class="btn btn-secondary" id="btnAddQ">➕ Ajouter une manche</button>
-    <button class="btn btn-pink" id="btnLaunch">🚀 Ouvrir la salle !</button>
-  </div>
+<!-- ECRAN JEU -->
+<div id="screen-game" class="screen">
+  <h2 id="questionTitle">Préparez-vous...</h2>
+  <div id="timerDisplay" style="font-size: 2rem; font-weight: bold; margin: 20px;"></div>
+  <!-- Iframe Deezer (Maître du jeu uniquement) -->
+  <div id="deezerPlayer" style="display:none;"></div>
+  <div id="answerButtons" style="display:flex; flex-direction:column; width:100%; max-width:400px;"></div>
 </div>
 
-<!-- ══════════════════════════════════════════
-     MJ LOBBY
-══════════════════════════════════════════ -->
-<div id="screenMJLobby" class="screen kah-screen">
-  <div class="kah-topbar">
-    <div style="font-size:28px">🎤</div>
-    <div class="kah-q-label" id="lobbyTitle">Blind Test</div>
-    <div class="kah-score-wrap">
-      <span class="kah-score-num" id="lobbyNbManches" style="font-size:14px">—</span>
-      <span class="kah-score-lbl">manches</span>
-    </div>
-  </div>
-  <div class="kah-stage" style="justify-content:flex-start;padding-top:20px;overflow-y:auto">
-    <div style="width:100%;max-width:440px">
-      <div class="code-box"><div class="code-label">Code de la salle</div><div class="code-val" id="lobbyCODE"></div><div class="code-hint">Les joueurs entrent ce code sur leur téléphone</div></div>
-      <div class="card">
-        <p class="card-title" id="lobbyPlayerCount">👥 En attente des joueurs...</p>
-        <div class="chips" id="lobbyPlayers"></div>
-        <div class="waiting-dots" id="lobbyWaiting"><div class="waiting-dot"></div><div class="waiting-dot"></div><div class="waiting-dot"></div></div>
-      </div>
-    </div>
-  </div>
-  <div style="padding:0 16px 24px;flex-shrink:0;max-width:440px;width:100%;margin:0 auto">
-    <button class="btn btn-disabled" id="lobbyStartBtn">🎵 Démarrer !</button>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════════
-     MJ GAME
-══════════════════════════════════════════ -->
-<div id="screenMJGame" class="screen kah-screen">
-  <div class="kah-topbar">
-    <div class="kah-timer-wrap">
-      <svg width="52" height="52" viewBox="0 0 52 52">
-        <circle cx="26" cy="26" r="22" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="4"/>
-        <circle id="mjTimerArc" cx="26" cy="26" r="22" fill="none" stroke="#10b981" stroke-width="4" stroke-dasharray="138.2" stroke-dashoffset="0" stroke-linecap="round" style="transform:rotate(-90deg);transform-origin:center"/>
-      </svg>
-      <span class="kah-timer-num" id="mjTimerNum">20</span>
-    </div>
-    <div class="kah-q-label" id="mjQNum">Manche 1</div>
-    <div class="kah-score-wrap">
-      <span class="kah-score-num" id="mjAnswerCount" style="font-size:15px">0/0</span>
-      <span class="kah-score-lbl">réponses</span>
-    </div>
-  </div>
-  <div id="mjPhaseMusic" class="kah-stage" style="justify-content:flex-start;padding-top:12px;overflow-y:auto">
-    <div style="width:100%;max-width:440px;display:flex;flex-direction:column;gap:12px">
-      <div class="deezer-wrap" id="mjDeezerWrap"></div>
-      <div class="card" style="margin-bottom:0">
-        <div class="ans-bar-label"><span>Réponses reçues</span><span id="mjAnsBarLabel">0/0</span></div>
-        <div class="ans-bar-track"><div class="ans-bar-fill" id="mjAnsBarFill" style="width:0%"></div></div>
-      </div>
-    </div>
-  </div>
-  <div id="mjPhaseReveal" class="kah-stage" style="display:none;justify-content:flex-start;padding-top:12px;overflow-y:auto">
-    <div style="width:100%;max-width:440px">
-      <div style="text-align:center;margin-bottom:14px">
-        <div style="font-size:11px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Manche <span id="revealQNum"></span> — Bonne réponse</div>
-        <div style="font-family:var(--ft);font-size:24px;font-weight:900;color:white" id="revealAnswer"></div>
-      </div>
-      <div class="card"><p class="card-title">Résultats</p><div id="revealResults"></div></div>
-    </div>
-  </div>
-  <div style="padding:0 16px 20px;flex-shrink:0;max-width:440px;width:100%;margin:0 auto">
-    <button class="btn btn-red" id="btnMjStop">⏹ Stopper la musique</button>
-    <button class="btn btn-pink" id="btnNextRound" style="display:none">➡️ Manche suivante</button>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════════
-     PLAYER LOBBY
-══════════════════════════════════════════ -->
-<div id="screenPlayerLobby" class="screen kah-screen">
-  <div class="kah-stage">
-    <div style="text-align:center">
-      <div style="font-size:64px;margin-bottom:12px" id="playerLobbyAvatar"></div>
-      <h2 style="font-family:var(--ft);font-size:24px;font-weight:900;margin-bottom:6px" id="playerLobbyName"></h2>
-      <p style="color:rgba(255,255,255,.5);font-size:14px;margin-bottom:24px" id="playerLobbyTitle"></p>
-      <div class="card" style="text-align:left;max-width:360px">
-        <p class="card-title" id="playerLobbyCount">En attente...</p>
-        <div class="chips" id="playerLobbyChips"></div>
-      </div>
-      <div class="waiting-dots"><div class="waiting-dot"></div><div class="waiting-dot"></div><div class="waiting-dot"></div></div>
-      <p style="color:rgba(255,255,255,.4);font-size:13px">Le MJ prépare la soirée... 🎲</p>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════════
-     PLAYER GAME
-══════════════════════════════════════════ -->
-<div id="screenPlayerGame" class="screen kah-screen">
-  <div class="kah-topbar">
-    <div class="kah-timer-wrap">
-      <svg width="52" height="52" viewBox="0 0 52 52">
-        <circle cx="26" cy="26" r="22" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="4"/>
-        <circle id="pTimerArc" cx="26" cy="26" r="22" fill="none" stroke="white" stroke-width="4" stroke-dasharray="138.2" stroke-dashoffset="0" stroke-linecap="round" style="transform:rotate(-90deg);transform-origin:center"/>
-      </svg>
-      <span class="kah-timer-num" id="pTimerNum">20</span>
-    </div>
-    <div class="kah-q-label">🎵 Quel est l'artiste ?</div>
-    <div class="kah-score-wrap">
-      <span class="kah-score-num" id="pScore">0</span>
-      <span class="kah-score-lbl">pts</span>
-    </div>
-  </div>
-  <div id="pPhaseMusic" class="kah-stage">
-    <div class="kah-music-visual">
-      <div class="kah-note-bg">🎵</div>
-      <div class="kah-bars-center"><div class="kah-bar"></div><div class="kah-bar"></div><div class="kah-bar"></div><div class="kah-bar"></div><div class="kah-bar"></div><div class="kah-bar"></div></div>
-      <p class="kah-playing-txt">La musique joue chez le MJ...</p>
-    </div>
-    <div id="pStatusBox"></div>
-  </div>
-  <div id="pPhaseReveal" class="kah-stage" style="display:none">
-    <div class="kah-reveal-box">
-      <div id="pResultBanner"></div>
-      <div class="kah-reveal-label">Bonne réponse</div>
-      <div class="kah-reveal-name" id="pRevealAnswer"></div>
-      <div class="kah-wait-lbl">⏳ En attente du Maître du Jeu...</div>
-    </div>
-  </div>
-  <div class="kah-choices" id="pChoices"></div>
-</div>
-
-<!-- ══════════════════════════════════════════
-     INTERLUDE (entre manches)
-══════════════════════════════════════════ -->
-<div id="screenInterlude" class="screen" style="background:linear-gradient(160deg,#1a0533,#2d0a5e,#1a0533)">
-  <div class="interlude-screen">
-    <div class="interlude-emoji" id="interludeEmoji">🎯</div>
-    <div class="interlude-comment" id="interludeComment">Chargement...</div>
-    <div class="interlude-mini-scores" id="interlMiniScores"></div>
-    <button class="btn btn-pink" id="btnInterludeContinue" style="max-width:360px;width:100%">➡️ Manche suivante</button>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════════
-     SCORES FINAUX
-══════════════════════════════════════════ -->
-<div id="screenScores" class="screen" style="background:linear-gradient(160deg,#1a0533,#2d0a5e,#1a0533)">
-  <div class="final-screen">
-    <div class="final-title">🏆 CLASSEMENT FINAL</div>
-    <p id="scoreTitle" style="color:rgba(255,255,255,.5);font-size:13px;margin-bottom:16px"></p>
-    <div class="final-comment-box" id="finalCommentBox">💬 ...</div>
-    <div class="podium-wrap" id="podiumWrap"></div>
-    <div class="final-scores-list" id="finalScoresList"></div>
-    <button class="btn btn-pink" id="scoresRestartBtn" style="display:none;max-width:400px;width:100%">🔄 Revanche !</button>
-    <button class="btn btn-secondary" id="btnScoresHome" style="max-width:400px;width:100%">🏠 Accueil</button>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════════
-     DEEZER MODAL
-══════════════════════════════════════════ -->
-<div class="modal-overlay hidden" id="deezerModal">
-  <div class="modal-sheet">
-    <div class="modal-header">
-      <span class="modal-title">🔍 Recherche Deezer</span>
-      <button class="modal-close" id="btnModalClose">✕</button>
-    </div>
-    <div class="modal-search-row">
-      <input class="inp" id="modalSearchInput" placeholder="Artiste ou titre..." style="margin-bottom:0">
-      <button class="btn-deezer" id="btnModalSearch">🔍</button>
-    </div>
-    <div class="modal-body" id="modalBody"><div class="search-empty">Tape un artiste ou un titre 🎵</div></div>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════════
-     FIREBASE + APP
-══════════════════════════════════════════ -->
 <script type="module">
 import { initializeApp }   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, set, get, onValue, off } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getDatabase, ref, set, get, onValue, off, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 const app = initializeApp({
   apiKey:"AIzaSyB1ixvhAm54aoRhdgUXpcl4CiLY6whZOnE",
@@ -619,51 +127,29 @@ function dbOff(r){ if(r) off(r); }
 const lsGet=k=>{try{return JSON.parse(localStorage.getItem(k));}catch{return null;}};
 const lsSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));}catch{}};
 const lsDel=k=>{try{localStorage.removeItem(k);}catch{}};
-function getSavedIdx(){return lsGet('bt:idx')||[];}
-function saveGame(id,title,qs){
-  const idx=getSavedIdx(),i=idx.findIndex(x=>x.id===id);
-  const e={id,title,count:qs.length,savedAt:Date.now()};
-  if(i>=0)idx[i]=e;else idx.push(e);
-  lsSet('bt:idx',idx);lsSet('bt:g:'+id,{title,questions:qs});
-}
-function delGame(id){lsSet('bt:idx',getSavedIdx().filter(x=>x.id!==id));lsDel('bt:g:'+id);}
-function getGame(id){return lsGet('bt:g:'+id);}
 
-// ── SESSION PERSISTENCE (reconnexion) ────────────────────
-function saveSession(data){ lsSet('bt:session', data); }
-function getSession(){ return lsGet('bt:session'); }
-function clearSession(){ lsDel('bt:session'); }
-
-// ── CONSTANTS ────────────────────────────────────────────
-const ANSWER_TIME=20, CIRC=2*Math.PI*22;
-const AVATARS=['🦁','🐯','🦊','🐸','🐧','🦋','🐉','🦄','🐺','🦈','🐻','🐼','🦅','🐬','🦉'];
-const MEDALS=['🥇','🥈','🥉'];
-const FUNNY_EMOJIS=['🤣','😭','🎯','🔥','💀','🤯','👻','🎸','🎺','🦜','🐸','🤦','😤','🥴'];
-
-function ts(){return Date.now();}
+// ── CONSTANTS & UTILS ────────────────────────────────────
+const ANSWER_TIME=20;
+const AVATARS=['🦁','🐯','🦊','🐸','🐧','🦋','🐉','🦄'];
 function genCode(){return Math.random().toString(36).substring(2,7).toUpperCase();}
 function randAvatar(){return AVATARS[Math.floor(Math.random()*AVATARS.length)];}
-function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
-function fmtDate(t){return new Date(t).toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'});}
 function randItem(arr){return arr[Math.floor(Math.random()*arr.length)];}
 
 // ── GLOBAL STATE ─────────────────────────────────────────
-const G={
-  isMJ:false,roomCode:null,room:null,player:null,
-  timerInt:null,watchRef:null,saveId:null,
-  pendingNextRound:false
+window.G={
+  isMJ:false, roomCode:null, room:null, player:null,
+  timerInt:null, watchRef:null
 };
-let setupQs=[];
 
 // ── SCREEN ───────────────────────────────────────────────
-function show(id){
+window.show = function(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   window.scrollTo(0,0);
 }
 
 // ── CONFETTI ─────────────────────────────────────────────
-function launchConfetti(n=60){
+window.launchConfetti = function(n=60){
   const wrap=document.getElementById('confettiWrap');
   wrap.innerHTML='';
   const colors=['#f97316','#ec4899','#8b5cf6','#10b981','#f59e0b','#3b82f6','#ef4444'];
@@ -684,686 +170,89 @@ function launchConfetti(n=60){
   setTimeout(()=>wrap.innerHTML='',4000);
 }
 
-// ── CLAUDE API (commentaires humoristiques + mauvaises réponses) ──
-async function callClaude(prompt){
+// ── CLAUDE API ───────────────────────────────────────────
+window.callClaude = async function(prompt){
   try{
     const r=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
-      headers:{'Content-Type':'application/json'},
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key': 'REMPLACE_CECI_PAR_TA_CLE_API_CLAUDE', 
+        'anthropic-version': '2023-06-01',                 
+        'anthropic-dangerously-allow-browser': 'true'      
+      },
       body:JSON.stringify({
-        model:'claude-sonnet-4-20250514',
+        model:'claude-3-5-sonnet-20240620', 
         max_tokens:1000,
-        system:`Tu es le présentateur hilarant d'un blind test musical en famille. 
-Tu es drôle, taquin, tu fais des blagues sur les scores et les artistes. 
-Réponds TOUJOURS en JSON valide uniquement, sans backticks ni markdown.`,
+        system:`Tu es le présentateur hilarant d'un blind test musical. Réponds TOUJOURS en JSON valide uniquement.`,
         messages:[{role:'user',content:prompt}]
       })
     });
     const data=await r.json();
     const text=data.content?.find(c=>c.type==='text')?.text||'{}';
-    return JSON.parse(text.replace(/```json|```/g,'').trim());
-  }catch(e){return null;}
-}
-
-// Génère 3 mauvaises réponses amusantes pour un artiste donné
-async function generateFunnyChoices(correctArtist,allArtists){
-  const res=await callClaude(`
-Génère 3 mauvaises réponses drôles pour un blind test.
-La bonne réponse est : "${correctArtist}"
-Les autres artistes de la playlist : ${allArtists.filter(a=>a!==correctArtist).slice(0,6).join(', ')}
-
-Règles :
-- 1 mauvaise réponse crédible (même genre musical, artiste réel)  
-- 1 mauvaise réponse légèrement absurde mais pas trop
-- 1 mauvaise réponse franchement drôle (inventée, genre "DJ Mamie Yvette", "Les Beatles feat. Stromae", etc.)
-
-Réponds UNIQUEMENT avec ce JSON :
-{"choices":["réponse1","réponse2","réponse3"]}`);
-  if(res?.choices?.length===3) return res.choices;
-  // fallback
-  const others=allArtists.filter(a=>a!==correctArtist);
-  const funny=['DJ Mamie Yvette','Les Inconnus feat. Celine Dion','Maître Gims de la Forêt','Patrick Sébastien International'];
-  const result=[];
-  if(others.length>0) result.push(others[Math.floor(Math.random()*others.length)]);
-  while(result.length<3) result.push(randItem(funny));
-  return result.slice(0,3);
-}
-
-// Commentaire entre manches
-async function generateInterludeComment(roundNum,scores,players,correctAnswer,answeredCorrectly){
-  const sorted=[...players].sort((a,b)=>(scores[b.id]||0)-(scores[a.id]||0));
-  const leader=sorted[0];
-  const loser=sorted[sorted.length-1];
-  const res=await callClaude(`
-Génère un commentaire drôle pour un blind test après la manche ${roundNum}.
-La bonne réponse était : "${correctAnswer}"
-Joueurs ayant trouvé : ${answeredCorrectly.join(', ')||'personne 😬'}
-Leader actuel : ${leader?.name||'?'} (${scores[leader?.id]||0} pts)
-Dernier : ${loser?.name||'?'} (${scores[loser?.id]||0} pts)
-
-Réponds UNIQUEMENT avec ce JSON :
-{"comment":"commentaire drôle et court (max 2 phrases)","emoji":"1 seul emoji"}`);
-  if(res?.comment) return res;
-  const fallbacks=[
-    {comment:`Bonne réponse : ${correctAnswer} ! ${answeredCorrectly.length===0?'Personne n\'a trouvé... honteux 😅':''}`,emoji:randItem(FUNNY_EMOJIS)},
-    {comment:`${leader?.name} prend la tête ! Attention, les autres sont jaloux... 😤`,emoji:'🏆'},
-    {comment:`${correctAnswer} et personne n'a douté ? Ou si ? 🤔`,emoji:'🎵'}
-  ];
-  return randItem(fallbacks);
-}
-
-// Commentaire final
-async function generateFinalComments(players,scores){
-  const sorted=[...players].sort((a,b)=>(scores[b.id]||0)-(scores[a.id]||0));
-  const res=await callClaude(`
-Génère des commentaires finaux drôles pour chaque joueur d'un blind test.
-Classement final :
-${sorted.map((p,i)=>`${i+1}. ${p.name} : ${scores[p.id]||0} pts`).join('\n')}
-
-Réponds UNIQUEMENT avec ce JSON :
-{
-  "globalComment":"commentaire général hilarant sur la soirée (max 2 phrases)",
-  "playerComments":{"${sorted.map(p=>p.id).join('":"comment","')}":"comment"}
-}`);
-  return res;
-}
-
-// ── HOME BINDINGS ─────────────────────────────────────────
-document.getElementById('btnMJ').addEventListener('click',()=>{G.saveId=null;setupQs=[newQ()];renderSetupQs();show('screenSetup');});
-document.getElementById('btnSaved').addEventListener('click',renderSaved);
-document.getElementById('btnSavedBack').addEventListener('click',()=>show('screenHome'));
-document.getElementById('btnNewGame').addEventListener('click',()=>{G.saveId=null;setupQs=[newQ()];renderSetupQs();show('screenSetup');});
-document.getElementById('btnSetupBack').addEventListener('click',()=>show('screenHome'));
-document.getElementById('btnAddQ').addEventListener('click',()=>{setupQs.push(newQ());renderSetupQs();setTimeout(()=>window.scrollTo(0,document.body.scrollHeight),100);});
-document.getElementById('saveBtn').addEventListener('click',()=>{
-  const title=document.getElementById('setupTitle').value.trim()||'Blind Test';
-  if(!setupQs.length){alert('Ajoute au moins une manche !');return;}
-  const id=G.saveId||('s'+ts());G.saveId=id;
-  saveGame(id,title,setupQs);
-  const btn=document.getElementById('saveBtn');btn.textContent='✅';setTimeout(()=>btn.textContent='💾',1500);
-});
-document.getElementById('btnImport').addEventListener('click',doImport);
-document.getElementById('btnLaunch').addEventListener('click',doLaunch);
-document.getElementById('btnMjStop').addEventListener('click',doMjStop);
-document.getElementById('btnNextRound').addEventListener('click',doNextRound);
-document.getElementById('btnInterludeContinue').addEventListener('click',doActualNextRound);
-document.getElementById('scoresRestartBtn').addEventListener('click',()=>{stopWatch();stopTimer();setupQs=[newQ()];renderSetupQs();show('screenSetup');});
-document.getElementById('btnScoresHome').addEventListener('click',()=>{stopWatch();stopTimer();clearSession();G.isMJ=false;G.roomCode=null;G.room=null;G.player=null;show('screenHome');});
-
-// ── RECONNECT BANNER ─────────────────────────────────────
-document.getElementById('btnReconnectDismiss').addEventListener('click',()=>{
-  clearSession();
-  document.getElementById('reconnectBanner').classList.remove('visible');
-});
-document.getElementById('btnReconnect').addEventListener('click',doReconnect);
-
-async function initReconnect(){
-  const sess=getSession();
-  if(!sess)return;
-  const room=await dbGet('rooms/'+sess.code);
-  if(!room||room.phase==='scores'){clearSession();return;}
-  const banner=document.getElementById('reconnectBanner');
-  if(sess.role==='mj'){
-    document.getElementById('reconnectTitle').textContent='🎤 Partie en cours — Maître du Jeu';
-    document.getElementById('reconnectSub').textContent=`Salle ${sess.code} · ${room.title} · Manche ${(room.currentQ||0)+1}/${room.questions?.length||'?'}`;
-  }else{
-    document.getElementById('reconnectTitle').textContent=`🎮 Partie en cours — ${sess.name}`;
-    document.getElementById('reconnectSub').textContent=`Salle ${sess.code} · ${room.title} · Phase : ${room.phase==='lobby'?'Lobby':'Jeu en cours'}`;
+    return JSON.parse(text.replace(/```json|
+```/g,'').trim());
+  }catch(e){
+    console.error("Erreur Claude API:", e);
+    return null;
   }
-  banner.classList.add('visible');
 }
 
-async function doReconnect(){
-  const sess=getSession();
-  if(!sess)return;
-  document.getElementById('reconnectBanner').classList.remove('visible');
-  const room=await dbGet('rooms/'+sess.code);
-  if(!room||room.phase==='scores'){clearSession();alert('Cette partie est déjà terminée.');return;}
-  G.roomCode=sess.code;G.room=room;
+// ── GAME LOGIC (Bases) ───────────────────────────────────
+window.createGame = async function() {
+  G.isMJ = true;
+  G.roomCode = genCode();
+  await dbSet(`rooms/${G.roomCode}`, { status: 'lobby', players: {} });
+  document.getElementById('lobbyRoomCode').innerText = G.roomCode;
+  document.getElementById('btnStartGame').style.display = 'block';
+  show('screen-lobby');
+  watchRoom();
+}
 
-  if(sess.role==='mj'){
-    G.isMJ=true;G.saveId=sess.saveId||null;
-    if(sess.saveId){const saved=getGame(sess.saveId);if(saved)setupQs=saved.questions.map(q=>({...q}));}
-    if(room.phase==='lobby'){
-      document.getElementById('lobbyCODE').textContent=sess.code;
-      document.getElementById('lobbyTitle').textContent=room.title;
-      document.getElementById('lobbyNbManches').textContent=room.questions?.length||'?';
-      show('screenMJLobby');
-    }else if(room.phase==='music'){
-      show('screenMJGame');renderMJGame();startTimer();
-    }else if(room.phase==='reveal'){
-      show('screenMJGame');renderMJGame();
-    }else if(room.phase==='interlude'){
-      show('screenInterlude');
-      const next=(room.currentQ||0)+1;
-      await showInterlude(room.currentQ||0,next);
+window.joinGame = async function() {
+  const code = document.getElementById('roomCodeInput').value.toUpperCase();
+  if(!code) return alert("Entre un code valide");
+  const room = await dbGet(`rooms/${code}`);
+  if(!room) return alert("Salle introuvable");
+  
+  G.roomCode = code;
+  G.player = { id: genCode(), name: "Joueur", avatar: randAvatar(), score: 0 };
+  await update(ref(db, `rooms/${G.roomCode}/players/${G.player.id}`), G.player);
+  document.getElementById('lobbyRoomCode').innerText = G.roomCode;
+  show('screen-lobby');
+  watchRoom();
+}
+
+window.startGame = async function() {
+  await update(ref(db, `rooms/${G.roomCode}`), { status: 'playing' });
+}
+
+function watchRoom() {
+  G.watchRef = dbOn(`rooms/${G.roomCode}`, (data) => {
+    if(!data) return;
+    G.room = data;
+    
+    // Mise à jour de la liste des joueurs
+    if(data.players) {
+      document.getElementById('playersList').innerHTML = Object.values(data.players)
+        .map(p => `<div>${p.avatar} ${p.name} - Score: ${p.score}</div>`).join('');
     }
-    startWatch();
-  }else{
-    G.isMJ=false;
-    const fbPlayer=room.players?.[sess.playerId];
-    G.player={id:sess.playerId,name:sess.name,avatar:fbPlayer?.avatar||sess.avatar};
-    if(!fbPlayer){await dbSet('rooms/'+sess.code+'/players/'+sess.playerId,G.player);}
-    if(room.phase==='lobby'){
-      renderPlayerLobby();show('screenPlayerLobby');
-    }else if(room.phase==='music'||room.phase==='reveal'){
-      renderPlayerGame();show('screenPlayerGame');
-      if(room.phase==='music')startTimer();
-    }else if(room.phase==='scores'){
-      showFinalScores();
-    }
-    startWatch();
-  }
-}
 
-initReconnect();
-
-// JOIN
-document.getElementById('joinName').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('joinCode').focus();});
-document.getElementById('joinCode').addEventListener('keydown',e=>{if(e.key==='Enter')doJoin();});
-document.getElementById('joinCode').addEventListener('input',e=>{e.target.value=e.target.value.toUpperCase();});
-document.getElementById('joinBtn').addEventListener('click',doJoin);
-document.getElementById('lobbyStartBtn').addEventListener('click',doStartGame);
-
-// ── SAVED SCREEN ─────────────────────────────────────────
-function renderSaved(){
-  show('screenSaved');
-  const idx=getSavedIdx();
-  const el=document.getElementById('savedList');
-  if(!idx.length){el.innerHTML='<p style="color:var(--muted);text-align:center;padding:16px 0">Aucune partie sauvegardée 😢</p>';return;}
-  el.innerHTML=idx.sort((a,b)=>b.savedAt-a.savedAt).map(g=>`
-    <div class="saved-item">
-      <span style="font-size:24px">🎵</span>
-      <div class="saved-info" data-load="${esc(g.id)}">
-        <div class="saved-name">${esc(g.title)}</div>
-        <div class="saved-meta">${g.count} manche${g.count>1?'s':''} · ${fmtDate(g.savedAt)}</div>
-      </div>
-      <button class="saved-del" data-del="${esc(g.id)}">🗑️</button>
-    </div>`).join('');
-  el.querySelectorAll('[data-load]').forEach(d=>d.addEventListener('click',()=>{
-    const game=getGame(d.dataset.load);if(!game){alert('Introuvable');return;}
-    setupQs=game.questions.map(q=>({...q,id:q.id||ts()+Math.random()}));
-    G.saveId=d.dataset.load;
-    document.getElementById('setupTitle').value=game.title;
-    renderSetupQs();show('screenSetup');
-  }));
-  el.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',()=>{
-    if(!confirm('Supprimer cette partie ?'))return;delGame(b.dataset.del);renderSaved();
-  }));
-}
-
-// ── IMPORT ───────────────────────────────────────────────
-async function doImport(){
-  const text=document.getElementById('importText').value;
-  const lines=text.split('\n').map(l=>l.trim()).filter(Boolean);
-  const parsed=lines.map(l=>{
-    const s=l.indexOf(' - ');if(s<0)return null;
-    return{artist:l.slice(0,s).trim(),title:l.slice(s+3).trim()};
-  }).filter(Boolean);
-  if(!parsed.length){alert('Format : Artiste - Titre');return;}
-
-  const btn=document.getElementById('btnImport');
-  btn.textContent='⏳ Génération IA...';btn.disabled=true;
-
-  const allArtists=[...new Set(parsed.map(p=>p.artist))];
-  const questions=[];
-
-  for(const p of parsed){
-    const funnyChoices=await generateFunnyChoices(p.artist,allArtists);
-    const pos=Math.floor(Math.random()*4);
-    const choices=[...funnyChoices];choices.splice(pos,0,p.artist);
-    questions.push({id:ts()+Math.random(),url:'',title:p.title,choices,answer:pos});
-  }
-
-  setupQs=questions;
-  renderSetupQs();
-  document.getElementById('importText').value='';
-  btn.textContent='✨ Générer avec l\'IA';btn.disabled=false;
-  setTimeout(()=>document.getElementById('setupQuestions').scrollIntoView({behavior:'smooth'}),200);
-}
-
-// ── SETUP ────────────────────────────────────────────────
-function newQ(){return{id:ts()+Math.random(),url:'',title:'',choices:['','','',''],answer:0};}
-function tid(url){const m=(url||'').match(/track\/(\d+)/);return m?m[1]:null;}
-
-function renderSetupQs(){
-  const L=['🅰️','🅱️','🅲️','🅳️'];
-  document.getElementById('setupQuestions').innerHTML=setupQs.map((q,i)=>`
-    <div class="q-card">
-      <div class="q-header">
-        <span class="q-num">🎵 Manche ${i+1}${q.title?` <span style="color:var(--muted2);font-weight:500;font-size:12px">— ${esc(q.title)}</span>`:''}</span>
-        ${setupQs.length>1?`<button class="q-del" data-del="${i}">✕</button>`:''}
-      </div>
-      <div class="deezer-row">
-        <input class="inp" data-url="${i}" placeholder="🔗 Lien Deezer" value="${esc(q.url)}" style="margin-bottom:0">
-        <button class="btn-deezer" data-search="${i}">🔍</button>
-      </div>
-      ${q.url&&tid(q.url)?
-        `<div class="deezer-wrap"><iframe scrolling="no" frameborder="0" allowtransparency="true" allow="autoplay;clipboard-write;encrypted-media;fullscreen;picture-in-picture"
-          src="https://widget.deezer.com/widget/dark/track/${tid(q.url)}" style="width:100%;height:80px;border-radius:12px"></iframe></div>`:
-        (q.url?'<div class="deezer-warn">⚠️ URL invalide</div>':'')}
-      <p style="font-size:11px;color:var(--muted);margin-bottom:8px">✅ = bonne réponse</p>
-      ${q.choices.map((c,ci)=>`
-        <div class="choice-row">
-          <button class="choice-mark${q.answer===ci?' correct':''}" data-ans="${i}-${ci}">${q.answer===ci?'✅':L[ci]}</button>
-          <input class="inp" data-choice="${i}-${ci}" style="margin-bottom:0;flex:1" placeholder="Artiste ${ci+1}" value="${esc(c)}">
-        </div>`).join('')}
-    </div>`).join('');
-
-  const sq=document.getElementById('setupQuestions');
-  sq.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',()=>{setupQs.splice(+b.dataset.del,1);renderSetupQs();}));
-  sq.querySelectorAll('[data-ans]').forEach(b=>b.addEventListener('click',()=>{const[qi,ci]=b.dataset.ans.split('-').map(Number);setupQs[qi].answer=ci;renderSetupQs();}));
-  sq.querySelectorAll('[data-url]').forEach(inp=>{
-    inp.addEventListener('input',()=>setupQs[+inp.dataset.url].url=inp.value);
-    inp.addEventListener('blur',()=>renderSetupQs());
-  });
-  sq.querySelectorAll('[data-choice]').forEach(inp=>inp.addEventListener('input',()=>{
-    const[qi,ci]=inp.dataset.choice.split('-').map(Number);setupQs[qi].choices[ci]=inp.value;
-  }));
-  sq.querySelectorAll('[data-search]').forEach(b=>b.addEventListener('click',()=>openModal(+b.dataset.search)));
-}
-
-// ── LAUNCH ───────────────────────────────────────────────
-async function doLaunch(){
-  const title=document.getElementById('setupTitle').value.trim()||'Blind Test';
-  const valid=setupQs.filter(q=>q.url.trim()&&tid(q.url)&&q.choices.every(c=>c.trim()));
-  if(!valid.length){alert('Ajoute au moins une manche valide (lien Deezer + 4 artistes) !');return;}
-  const code=genCode();
-  const room={title,questions:valid,phase:'lobby',currentQ:0,players:{},answers:{},scores:{},musicStartedAt:null,createdAt:ts()};
-  await dbSet('rooms/'+code,room);
-  G.isMJ=true;G.roomCode=code;G.room=room;
-  // Sauvegarder la session MJ pour reconnexion
-  saveSession({role:'mj', code, saveId:G.saveId, title});
-  document.getElementById('lobbyCODE').textContent=code;
-  document.getElementById('lobbyTitle').textContent=title;
-  document.getElementById('lobbyNbManches').textContent=valid.length;
-  show('screenMJLobby');
-  startWatch();
-}
-
-// ── JOIN ─────────────────────────────────────────────────
-async function doJoin(){
-  const name=document.getElementById('joinName').value.trim();
-  const code=document.getElementById('joinCode').value.trim().toUpperCase();
-  const errEl=document.getElementById('joinErr');errEl.textContent='';
-  if(!name){errEl.textContent='Entre ton prénom !';return;}
-  if(code.length<5){errEl.textContent='Code de 5 lettres requis';return;}
-  const btn=document.getElementById('joinBtn');btn.textContent='⏳ Recherche...';btn.disabled=true;
-  let room=null;
-  for(let i=0;i<4;i++){room=await dbGet('rooms/'+code);if(room)break;await new Promise(r=>setTimeout(r,1000));}
-  btn.textContent='🚀 Rejoindre';btn.disabled=false;
-  if(!room){errEl.textContent='Salle introuvable. Vérifie le code !';return;}
-  if(room.phase==='scores'){errEl.textContent='Cette partie est déjà terminée !';return;}
-  const pid='p'+ts()+Math.random().toString(36).slice(2,5),avatar=randAvatar();
-  G.player={id:pid,name,avatar};G.isMJ=false;G.roomCode=code;
-  await dbSet('rooms/'+code+'/players/'+pid,{id:pid,name,avatar});
-  // Sauvegarder la session joueur pour reconnexion
-  saveSession({role:'player', code, playerId:pid, name, avatar});
-  G.room={...room,players:{...(room.players||{}),[pid]:{id:pid,name,avatar}}};
-  renderPlayerLobby();
-  show(room.phase==='lobby'?'screenPlayerLobby':'screenPlayerGame');
-  startWatch();
-}
-
-// ── WATCH ────────────────────────────────────────────────
-function startWatch(){stopWatch();G.watchRef=dbOn('rooms/'+G.roomCode,onRoom);}
-function stopWatch(){dbOff(G.watchRef);G.watchRef=null;}
-
-function onRoom(fresh){
-  if(!fresh)return;
-  const prev=G.room;G.room=fresh;
-  const pc=prev?.phase!==fresh.phase,qc=prev?.currentQ!==fresh.currentQ;
-  if(G.isMJ){
-    if(fresh.phase==='lobby')updateMJLobby();
-    else if(fresh.phase==='music'){
-      if(pc||qc){renderMJGame();show('screenMJGame');startTimer();}
-      else updateAnsBar();
-    }
-    else if(fresh.phase==='reveal'&&(pc||qc)){stopTimer();renderMJGame();}
-    else if(fresh.phase==='scores'&&prev?.phase!=='scores'){stopTimer();showFinalScores();}
-  }else{
-    if(fresh.phase==='lobby')renderPlayerLobbyChips();
-    else if(fresh.phase==='music'){
-      if(pc||qc){stopTimer();renderPlayerGame();show('screenPlayerGame');startTimer();}
-      else renderPlayerGame();
-    }
-    else if(fresh.phase==='reveal'&&(pc||qc)){stopTimer();renderPlayerGame();}
-    else if(fresh.phase==='scores'&&prev?.phase!=='scores'){stopTimer();showFinalScores();}
-  }
-}
-
-// ── MJ LOBBY ─────────────────────────────────────────────
-function updateMJLobby(){
-  const players=Object.values(G.room.players||{}),n=players.length;
-  document.getElementById('lobbyPlayerCount').textContent=n?`👥 ${n} joueur${n>1?'s':''} connecté${n>1?'s':''}`:'👥 En attente des joueurs...';
-  document.getElementById('lobbyPlayers').innerHTML=players.map(p=>`<div class="chip">${p.avatar} ${esc(p.name)}</div>`).join('');
-  document.getElementById('lobbyWaiting').style.display=n?'none':'flex';
-  const btn=document.getElementById('lobbyStartBtn');
-  btn.disabled=!n;btn.className='btn '+(n?'btn-pink':'btn-disabled');
-}
-
-async function doStartGame(){
-  await dbSet('rooms/'+G.roomCode,{...G.room,phase:'music',currentQ:0,musicStartedAt:ts()});
-}
-
-// ── MJ GAME ──────────────────────────────────────────────
-function renderMJGame(){
-  const r=G.room,q=r.questions[r.currentQ];
-  const total=Object.keys(r.players||{}).length,ans=Object.keys(r.answers?.[r.currentQ]||{}).length;
-  document.getElementById('mjQNum').textContent=`Manche ${r.currentQ+1}/${r.questions.length}`;
-  document.getElementById('mjAnswerCount').textContent=`${ans}/${total}`;
-  const stopBtn=document.getElementById('btnMjStop'),nextBtn=document.getElementById('btnNextRound');
-  if(r.phase==='music'){
-    document.getElementById('mjPhaseMusic').style.display='flex';
-    document.getElementById('mjPhaseReveal').style.display='none';
-    stopBtn.style.display='flex';nextBtn.style.display='none';
-    const t=tid(q.url);
-    document.getElementById('mjDeezerWrap').innerHTML=t?
-      `<iframe scrolling="no" frameborder="0" allowtransparency="true" allow="autoplay;clipboard-write;encrypted-media;fullscreen;picture-in-picture"
-        src="https://widget.deezer.com/widget/dark/track/${t}?autoplay=1" style="width:100%;height:80px;border-radius:12px"></iframe>`:
-      '<div class="deezer-warn">⚠️ Lecteur indisponible</div>';
-    updateAnsBar();
-  }else if(r.phase==='reveal'){
-    document.getElementById('mjPhaseMusic').style.display='none';
-    document.getElementById('mjPhaseReveal').style.display='flex';
-    stopBtn.style.display='none';nextBtn.style.display='flex';
-    const players=Object.values(r.players||{}),answers=r.answers?.[r.currentQ]||{};
-    const isLast=r.currentQ+1>=r.questions.length;
-    document.getElementById('revealQNum').textContent=r.currentQ+1;
-    document.getElementById('revealAnswer').textContent=q.choices[q.answer];
-    nextBtn.textContent=isLast?'🏆 Voir le classement final !':'⏭️ Interlude + Manche suivante';
-    document.getElementById('revealResults').innerHTML=players.map(p=>{
-      const a=answers[p.id],ok=a&&a.choice===q.answer;
-      return `<div class="reveal-row"><div class="reveal-name"><span>${p.avatar}</span><span>${esc(p.name)}</span></div>
-        <span class="reveal-pts ${ok?'pos':'neg'}">${!a?'⏱️ —':ok?`✅ +${a.points}`:'❌'}</span></div>`;
-    }).join('')||'<p style="color:var(--muted);text-align:center;padding:8px">Aucun joueur</p>';
-  }
-}
-
-function updateAnsBar(){
-  const r=G.room,total=Object.values(r.players||{}).length,ans=Object.keys(r.answers?.[r.currentQ]||{}).length;
-  const pct=total>0?Math.round(ans/total*100):0;
-  document.getElementById('mjAnsBarLabel').textContent=`${ans} / ${total}`;
-  document.getElementById('mjAnsBarFill').style.width=pct+'%';
-  document.getElementById('mjAnswerCount').textContent=`${ans}/${total}`;
-}
-
-async function doMjStop(){stopTimer();await dbSet('rooms/'+G.roomCode+'/phase','reveal');}
-
-async function doNextRound(){
-  // Afficher l'interlude d'abord
-  const r=G.room,next=r.currentQ+1;
-  const isLast=next>=r.questions.length;
-  if(isLast){
-    await dbSet('rooms/'+G.roomCode+'/phase','scores');
-    return;
-  }
-  // Préparer et afficher l'interlude
-  show('screenInterlude');
-  await showInterlude(r.currentQ,next);
-}
-
-// ── INTERLUDE ────────────────────────────────────────────
-async function showInterlude(currentQIdx,nextQIdx){
-  const r=G.room;
-  const q=r.questions[currentQIdx];
-  const players=Object.values(r.players||{});
-  const answers=r.answers?.[currentQIdx]||{};
-  const correctAnswer=q.choices[q.answer];
-  const answeredCorrectly=players.filter(p=>answers[p.id]?.choice===q.answer).map(p=>p.name);
-
-  // Afficher le chargement
-  document.getElementById('interludeEmoji').textContent='⏳';
-  document.getElementById('interludeComment').textContent='L\'IA réfléchit à un commentaire 🤖...';
-
-  // Générer le commentaire
-  const result=await generateInterludeComment(currentQIdx+1,r.scores||{},players,correctAnswer,answeredCorrectly);
-  document.getElementById('interludeEmoji').textContent=result.emoji||'🎵';
-  document.getElementById('interludeComment').textContent=result.comment||`Bonne réponse : ${correctAnswer} !`;
-
-  // Mini classement
-  const sorted=[...players].sort((a,b)=>(r.scores?.[b.id]||0)-(r.scores?.[a.id]||0));
-  document.getElementById('interlMiniScores').innerHTML=sorted.map((p,i)=>`
-    <div class="mini-score-row" style="animation-delay:${i*0.1}s">
-      <span class="mini-score-pos">${MEDALS[i]||`${i+1}.`}</span>
-      <span style="font-size:20px">${p.avatar}</span>
-      <span class="mini-score-name">${esc(p.name)}</span>
-      <span class="mini-score-pts">${r.scores?.[p.id]||0} pts</span>
-    </div>`).join('');
-
-  // Stocker le next index pour le bouton "continuer"
-  G.pendingNextRound=nextQIdx;
-}
-
-async function doActualNextRound(){
-  if(G.pendingNextRound===false)return;
-  const next=G.pendingNextRound;G.pendingNextRound=false;
-  await dbSet('rooms/'+G.roomCode,{...G.room,phase:'music',currentQ:next,musicStartedAt:ts()});
-}
-
-// ── PLAYER LOBBY ─────────────────────────────────────────
-function renderPlayerLobby(){
-  const p=G.player,r=G.room;
-  document.getElementById('playerLobbyAvatar').textContent=p.avatar;
-  document.getElementById('playerLobbyName').textContent=p.name;
-  document.getElementById('playerLobbyTitle').textContent=r.title;
-  renderPlayerLobbyChips();
-}
-function renderPlayerLobbyChips(){
-  const players=Object.values(G.room.players||{});
-  document.getElementById('playerLobbyCount').textContent=`👥 ${players.length} joueur${players.length>1?'s':''} connecté${players.length>1?'s':''}`;
-  document.getElementById('playerLobbyChips').innerHTML=players.map(p=>`<div class="chip">${p.avatar} ${esc(p.name)}</div>`).join('');
-}
-
-// ── PLAYER GAME ──────────────────────────────────────────
-const KAH_ICONS=['▲','◆','●','■'];
-
-function renderPlayerGame(){
-  const r=G.room,p=G.player,q=r.questions[r.currentQ];
-  const myAns=r.answers?.[r.currentQ]?.[p.id];
-  document.getElementById('pScore').textContent=r.scores?.[p.id]||0;
-
-  if(r.phase==='music'){
-    document.getElementById('pPhaseMusic').style.display='flex';
-    document.getElementById('pPhaseReveal').style.display='none';
-    const left=Math.max(0,ANSWER_TIME-(ts()-r.musicStartedAt)/1000);
-    updateArc('p',left);
-    const sb=document.getElementById('pStatusBox');
-    if(myAns!==undefined)sb.innerHTML='<div class="kah-answered">✅ Réponse enregistrée !</div>';
-    else if(left<=0)sb.innerHTML='<div class="kah-expired">⏱️ Temps écoulé</div>';
-    else sb.innerHTML='';
-
-    const choices=document.getElementById('pChoices');
-    // N'anime que si les choix ont changé (nouveau round)
-    const isNew=!choices.dataset.round||choices.dataset.round!==String(r.currentQ);
-    choices.dataset.round=r.currentQ;
-
-    choices.innerHTML=q.choices.map((c,ci)=>{
-      let cls='',dis='';
-      if(myAns!==undefined){cls=myAns.choice===ci?'kah-selected':'kah-idle-dim';dis='disabled';}
-      else if(left<=0){dis='disabled';cls='kah-idle-dim';}
-      const enterClass=isNew?` enter-${ci+1}`:'';
-      return `<button class="kah-btn${enterClass} ${cls}" data-ci="${ci}" ${dis}>
-        <span class="kah-icon">${KAH_ICONS[ci]}</span>
-        <span>${esc(c)}</span>
-      </button>`;
-    }).join('');
-    choices.querySelectorAll('[data-ci]').forEach(b=>b.addEventListener('click',()=>doAnswer(+b.dataset.ci)));
-
-  }else if(r.phase==='reveal'){
-    document.getElementById('pPhaseMusic').style.display='none';
-    document.getElementById('pPhaseReveal').style.display='flex';
-    const a=r.answers?.[r.currentQ]?.[p.id],ok=a&&a.choice===q.answer;
-    document.getElementById('pRevealAnswer').textContent=q.choices[q.answer];
-    document.getElementById('pResultBanner').innerHTML=a
-      ?(ok?`<div class="kah-result-win">🎉 Bravo ! +${a.points} points</div>`
-          :`<div class="kah-result-lose">😢 Raté ! C'était : ${esc(q.choices[q.answer])}</div>`)
-      :`<div class="kah-result-lose">⏱️ Trop lent cette fois...</div>`;
-    if(ok)launchConfetti(40);
-
-    // Afficher les choix en mode révélation
-    const choices=document.getElementById('pChoices');
-    choices.innerHTML=q.choices.map((c,ci)=>{
-      const isCorrect=ci===q.answer,isChosen=a&&a.choice===ci;
-      const cls=isCorrect?'kah-correct':isChosen?'kah-wrong':'kah-idle-dim';
-      return `<button class="kah-btn ${cls}" disabled>
-        <span class="kah-icon">${isCorrect?'✅':isChosen?'❌':KAH_ICONS[ci]}</span>
-        <span>${esc(c)}</span>
-      </button>`;
-    }).join('');
-  }
-}
-
-async function doAnswer(ci){
-  const r=G.room,p=G.player,q=r.questions[r.currentQ];
-  const left=Math.max(0,ANSWER_TIME-(ts()-r.musicStartedAt)/1000);
-  if(left<=0||r.answers?.[r.currentQ]?.[p.id])return;
-  const ok=ci===q.answer,pts=ok?Math.max(50,Math.round(1000*(left/ANSWER_TIME))):0;
-  await dbSet('rooms/'+G.roomCode+'/answers/'+r.currentQ+'/'+p.id,{choice:ci,points:pts,time:ANSWER_TIME-left});
-  await dbSet('rooms/'+G.roomCode+'/scores/'+p.id,(r.scores?.[p.id]||0)+pts);
-}
-
-// ── FINAL SCORES ─────────────────────────────────────────
-async function showFinalScores(){
-  clearSession(); // Partie terminée, plus besoin de session
-  launchConfetti(80);
-  show('screenScores');
-  const r=G.room;
-  const players=Object.values(r.players||{});
-  const sorted=[...players].sort((a,b)=>(r.scores?.[b.id]||0)-(r.scores?.[a.id]||0));
-
-  document.getElementById('scoreTitle').textContent=r.title;
-  document.getElementById('finalCommentBox').textContent='💬 L\'IA analyse votre soirée... 🤖';
-  document.getElementById('scoresRestartBtn').style.display=G.isMJ?'flex':'none';
-
-  // Podium
-  const podium=sorted.slice(0,3);
-  const order=[1,0,2]; // 2e, 1er, 3e pour le podium visuel
-  const heights=[90,120,70];
-  document.getElementById('podiumWrap').innerHTML=order.map(i=>{
-    const p=podium[i];if(!p)return'';
-    return `<div class="podium-col" style="animation:scoreRowIn .5s ease ${i*0.15}s both">
-      <div class="podium-avatar">${p.avatar}</div>
-      <div class="podium-name">${esc(p.name)}</div>
-      <div class="podium-pts">${r.scores?.[p.id]||0}</div>
-      <div class="podium-block podium-${i+1}" style="height:${heights[i]}px">${MEDALS[i]||''}</div>
-    </div>`;
-  }).join('');
-
-  // Scores list (chargement immédiat)
-  document.getElementById('finalScoresList').innerHTML=sorted.map((p,i)=>`
-    <div class="final-score-row" style="animation-delay:${i*0.1}s">
-      <span class="fscore-medal">${MEDALS[i]||`${i+1}.`}</span>
-      <span class="fscore-avatar">${p.avatar}</span>
-      <div class="fscore-info">
-        <div class="fscore-name">${esc(p.name)}</div>
-        <div class="fscore-comment" id="fcomment-${p.id}">💬 ...</div>
-      </div>
-      <span class="fscore-pts">${r.scores?.[p.id]||0} pts</span>
-    </div>`).join('');
-
-  // Commentaires IA
-  const comments=await generateFinalComments(players,r.scores||{});
-  if(comments?.globalComment){
-    document.getElementById('finalCommentBox').textContent=comments.globalComment;
-  }else{
-    const fallbacks=['Quelle soirée ! Les neurones ont chauffé 🔥','Certains ont brillé, d\'autres... ont participé 😅','La famille unie dans la défaite... et la victoire ! 🎉'];
-    document.getElementById('finalCommentBox').textContent=randItem(fallbacks);
-  }
-  sorted.forEach(p=>{
-    const el=document.getElementById('fcomment-'+p.id);
-    if(!el)return;
-    const c=comments?.playerComments?.[p.id];
-    if(c)el.textContent=c;
-    else{
-      const pts=r.scores?.[p.id]||0,idx=sorted.indexOf(p);
-      const fallbacks=[
-        `🏆 Champion incontesté de la soirée !`,
-        `😤 Pas loin du podium... presque !`,
-        `😅 Y'a du boulot avant le prochain blind test`,
-        `🐢 La lenteur a ses charmes... parfois`
-      ];
-      el.textContent=fallbacks[Math.min(idx,fallbacks.length-1)];
+    // Gestion des changements d'états
+    if(data.status === 'playing' && document.getElementById('screen-game').classList.contains('active') === false) {
+      show('screen-game');
+      if(G.isMJ) document.getElementById('deezerPlayer').style.display = 'block';
     }
   });
 }
-
-// ── TIMER ────────────────────────────────────────────────
-function startTimer(){stopTimer();G.timerInt=setInterval(tick,250);}
-function stopTimer(){clearInterval(G.timerInt);G.timerInt=null;}
-function tick(){
-  const r=G.room;if(!r||!r.musicStartedAt)return;
-  const left=Math.max(0,ANSWER_TIME-(ts()-r.musicStartedAt)/1000);
-  if(G.isMJ)updateArc('mj',left);
-  else{updateArc('p',left);if(left<=0&&r.phase==='music'&&!r.answers?.[r.currentQ]?.[G.player?.id])renderPlayerGame();}
-}
-function updateArc(px,left){
-  const n=document.getElementById(px+'TimerNum'),a=document.getElementById(px+'TimerArc');
-  if(!n||!a)return;
-  a.style.strokeDasharray=CIRC;
-  a.style.strokeDashoffset=CIRC*(1-left/ANSWER_TIME);
-  n.textContent=Math.ceil(left);
-  const c=left<=0?'rgba(255,255,255,.3)':left<=5?'#fc8181':px==='mj'?'#10b981':'white';
-  a.style.stroke=c;n.style.color=c;
-}
-
-// ── DEEZER MODAL ─────────────────────────────────────────
-let modalQIdx=null,searchTmr=null;
-
-function openModal(idx){
-  modalQIdx=idx;
-  const q=setupQs[idx],query=q.choices[q.answer]?(q.choices[q.answer]+(q.title?' '+q.title:'')):'';
-  document.getElementById('modalSearchInput').value=query;
-  document.getElementById('deezerModal').classList.remove('hidden');
-  document.getElementById('modalBody').innerHTML='<div class="search-empty">🎵 Tape un artiste ou un titre</div>';
-  if(query)doSearch(query);else setTimeout(()=>document.getElementById('modalSearchInput').focus(),300);
-}
-
-document.getElementById('btnModalClose').addEventListener('click',()=>{document.getElementById('deezerModal').classList.add('hidden');modalQIdx=null;});
-document.getElementById('deezerModal').addEventListener('click',e=>{if(e.target===document.getElementById('deezerModal')){document.getElementById('deezerModal').classList.add('hidden');modalQIdx=null;}});
-document.getElementById('btnModalSearch').addEventListener('click',()=>{clearTimeout(searchTmr);doSearch(document.getElementById('modalSearchInput').value.trim());});
-document.getElementById('modalSearchInput').addEventListener('keydown',e=>{if(e.key==='Enter'){clearTimeout(searchTmr);doSearch(e.target.value.trim());}});
-document.getElementById('modalSearchInput').addEventListener('input',e=>{clearTimeout(searchTmr);searchTmr=setTimeout(()=>doSearch(e.target.value.trim()),500);});
-
-function doSearch(q){
-  if(!q)return;
-  document.getElementById('modalBody').innerHTML=`<div style="text-align:center;padding:32px 0"><div class="search-dots"><div class="search-dot"></div><div class="search-dot"></div><div class="search-dot"></div></div><p style="color:var(--muted);font-size:13px;margin-top:8px">Recherche en cours...</p></div>`;
-  const cb='dz_'+Date.now(),s=document.createElement('script');
-  s.src=`https://api.deezer.com/search?q=${encodeURIComponent(q)}&limit=10&output=jsonp&callback=${cb}`;
-  const t=setTimeout(()=>{document.getElementById('modalBody').innerHTML='<div class="search-empty">⚠️ Deezer inaccessible. Colle le lien directement.</div>';s.remove();delete window[cb];},6000);
-  window[cb]=function(data){
-    clearTimeout(t);s.remove();delete window[cb];
-    const items=data?.data||[];
-    const body=document.getElementById('modalBody');
-    if(!items.length){body.innerHTML='<div class="search-empty">Aucun résultat 😕</div>';return;}
-    body.innerHTML=items.map(t=>`
-      <div class="search-result">
-        <img class="search-cover" src="${esc(t.album?.cover_small||'')}" alt="" loading="lazy" onerror="this.style.display='none'">
-        <div class="search-info">
-          <div class="search-title">${esc(t.title_short||t.title)}</div>
-          <div class="search-artist">${esc(t.artist?.name||'')}</div>
-        </div>
-        <button class="search-pick" data-pick="${t.id}">Choisir</button>
-      </div>`).join('');
-    body.querySelectorAll('[data-pick]').forEach(b=>b.addEventListener('click',()=>{
-      if(modalQIdx===null)return;
-      const idx=modalQIdx;
-      setupQs[idx].url='https://www.deezer.com/track/'+b.dataset.pick;
-      document.getElementById('deezerModal').classList.add('hidden');modalQIdx=null;
-      renderSetupQs();
-      setTimeout(()=>{const cards=document.querySelectorAll('.q-card');if(cards[idx])cards[idx].scrollIntoView({behavior:'smooth'});},200);
-    }));
-  };
-  document.head.appendChild(s);
-}
-
 </script>
 
 <script>
-if('serviceWorker' in navigator && location.hostname === 'xavierpiza2-a11y.github.io'){
+// ── SERVICE WORKER ───────────────────────────────────────
+if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('/blind-test/sw.js')
-      .catch(err=>console.log('SW:',err));
+    navigator.serviceWorker.register('./sw.js')
+      .catch(err=>console.log('Erreur SW:',err));
   });
 }
 </script>
