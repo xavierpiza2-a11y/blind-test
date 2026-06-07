@@ -964,8 +964,6 @@ document.getElementById('joinName').addEventListener('keydown',e=>{if(e.key==='E
 document.getElementById('joinCode').addEventListener('keydown',e=>{if(e.key==='Enter')doJoin();});
 document.getElementById('joinCode').addEventListener('input',e=>{e.target.value=e.target.value.toUpperCase();});
 document.getElementById('joinBtn').addEventListener('click',doJoin);
-document.getElementById('btnJoinBack').addEventListener('click',()=>show('screenHome'));
-document.getElementById('btnJoin').addEventListener('click',()=>show('screenJoin'));
 document.getElementById('lobbyStartBtn').addEventListener('click',doStartGame);
 } catch(e) { console.error('Binding error:', e); }
 
