@@ -522,7 +522,7 @@ textarea.inp{resize:none;line-height:1.6;font-size:14px}
     </div>
   </div>
   <div style="padding:0 16px 24px;flex-shrink:0;max-width:440px;width:100%;margin:0 auto">
-    <button class="btn btn-disabled" id="lobbyStartBtn">🎵 Démarrer !</button>
+    <button class="btn btn-pink" id="lobbyStartBtn" disabled style="opacity:0.5;pointer-events:none">🎵 Démarrer !</button>
   </div>
 </div>
 
@@ -1215,6 +1215,7 @@ async function doLaunch(){
   document.getElementById('lobbyTitle').textContent=title;
   document.getElementById('lobbyNbManches').textContent=valid.length;
   show('screenMJLobby');
+  updateMJLobby(); // ← force l'état initial du bouton Démarrer
   startWatch();
 }
 
@@ -1277,11 +1278,50 @@ function updateMJLobby(){
   document.getElementById('lobbyPlayers').innerHTML=players.map(p=>`<div class="chip">${p.avatar} ${esc(p.name)}</div>`).join('');
   document.getElementById('lobbyWaiting').style.display=n?'none':'flex';
   const btn=document.getElementById('lobbyStartBtn');
-  btn.disabled=!n;btn.className='btn '+(n?'btn-pink':'btn-disabled');
+  if(n){
+    btn.disabled=false;
+    btn.className='btn btn-pink';
+    btn.style.pointerEvents='auto';
+    btn.style.opacity='1';
+    btn.textContent='🎵 Démarrer !';
+  }else{
+    btn.disabled=true;
+    btn.className='btn btn-disabled';
+    btn.style.pointerEvents='none';
+    btn.style.opacity='0.5';
+  }
 }
 
 async function doStartGame(){
-  await dbSet('rooms/'+G.roomCode,{...G.room,phase:'music',currentQ:0,musicStartedAt:ts()});
+  const btn=document.getElementById('lobbyStartBtn');
+  // Forcer l'activation du bouton au cas où il serait resté bloqué
+  btn.disabled=false;
+  btn.className='btn btn-pink';
+  btn.style.pointerEvents='auto';
+  btn.style.opacity='1';
+
+  const players=Object.values(G.room?.players||{});
+  if(!players.length){alert('Attends qu\'au moins un joueur rejoigne !');return;}
+
+  btn.disabled=true;btn.textContent='⏳ Démarrage...';
+  try{
+    // Priorité : setupQs locales (avec choix IA) → sinon questions de la room Firebase
+    let questions;
+    if(setupQs&&setupQs.length&&setupQs[0].url&&setupQs[0].url.trim()){
+      questions=setupQs;
+    }else if(G.room?.questions?.length){
+      questions=G.room.questions;
+    }else{
+      throw new Error('Aucune question disponible. Retourne à la configuration.');
+    }
+    const update={...G.room,questions,phase:'music',currentQ:0,answers:{},scores:{},musicStartedAt:ts()};
+    await dbSet('rooms/'+G.roomCode,update);
+    G.room=update;
+  }catch(e){
+    console.error('doStartGame error:',e);
+    btn.disabled=false;btn.textContent='🎵 Démarrer !';
+    alert('Erreur au démarrage : '+e.message);
+  }
 }
 
 // ── MJ GAME ──────────────────────────────────────────────
