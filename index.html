@@ -522,7 +522,7 @@ textarea.inp{resize:none;line-height:1.6;font-size:14px}
     </div>
   </div>
   <div style="padding:0 16px 24px;flex-shrink:0;max-width:440px;width:100%;margin:0 auto">
-    <button class="btn btn-pink" id="lobbyStartBtn" disabled style="opacity:0.5;pointer-events:none">🎵 Démarrer !</button>
+    <button class="btn btn-pink" id="lobbyStartBtn" style="opacity:0.5">🎵 Démarrer !</button>
   </div>
 </div>
 
@@ -1279,33 +1279,28 @@ function updateMJLobby(){
   document.getElementById('lobbyWaiting').style.display=n?'none':'flex';
   const btn=document.getElementById('lobbyStartBtn');
   if(n){
-    btn.disabled=false;
-    btn.className='btn btn-pink';
-    btn.style.pointerEvents='auto';
     btn.style.opacity='1';
+    btn.style.pointerEvents='auto';
     btn.textContent='🎵 Démarrer !';
   }else{
-    btn.disabled=true;
-    btn.className='btn btn-disabled';
-    btn.style.pointerEvents='none';
     btn.style.opacity='0.5';
+    btn.style.pointerEvents='auto'; // on laisse le clic passer → alerte "attends un joueur"
+    btn.textContent='🎵 Démarrer !';
   }
 }
 
 async function doStartGame(){
   const btn=document.getElementById('lobbyStartBtn');
-  // Forcer l'activation du bouton au cas où il serait resté bloqué
-  btn.disabled=false;
-  btn.className='btn btn-pink';
-  btn.style.pointerEvents='auto';
-  btn.style.opacity='1';
-
   const players=Object.values(G.room?.players||{});
-  if(!players.length){alert('Attends qu\'au moins un joueur rejoigne !');return;}
-
-  btn.disabled=true;btn.textContent='⏳ Démarrage...';
+  if(!players.length){
+    alert('Attends qu\'au moins un joueur rejoigne la salle !');
+    return;
+  }
+  // Verrouillage visuel uniquement — pas de disabled (bloque les events)
+  btn.style.opacity='0.6';
+  btn.style.pointerEvents='none';
+  btn.textContent='⏳ Démarrage...';
   try{
-    // Priorité : setupQs locales (avec choix IA) → sinon questions de la room Firebase
     let questions;
     if(setupQs&&setupQs.length&&setupQs[0].url&&setupQs[0].url.trim()){
       questions=setupQs;
@@ -1319,7 +1314,9 @@ async function doStartGame(){
     G.room=update;
   }catch(e){
     console.error('doStartGame error:',e);
-    btn.disabled=false;btn.textContent='🎵 Démarrer !';
+    btn.style.opacity='1';
+    btn.style.pointerEvents='auto';
+    btn.textContent='🎵 Démarrer !';
     alert('Erreur au démarrage : '+e.message);
   }
 }
