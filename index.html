@@ -1030,6 +1030,7 @@ initReconnect();
 
 // ── ORIENTATION PAYSAGE/PORTRAIT ──────────────────────────
 let forcedLandscape = false;
+let orientationLockedByAPI = false; // true = screen.orientation.lock a réussi
 
 // Injecte le CSS de rotation une seule fois
 (function(){
@@ -1055,6 +1056,24 @@ let forcedLandscape = false;
   document.head.appendChild(s);
 })();
 
+function isPlayerGameActive(){
+  return document.getElementById('screenPlayerGame')?.classList.contains('active');
+}
+
+function applyLandscapeCSS(){
+  document.documentElement.classList.add('landscape-forced');
+  forcedLandscape = true;
+  const btn = document.getElementById('btnToggleOrientation');
+  if(btn){ btn.textContent = '↕'; btn.title = 'Revenir en portrait'; }
+}
+
+function removeLandscapeCSS(){
+  document.documentElement.classList.remove('landscape-forced');
+  forcedLandscape = false;
+  const btn = document.getElementById('btnToggleOrientation');
+  if(btn){ btn.textContent = '⟳'; btn.title = 'Passer en paysage'; }
+}
+
 async function toggleOrientation(){
   const btn = document.getElementById('btnToggleOrientation');
 
@@ -1063,38 +1082,65 @@ async function toggleOrientation(){
     try{
       if(!forcedLandscape){
         await screen.orientation.lock('landscape');
+        orientationLockedByAPI = true;
         forcedLandscape = true;
-        btn.textContent = '↕';
+        if(btn){ btn.textContent = '↕'; btn.title = 'Revenir en portrait'; }
       }else{
         await screen.orientation.unlock();
+        orientationLockedByAPI = false;
         forcedLandscape = false;
-        btn.textContent = '⟳';
+        if(btn){ btn.textContent = '⟳'; btn.title = 'Passer en paysage'; }
       }
       return;
-    }catch(e){ /* non supporté ou non fullscreen → fallback */ }
+    }catch(e){ orientationLockedByAPI = false; /* non supporté → fallback CSS */ }
   }
 
   // Fallback universel : rotation CSS du <html>
-  const html = document.documentElement;
   if(!forcedLandscape){
-    html.classList.add('landscape-forced');
-    forcedLandscape = true;
-    btn.textContent = '↕';
-    btn.title = 'Revenir en portrait';
+    applyLandscapeCSS();
   }else{
-    html.classList.remove('landscape-forced');
-    forcedLandscape = false;
-    btn.textContent = '⟳';
-    btn.title = 'Passer en paysage';
+    removeLandscapeCSS();
   }
 }
 
 function resetOrientation(){
   document.documentElement.classList.remove('landscape-forced');
   if(screen.orientation?.unlock) screen.orientation.unlock();
+  orientationLockedByAPI = false;
   forcedLandscape = false;
   const btn = document.getElementById('btnToggleOrientation');
   if(btn){ btn.textContent = '⟳'; btn.title = 'Passer en paysage'; }
+}
+
+// ── AUTO-ORIENTATION : réagit à la rotation physique du téléphone ──
+function handleOrientationChange(){
+  // Ne réagir que si l'écran joueur est actif
+  if(!isPlayerGameActive()) return;
+
+  // Si le verrou API est actif, le navigateur gère déjà l'affichage → rien à faire
+  if(orientationLockedByAPI) return;
+
+  // Détecter l'orientation réelle du téléphone
+  let isLandscape = false;
+  if(screen.orientation?.type){
+    isLandscape = screen.orientation.type.startsWith('landscape');
+  } else {
+    // Fallback iOS Safari (window.orientation dépréciée mais toujours supportée)
+    isLandscape = Math.abs(window.orientation) === 90;
+  }
+
+  if(isLandscape && !forcedLandscape){
+    applyLandscapeCSS();
+  } else if(!isLandscape && forcedLandscape){
+    removeLandscapeCSS();
+  }
+}
+
+// Brancher l'écouteur (Screen Orientation API d'abord, puis fallback)
+if(screen.orientation?.addEventListener){
+  screen.orientation.addEventListener('change', handleOrientationChange);
+} else {
+  window.addEventListener('orientationchange', handleOrientationChange);
 }
 
 // Exposer sur window (nécessaire car le script est type="module" → scope isolé)
