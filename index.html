@@ -1029,25 +1029,23 @@ async function doReconnect(){
 initReconnect();
 
 // ── ORIENTATION PAYSAGE/PORTRAIT ──────────────────────────
-let forcedLandscape = false;
-let orientationLockedByAPI = false; // true = screen.orientation.lock a réussi
+// Stratégie : on utilise screen.orientation.lock quand c'est possible
+// (Android PWA), sinon on force la rotation CSS du <html> en fallback.
+// La rotation physique du téléphone est également écoutée pour basculer
+// automatiquement quand l'écran joueur est actif.
 
-// Injecte le CSS de rotation une seule fois
+let forcedLandscape = false;
+
+// CSS de rotation forcée (fallback pour les navigateurs sans screen.orientation.lock)
 (function(){
   const s = document.createElement('style');
-  s.id = 'landscape-style';
   s.textContent = `
     html.landscape-forced {
       transform: rotate(90deg);
       transform-origin: top left;
-      width: 100vh;
-      height: 100vw;
-      overflow: hidden;
       position: fixed;
       top: 0;
-      left: 100%;
-    }
-    html.landscape-forced body {
+      left: 100vw;
       width: 100vh;
       height: 100vw;
       overflow: hidden;
@@ -1056,94 +1054,76 @@ let orientationLockedByAPI = false; // true = screen.orientation.lock a réussi
   document.head.appendChild(s);
 })();
 
+// Indique si l'écran joueur est actuellement affiché
 function isPlayerGameActive(){
   return document.getElementById('screenPlayerGame')?.classList.contains('active');
 }
 
-function applyLandscapeCSS(){
+// Applique le paysage (lock API ou CSS)
+async function goLandscape(){
+  if(screen.orientation?.lock){
+    try{
+      await screen.orientation.lock('landscape');
+      forcedLandscape = true;
+      _updateOrientationBtn();
+      return;
+    }catch(_){ /* API non dispo → fallback CSS */ }
+  }
   document.documentElement.classList.add('landscape-forced');
   forcedLandscape = true;
-  const btn = document.getElementById('btnToggleOrientation');
-  if(btn){ btn.textContent = '↕'; btn.title = 'Revenir en portrait'; }
+  _updateOrientationBtn();
 }
 
-function removeLandscapeCSS(){
-  document.documentElement.classList.remove('landscape-forced');
-  forcedLandscape = false;
-  const btn = document.getElementById('btnToggleOrientation');
-  if(btn){ btn.textContent = '⟳'; btn.title = 'Passer en paysage'; }
-}
-
-async function toggleOrientation(){
-  const btn = document.getElementById('btnToggleOrientation');
-
-  // Essai Screen Orientation API (Android Chrome en PWA installée)
-  if(screen.orientation && screen.orientation.lock){
-    try{
-      if(!forcedLandscape){
-        await screen.orientation.lock('landscape');
-        orientationLockedByAPI = true;
-        forcedLandscape = true;
-        if(btn){ btn.textContent = '↕'; btn.title = 'Revenir en portrait'; }
-      }else{
-        await screen.orientation.unlock();
-        orientationLockedByAPI = false;
-        forcedLandscape = false;
-        if(btn){ btn.textContent = '⟳'; btn.title = 'Passer en paysage'; }
-      }
-      return;
-    }catch(e){ orientationLockedByAPI = false; /* non supporté → fallback CSS */ }
-  }
-
-  // Fallback universel : rotation CSS du <html>
-  if(!forcedLandscape){
-    applyLandscapeCSS();
-  }else{
-    removeLandscapeCSS();
-  }
-}
-
-function resetOrientation(){
-  document.documentElement.classList.remove('landscape-forced');
+// Repasse en portrait (unlock API ou retrait classe CSS)
+function goPortrait(){
   if(screen.orientation?.unlock) screen.orientation.unlock();
-  orientationLockedByAPI = false;
+  document.documentElement.classList.remove('landscape-forced');
   forcedLandscape = false;
+  _updateOrientationBtn();
+}
+
+// Met à jour le bouton ⟳ / ↕
+function _updateOrientationBtn(){
   const btn = document.getElementById('btnToggleOrientation');
-  if(btn){ btn.textContent = '⟳'; btn.title = 'Passer en paysage'; }
+  if(!btn) return;
+  if(forcedLandscape){ btn.textContent = '↕'; btn.title = 'Revenir en portrait'; }
+  else               { btn.textContent = '⟳'; btn.title = 'Passer en paysage'; }
 }
 
-// ── AUTO-ORIENTATION : réagit à la rotation physique du téléphone ──
-function handleOrientationChange(){
-  // Ne réagir que si l'écran joueur est actif
-  if(!isPlayerGameActive()) return;
-
-  // Si le verrou API est actif, le navigateur gère déjà l'affichage → rien à faire
-  if(orientationLockedByAPI) return;
-
-  // Détecter l'orientation réelle du téléphone
-  let isLandscape = false;
-  if(screen.orientation?.type){
-    isLandscape = screen.orientation.type.startsWith('landscape');
-  } else {
-    // Fallback iOS Safari (window.orientation dépréciée mais toujours supportée)
-    isLandscape = Math.abs(window.orientation) === 90;
-  }
-
-  if(isLandscape && !forcedLandscape){
-    applyLandscapeCSS();
-  } else if(!isLandscape && forcedLandscape){
-    removeLandscapeCSS();
-  }
+// Bouton manuel : bascule portrait ↔ paysage
+async function toggleOrientation(){
+  if(!forcedLandscape) await goLandscape();
+  else                 goPortrait();
 }
 
-// Brancher l'écouteur (Screen Orientation API d'abord, puis fallback)
+// Réinitialise en portrait (appelé à l'interlude et aux scores)
+function resetOrientation(){
+  goPortrait();
+}
+
+// Écoute la rotation physique du téléphone
+function _onPhysicalRotation(){
+  if(!isPlayerGameActive()) return; // Ignorer si pas sur l'écran joueur
+
+  const isLandscape = screen.orientation
+    ? screen.orientation.type.startsWith('landscape')
+    : Math.abs(window.orientation ?? 0) === 90;
+
+  // Si le lock API est actif, le navigateur gère déjà l'affichage
+  if(screen.orientation?.lock && forcedLandscape) return;
+
+  if(isLandscape && !forcedLandscape)      goLandscape();
+  else if(!isLandscape && forcedLandscape) goPortrait();
+}
+
+// Branchement de l'écouteur (API moderne ou fallback window)
 if(screen.orientation?.addEventListener){
-  screen.orientation.addEventListener('change', handleOrientationChange);
-} else {
-  window.addEventListener('orientationchange', handleOrientationChange);
+  screen.orientation.addEventListener('change', _onPhysicalRotation);
+}else{
+  window.addEventListener('orientationchange', _onPhysicalRotation);
 }
 
-// Exposer sur window (nécessaire car le script est type="module" → scope isolé)
+// Exposer sur window (nécessaire car script type="module" → scope isolé)
 window.toggleOrientation = toggleOrientation;
 
 // ── SAVED SCREEN ─────────────────────────────────────────
