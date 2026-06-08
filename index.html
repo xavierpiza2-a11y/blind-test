@@ -1290,8 +1290,9 @@ window.pinKey = async function(k){
   if(_pinBuffer.length === 6){
     const hash = await hashPin(_pinBuffer);
     if(hash === _pinProfile.pinHash){
+      const profileToConnect = _pinProfile;
       window.closePinPad();
-      await connectAs(_pinProfile);
+      await connectAs(profileToConnect);
     } else {
       _pinAttempts++;
       pinError();
