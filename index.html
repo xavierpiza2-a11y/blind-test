@@ -54,112 +54,77 @@ button{cursor:pointer;border:none;background:none}
   background:linear-gradient(160deg,#1a0533 0%,#2d0a5e 50%,#1a0533 100%)}
 .kah-screen.active{display:flex}
 
-/* ── OVERLAY "TOURNE TON TÉLÉPHONE" — visible uniquement en portrait ── */
-#portraitOverlay{
-  display: none;
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  background: #1a0533;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 20px;
-  text-align: center;
-  padding: 32px;
-}
-@media (orientation: portrait) {
-  #portraitOverlay{ display: flex; }
-}
-#portraitOverlay .po-icon{
-  font-size: 64px;
-  animation: poRotate 1.5s ease-in-out infinite alternate;
-}
-@keyframes poRotate{
-  from{ transform: rotate(-15deg); }
-  to  { transform: rotate(15deg);  }
-}
-#portraitOverlay .po-title{
-  font-family: var(--ft);
-  font-size: 22px;
-  font-weight: 800;
-  color: #fff;
-}
-#portraitOverlay .po-sub{
-  font-size: 14px;
-  color: rgba(255,255,255,.55);
-  line-height: 1.5;
-}
-
-/* ── ÉCRAN JOUEUR — layout paysage permanent ── */
-#screenPlayerGame{
-  flex-direction: row !important;
-  align-items: stretch;
-  overflow: hidden;
-}
-#screenPlayerGame .kah-topbar{
-  flex-direction: column;
-  width: 110px;
-  min-width: 110px;
-  height: 100dvh;
-  padding: 10px 8px;
-  gap: 10px;
-  border-right: 1px solid rgba(255,255,255,.08);
-  justify-content: space-between;
-  align-items: center;
-}
-#screenPlayerGame .kah-q-label{
-  font-size: 11px;
-  text-align: center;
-  writing-mode: horizontal-tb;
-  white-space: normal;
-  max-width: 90px;
-}
-#screenPlayerGame .kah-stage{
-  flex: 1;
-  height: 100dvh;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 8px;
-}
-#screenPlayerGame #pPhaseMusic{
-  flex-direction: column;
-  gap: 6px;
-}
-#screenPlayerGame .kah-music-visual{
-  transform: scale(0.7);
-  transform-origin: center;
-}
-#screenPlayerGame .kah-playing-txt{
-  font-size: 11px;
-  text-align: center;
-}
-#screenPlayerGame .kah-choices{
-  width: 50vw;
-  max-width: 360px;
-  min-width: 180px;
-  height: 100dvh;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
-  gap: 6px;
-  padding: 8px;
-  flex-shrink: 0;
-}
-#screenPlayerGame .kah-btn{
-  height: auto !important;
-  min-height: 0;
-  flex: 1;
-  font-size: 13px;
-  padding: 8px 10px;
-  border-radius: 10px;
-}
-#screenPlayerGame .kah-btn .kah-icon{
-  width: 20px;
-  height: 20px;
-  font-size: 12px;
+/* ── ÉCRAN JOUEUR — layout paysage (quand le téléphone est tourné) ── */
+@media (orientation: landscape) {
+  #screenPlayerGame{
+    flex-direction: row !important;
+    align-items: stretch;
+    overflow: hidden;
+  }
+  #screenPlayerGame .kah-topbar{
+    flex-direction: column;
+    width: 110px;
+    min-width: 110px;
+    height: 100dvh;
+    padding: 10px 8px;
+    gap: 10px;
+    border-right: 1px solid rgba(255,255,255,.08);
+    justify-content: space-between;
+    align-items: center;
+  }
+  #screenPlayerGame .kah-q-label{
+    font-size: 11px;
+    text-align: center;
+    writing-mode: horizontal-tb;
+    white-space: normal;
+    max-width: 90px;
+  }
+  #screenPlayerGame .kah-stage{
+    flex: 1;
+    height: 100dvh;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+  }
+  #screenPlayerGame #pPhaseMusic{
+    flex-direction: column;
+    gap: 6px;
+  }
+  #screenPlayerGame .kah-music-visual{
+    transform: scale(0.7);
+    transform-origin: center;
+  }
+  #screenPlayerGame .kah-playing-txt{
+    font-size: 11px;
+    text-align: center;
+  }
+  #screenPlayerGame .kah-choices{
+    width: 50vw;
+    max-width: 360px;
+    min-width: 180px;
+    height: 100dvh;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 6px;
+    padding: 8px;
+    flex-shrink: 0;
+  }
+  #screenPlayerGame .kah-btn{
+    height: auto !important;
+    min-height: 0;
+    flex: 1;
+    font-size: 13px;
+    padding: 8px 10px;
+    border-radius: 10px;
+  }
+  #screenPlayerGame .kah-btn .kah-icon{
+    width: 20px;
+    height: 20px;
+    font-size: 12px;
+  }
 }
 
 /* ═══════════════════════════════════════════
@@ -440,12 +405,6 @@ textarea.inp{resize:none;line-height:1.6;font-size:14px}
 </head>
 <body>
 
-<!-- ── OVERLAY PORTRAIT : demande de tourner le téléphone ── -->
-<div id="portraitOverlay">
-  <div class="po-icon">📱</div>
-  <div class="po-title">Tourne ton téléphone</div>
-  <div class="po-sub">Cette app fonctionne<br>en mode paysage uniquement</div>
-</div>
 <div class="bg-wrap">
   <div class="bg-orb bg-orb1"></div>
   <div class="bg-orb bg-orb2"></div>
