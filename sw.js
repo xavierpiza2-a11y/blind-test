@@ -1,4 +1,4 @@
-const CACHE = 'blindtest-v2';
+const CACHE = 'blindtest-v3';
 const ASSETS = [
   '/blind-test/',
   '/blind-test/index.html',
