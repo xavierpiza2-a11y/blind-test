@@ -401,6 +401,93 @@ textarea.inp{resize:none;line-height:1.6;font-size:14px}
 .reconnect-sub{font-size:12px;color:var(--muted2);margin-bottom:12px}
 .reconnect-actions{display:flex;gap:8px}
 .reconnect-actions .btn{margin-bottom:0;flex:1;padding:10px}
+
+/* ═══════════════════════════════════════════
+   PROFILS — ÉCRAN DE CONNEXION
+═══════════════════════════════════════════ */
+#screenLogin{justify-content:center;align-items:center;padding:16px}
+.login-hero{text-align:center;margin-bottom:28px}
+.login-hero h1{font-family:var(--ft);font-size:36px;font-weight:900;background:linear-gradient(135deg,#fb923c,#f97316,#fbbf24);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-1px}
+.login-hero p{color:var(--muted);font-size:13px;margin-top:6px}
+.profiles-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;width:100%;max-width:460px;margin-bottom:20px}
+@media(max-width:360px){.profiles-grid{grid-template-columns:repeat(3,1fr)}}
+.profile-card{display:flex;flex-direction:column;align-items:center;gap:7px;padding:14px 6px;border-radius:16px;background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.1);cursor:pointer;transition:all .15s;position:relative}
+.profile-card:active{transform:scale(.94)}
+.profile-card.has-pin::after{content:'🔒';position:absolute;top:6px;right:8px;font-size:11px;opacity:.7}
+.profile-avatar{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0}
+.profile-name{font-size:11px;font-weight:700;color:var(--text);text-align:center;line-height:1.2;max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.profile-card.admin-card{border-color:rgba(249,115,22,.4);background:rgba(249,115,22,.08)}
+
+/* PIN PAD */
+.pin-pad-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(6px)}
+.pin-pad-box{background:#1a0533;border:1.5px solid rgba(255,255,255,.15);border-radius:24px;padding:28px 24px;width:100%;max-width:320px;text-align:center}
+.pin-pad-avatar{font-size:48px;margin-bottom:8px}
+.pin-pad-name{font-family:var(--ft);font-size:20px;font-weight:900;color:white;margin-bottom:4px}
+.pin-pad-sub{font-size:12px;color:var(--muted);margin-bottom:20px}
+.pin-dots{display:flex;justify-content:center;gap:10px;margin-bottom:20px}
+.pin-dot{width:14px;height:14px;border-radius:50%;background:rgba(255,255,255,.15);border:2px solid rgba(255,255,255,.25);transition:all .15s}
+.pin-dot.filled{background:var(--orange);border-color:var(--orange)}
+.pin-dot.error{background:var(--red);border-color:var(--red);animation:pinShake .3s ease}
+@keyframes pinShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.pin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.pin-key{height:56px;border-radius:14px;background:rgba(255,255,255,.09);border:1.5px solid rgba(255,255,255,.1);font-family:var(--ft);font-size:20px;font-weight:800;color:white;cursor:pointer;transition:all .1s;display:flex;align-items:center;justify-content:center}
+.pin-key:active{background:rgba(249,115,22,.3);border-color:var(--orange);transform:scale(.93)}
+.pin-key.empty{background:transparent;border-color:transparent;pointer-events:none}
+.pin-err{color:var(--red);font-size:12px;height:16px;margin-bottom:4px}
+.pin-cancel{color:var(--muted);font-size:13px;padding:8px 16px;width:100%}
+.pin-blocked{color:var(--red);font-size:12px;margin-top:4px}
+
+/* ADMIN PANEL */
+#screenAdmin{overflow-y:auto}
+.admin-header{background:linear-gradient(135deg,rgba(249,115,22,.2),rgba(236,72,153,.15));border-bottom:1px solid rgba(255,255,255,.1);padding:16px 20px;display:flex;align-items:center;gap:14px;flex-shrink:0}
+.admin-header-avatar{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;background:rgba(249,115,22,.2);border:2px solid rgba(249,115,22,.4)}
+.admin-header-info{flex:1}
+.admin-header-title{font-family:var(--ft);font-size:16px;font-weight:900;color:white}
+.admin-header-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.admin-header-back{color:var(--muted2);font-size:22px;padding:4px 8px}
+.admin-tabs{display:flex;border-bottom:1px solid rgba(255,255,255,.1);flex-shrink:0;overflow-x:auto;scrollbar-width:none}
+.admin-tabs::-webkit-scrollbar{display:none}
+.admin-tab{padding:12px 16px;font-size:13px;font-weight:700;color:var(--muted);white-space:nowrap;border-bottom:2px solid transparent;transition:all .15s;flex-shrink:0}
+.admin-tab.active{color:var(--orange);border-bottom-color:var(--orange)}
+.admin-content{flex:1;overflow-y:auto;padding:16px}
+.admin-section{margin-bottom:20px}
+.admin-section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:12px}
+.profile-item{display:flex;align-items:center;gap:12px;padding:12px 14px;background:rgba(255,255,255,.06);border-radius:14px;margin-bottom:8px;border:1px solid rgba(255,255,255,.08)}
+.profile-item-avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.profile-item-info{flex:1;min-width:0}
+.profile-item-name{font-weight:700;font-size:14px}
+.profile-item-meta{font-size:11px;color:var(--muted);margin-top:2px}
+.profile-item-actions{display:flex;gap:6px}
+.btn-icon{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer;border:none}
+.btn-icon-edit{background:rgba(139,92,246,.2);color:#a78bfa}
+.btn-icon-del{background:rgba(239,68,68,.15);color:#f87171}
+.stat-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+.stat-row:last-child{border-bottom:none}
+.stat-label{font-size:13px;color:var(--muted2)}
+.stat-val{font-family:var(--ft);font-weight:800;font-size:16px;color:var(--orange)}
+.config-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+.config-row:last-child{border-bottom:none}
+.config-label{font-size:14px;font-weight:600}
+.config-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.config-val{font-family:var(--ft);font-size:18px;font-weight:900;color:var(--orange);display:flex;align-items:center;gap:8px}
+.config-btn{width:28px;height:28px;border-radius:8px;background:rgba(255,255,255,.1);font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;color:white}
+.config-btn:active{background:rgba(249,115,22,.3)}
+
+/* MODAL PROFIL */
+.modal-overlay{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.75);display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)}
+.modal-box{background:#1a0533;border:1.5px solid rgba(255,255,255,.15);border-radius:24px 24px 0 0;width:100%;max-width:480px;padding:24px 20px 36px;animation:slideUp .25s ease-out}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-title{font-family:var(--ft);font-size:18px;font-weight:900;color:white;margin-bottom:20px;text-align:center}
+.modal-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:8px}
+.modal-inp{width:100%;padding:12px 14px;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.12);border-radius:12px;color:var(--text);font-size:15px;outline:none;margin-bottom:16px}
+.modal-inp:focus{border-color:var(--orange)}
+.emoji-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:16px}
+.emoji-opt{height:40px;border-radius:10px;background:rgba(255,255,255,.07);border:2px solid transparent;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .12s}
+.emoji-opt.selected{border-color:var(--orange);background:rgba(249,115,22,.2)}
+.color-grid{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.color-opt{width:32px;height:32px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:all .12s;flex-shrink:0}
+.color-opt.selected{border-color:white;transform:scale(1.15)}
+.modal-actions{display:flex;gap:10px;margin-top:4px}
 </style>
 </head>
 <body>
@@ -413,24 +500,40 @@ textarea.inp{resize:none;line-height:1.6;font-size:14px}
 <div class="confetti-wrap" id="confettiWrap"></div>
 
 <!-- ══════════════════════════════════════════
-     HOME
+     LOGIN — SÉLECTION PROFIL
 ══════════════════════════════════════════ -->
-<div id="screenHome" class="screen active">
-  <div class="wrap">
-    <div class="hero">
-      <div class="hero-icon">🎵</div>
-      <h1 class="title-grad" style="font-size:42px;letter-spacing:-1px;line-height:1">BLIND TEST</h1>
-      <p style="color:var(--muted);font-size:14px;margin-top:8px">La soirée qui va diviser les familles 😅</p>
+<div id="screenLogin" class="screen active">
+  <div class="login-hero">
+    <h1>🎵 BLIND TEST</h1>
+    <p>La soirée qui va diviser les familles 😅</p>
+  </div>
+  <div class="profiles-grid" id="profilesGrid">
+    <!-- Rempli dynamiquement -->
+    <div style="grid-column:1/-1;text-align:center;color:var(--muted);padding:20px 0">Chargement…</div>
+  </div>
+  <!-- Bannière de reconnexion de partie -->
+  <div class="reconnect-banner" id="reconnectBanner" style="max-width:460px;width:100%">
+    <div class="reconnect-title" id="reconnectTitle">🔄 Partie en cours détectée</div>
+    <div class="reconnect-sub" id="reconnectSub">Tu étais dans une partie. Veux-tu reprendre ?</div>
+    <div class="reconnect-actions">
+      <button class="btn btn-green btn-sm" id="btnReconnect" style="font-size:14px">▶️ Reprendre</button>
+      <button class="btn btn-red btn-sm" id="btnReconnectDismiss" style="font-size:14px">✕ Ignorer</button>
     </div>
+  </div>
+</div>
 
-    <!-- Bannière de reconnexion (masquée par défaut) -->
-    <div class="reconnect-banner" id="reconnectBanner">
-      <div class="reconnect-title" id="reconnectTitle">🔄 Partie en cours détectée</div>
-      <div class="reconnect-sub" id="reconnectSub">Tu étais dans une partie. Veux-tu reprendre ?</div>
-      <div class="reconnect-actions">
-        <button class="btn btn-green btn-sm" id="btnReconnect" style="font-size:14px">▶️ Reprendre</button>
-        <button class="btn btn-red btn-sm" id="btnReconnectDismiss" style="font-size:14px">✕ Ignorer</button>
+<!-- ══════════════════════════════════════════
+     HOME (après connexion)
+══════════════════════════════════════════ -->
+<div id="screenHome" class="screen">
+  <div class="wrap">
+    <div class="hero" style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+      <div id="homeProfileAvatar" style="width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0"></div>
+      <div style="flex:1">
+        <div style="font-family:var(--ft);font-weight:900;font-size:16px" id="homeProfileName">Bienvenue</div>
+        <div style="font-size:11px;color:var(--muted)">Blind Test Famille</div>
       </div>
+      <button onclick="window.doLogout()" style="color:var(--muted);font-size:12px;padding:6px 10px;background:rgba(255,255,255,.07);border-radius:10px;border:1px solid rgba(255,255,255,.1)">⬅ Quitter</button>
     </div>
     <div class="card">
       <button class="btn btn-pink" id="btnMJ">🎤 Je suis le Maître du Jeu</button>
@@ -443,6 +546,9 @@ textarea.inp{resize:none;line-height:1.6;font-size:14px}
       <input class="inp inp-code" id="joinCode" placeholder="CODE" maxlength="5">
       <p class="err" id="joinErr"></p>
       <button class="btn btn-secondary" id="joinBtn" style="margin-bottom:0">🚀 Rejoindre</button>
+    </div>
+    <div id="adminHomeBtn" style="display:none;margin-top:8px">
+      <button class="btn" onclick="window.showAdminPanel()" style="background:rgba(249,115,22,.15);border:1.5px solid rgba(249,115,22,.3);color:var(--orange)">⚙️ Panneau Admin</button>
     </div>
   </div>
 </div>
@@ -671,7 +777,7 @@ textarea.inp{resize:none;line-height:1.6;font-size:14px}
 ══════════════════════════════════════════ -->
 <script type="module">
 import { initializeApp }   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, set, get, onValue, off } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getDatabase, ref, set, get, remove, onValue, off } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 const app = initializeApp({
   apiKey:"AIzaSyB1ixvhAm54aoRhdgUXpcl4CiLY6whZOnE",
@@ -689,6 +795,7 @@ async function dbSet(p,v){ await set(ref(db,p),v); }
 async function dbGet(p){ const s=await get(ref(db,p)); return s.exists()?s.val():null; }
 function dbOn(p,cb){ const r=ref(db,p); onValue(r,s=>cb(s.exists()?s.val():null)); return r; }
 function dbOff(r){ if(r) off(r); }
+async function dbRemove(p){ await remove(ref(db,p)); }
 
 // ── LS helpers ───────────────────────────────────────────
 const lsGet=k=>{try{return JSON.parse(localStorage.getItem(k));}catch{return null;}};
@@ -1016,9 +1123,438 @@ async function doReconnect(){
   }
 }
 
-initReconnect();
+// ── ORIENTATION : gérée par @media (orientation:landscape) en CSS ──
 
-// ── ORIENTATION : gérée par @media (orientation:portrait) en CSS ──
+// ═══════════════════════════════════════════════════════════════════
+// SYSTÈME DE PROFILS
+// ═══════════════════════════════════════════════════════════════════
+
+const EMOJIS = ['🎵','🎸','🎹','🎺','🥁','🎷','🎤','🎧','🎼','🎻','🪗','🪘','🎙️','🎶','🌟','🔥','💫','🦁','🐯','🦊','🐼','🦄','👑','🚀'];
+const COLORS = ['#f97316','#ec4899','#8b5cf6','#10b981','#3b82f6','#f59e0b','#ef4444','#06b6d4','#84cc16','#a855f7','#14b8a6','#f43f5e'];
+const PROFILES_REF = 'app/profiles';
+const CONFIG_REF   = 'app/config';
+const STATS_REF    = 'app/stats';
+
+// État courant du profil connecté
+const AUTH = { profile: null };
+
+// ── Hash SHA-256 (PIN) ──
+async function hashPin(pin){
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pin));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+// ── Charger les profils depuis Firebase ──
+async function loadProfiles(){
+  const data = await dbGet(PROFILES_REF);
+  return data ? Object.values(data) : [];
+}
+
+// ── Rendu de la grille de profils ──
+async function renderProfilesGrid(){
+  const grid = document.getElementById('profilesGrid');
+  grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--muted);padding:20px 0">Chargement…</div>';
+  let profiles = await loadProfiles();
+  if(!profiles.length){
+    // Première utilisation : créer les profils par défaut
+    await initDefaultProfiles();
+    profiles = await loadProfiles();
+  }
+  // Admin en dernier
+  profiles.sort((a,b) => (a.isAdmin?1:-1) - (b.isAdmin?1:-1));
+  grid.innerHTML = profiles.map(p => `
+    <div class="profile-card ${p.isAdmin?'admin-card':''} ${p.pinHash?'has-pin':''}"
+         onclick="window.selectProfile('${p.id}')"
+         data-id="${p.id}">
+      <div class="profile-avatar" style="background:${p.color}20;border:2px solid ${p.color}40">${p.avatar}</div>
+      <div class="profile-name">${p.name}</div>
+      ${p.isAdmin?'<div style="font-size:9px;color:var(--orange);font-weight:700;margin-top:-4px">ADMIN</div>':''}
+    </div>`).join('');
+}
+
+// ── Profils par défaut (première installation) ──
+async function initDefaultProfiles(){
+  const defaultProfiles = [
+    {id:'xavier', name:'Xavier',  avatar:'👑', color:'#f97316', isAdmin:true,  pinHash:null},
+    {id:'nadege', name:'Nadège',  avatar:'🌟', color:'#ec4899', isAdmin:false, pinHash:null},
+    {id:'nathan', name:'Nathan',  avatar:'🔥', color:'#3b82f6', isAdmin:false, pinHash:null},
+    {id:'elisa',  name:'Elisa',   avatar:'🦄', color:'#8b5cf6', isAdmin:false, pinHash:null},
+    {id:'emilie', name:'Emilie',  avatar:'🎵', color:'#10b981', isAdmin:false, pinHash:null},
+    {id:'yannick',name:'Yannick', avatar:'🦁', color:'#f59e0b', isAdmin:false, pinHash:null},
+    {id:'marylou',name:'Marylou', avatar:'🎤', color:'#f43f5e', isAdmin:false, pinHash:null},
+    {id:'melanie',name:'Mélanie', avatar:'🎸', color:'#06b6d4', isAdmin:false, pinHash:null},
+    {id:'andre',  name:'André',   avatar:'🎷', color:'#84cc16', isAdmin:false, pinHash:null},
+  ];
+  // Hash du PIN de Xavier : 280787
+  defaultProfiles[0].pinHash = await hashPin('280787');
+  for(const p of defaultProfiles){
+    await dbSet(PROFILES_REF + '/' + p.id, p);
+  }
+}
+
+// ── Sélection d'un profil ──
+let _pinProfile = null;
+let _pinBuffer  = '';
+let _pinAttempts = 0;
+let _pinBlockedUntil = 0;
+
+window.selectProfile = async function(profileId){
+  const profiles = await loadProfiles();
+  const profile  = profiles.find(p => p.id === profileId);
+  if(!profile) return;
+  if(profile.pinHash){
+    openPinPad(profile);
+  } else {
+    await connectAs(profile);
+  }
+};
+
+// ── Connexion directe (sans PIN) ──
+async function connectAs(profile){
+  AUTH.profile = profile;
+  // Sauvegarder la session avec expiry 2h
+  lsSet('bt:profile', {id: profile.id, expiry: Date.now() + 2*60*60*1000});
+  // Mettre à jour l'UI home
+  const av = document.getElementById('homeProfileAvatar');
+  const nm = document.getElementById('homeProfileName');
+  if(av){ av.textContent = profile.avatar; av.style.background = profile.color + '30'; av.style.border = '2px solid ' + profile.color + '50'; }
+  if(nm) nm.textContent = profile.name;
+  // Bouton admin si applicable
+  const adminBtn = document.getElementById('adminHomeBtn');
+  if(adminBtn) adminBtn.style.display = profile.isAdmin ? 'block' : 'none';
+  // Pré-remplir le champ "joinName" avec le prénom du profil
+  const joinNameEl = document.getElementById('joinName');
+  if(joinNameEl) joinNameEl.value = profile.name;
+  show('screenHome');
+  // Vérifier une reconnexion de partie en cours
+  await initReconnect();
+  // Stats : incrémenter connexions
+  dbSet(STATS_REF + '/lastLogin', {name: profile.name, at: Date.now()});
+}
+
+// ── Déconnexion ──
+window.doLogout = function(){
+  AUTH.profile = null;
+  lsDel('bt:profile');
+  renderProfilesGrid();
+  show('screenLogin');
+};
+
+// ── PIN PAD ──
+function openPinPad(profile){
+  _pinProfile  = profile;
+  _pinBuffer   = '';
+  _pinAttempts = 0;
+  document.getElementById('pinPadAvatar').textContent = profile.avatar;
+  document.getElementById('pinPadName').textContent   = profile.name;
+  document.getElementById('pinPadSub').textContent    = profile.isAdmin ? 'Code PIN administrateur' : 'Entrez votre code PIN';
+  document.getElementById('pinErr').textContent = '';
+  document.getElementById('pinBlocked').style.display = 'none';
+  renderPinDots();
+  document.getElementById('pinPadOverlay').style.display = 'flex';
+}
+
+window.closePinPad = function(){
+  document.getElementById('pinPadOverlay').style.display = 'none';
+  _pinProfile = null; _pinBuffer = '';
+};
+
+function renderPinDots(){
+  const el = document.getElementById('pinDots');
+  el.innerHTML = Array.from({length:6}, (_,i) =>
+    `<div class="pin-dot ${i < _pinBuffer.length ? 'filled' : ''}"></div>`
+  ).join('');
+}
+
+function pinError(){
+  document.getElementById('pinDots').querySelectorAll('.pin-dot').forEach(d=>d.classList.add('error'));
+  setTimeout(()=>{
+    document.getElementById('pinDots').querySelectorAll('.pin-dot').forEach(d=>d.classList.remove('error'));
+    _pinBuffer = ''; renderPinDots();
+  }, 600);
+}
+
+window.pinKey = async function(k){
+  if(!_pinProfile) return;
+  // Vérifier blocage
+  if(_pinBlockedUntil > Date.now()){
+    const sec = Math.ceil((_pinBlockedUntil - Date.now())/1000);
+    document.getElementById('pinBlocked').textContent = `Trop de tentatives — réessaie dans ${sec}s`;
+    document.getElementById('pinBlocked').style.display = 'block';
+    return;
+  }
+  if(k === '⌫'){ _pinBuffer = _pinBuffer.slice(0,-1); renderPinDots(); return; }
+  if(_pinBuffer.length >= 6) return;
+  _pinBuffer += k;
+  renderPinDots();
+  if(_pinBuffer.length === 6){
+    const hash = await hashPin(_pinBuffer);
+    if(hash === _pinProfile.pinHash){
+      window.closePinPad();
+      await connectAs(_pinProfile);
+    } else {
+      _pinAttempts++;
+      pinError();
+      document.getElementById('pinErr').textContent = `Code incorrect (${_pinAttempts}/3)`;
+      if(_pinAttempts >= 3){
+        _pinBlockedUntil = Date.now() + 30000;
+        document.getElementById('pinBlocked').textContent = 'Trop de tentatives — bloqué 30s';
+        document.getElementById('pinBlocked').style.display = 'block';
+        window.closePinPad();
+        _pinAttempts = 0;
+      }
+    }
+  }
+};
+
+// ── Reconnexion auto (session profile, expiry 2h) ──
+async function tryAutoLogin(){
+  const saved = lsGet('bt:profile');
+  if(!saved || saved.expiry < Date.now()){ lsDel('bt:profile'); return false; }
+  const profiles = await loadProfiles();
+  const profile  = profiles.find(p => p.id === saved.id);
+  if(!profile){ lsDel('bt:profile'); return false; }
+  await connectAs(profile);
+  return true;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ADMIN PANEL
+// ═══════════════════════════════════════════════════════════════════
+
+let _adminTab = 'profiles';
+let _editProfileId = null;
+let _selectedEmoji = '🎵';
+let _selectedColor = '#f97316';
+
+window.showAdminPanel = function(){
+  document.getElementById('adminHeaderSub').textContent = AUTH.profile?.name + ' · Administrateur';
+  switchAdminTab('profiles');
+  show('screenAdmin');
+};
+
+window.closeAdminPanel = function(){ show('screenHome'); };
+
+window.switchAdminTab = function(tab){
+  _adminTab = tab;
+  ['profiles','stats','questions','config'].forEach(t=>{
+    document.getElementById('at'+t.charAt(0).toUpperCase()+t.slice(1)).classList.toggle('active', t===tab);
+  });
+  renderAdminContent();
+};
+
+async function renderAdminContent(){
+  const el = document.getElementById('adminContent');
+  el.innerHTML = '<div style="text-align:center;color:var(--muted);padding:40px 0">Chargement…</div>';
+  if(_adminTab === 'profiles')   await renderAdminProfiles(el);
+  else if(_adminTab === 'stats') await renderAdminStats(el);
+  else if(_adminTab === 'questions') await renderAdminQuestions(el);
+  else if(_adminTab === 'config')    await renderAdminConfig(el);
+}
+
+// ── Onglet Profils ──
+async function renderAdminProfiles(el){
+  const profiles = await loadProfiles();
+  el.innerHTML = `
+    <div class="admin-section">
+      <div class="admin-section-title">Profils (${profiles.length})</div>
+      ${profiles.map(p => `
+        <div class="profile-item">
+          <div class="profile-item-avatar" style="background:${p.color}25;border:2px solid ${p.color}40">${p.avatar}</div>
+          <div class="profile-item-info">
+            <div class="profile-item-name">${p.name} ${p.isAdmin?'<span style="font-size:10px;color:var(--orange)">ADMIN</span>':''}</div>
+            <div class="profile-item-meta">${p.pinHash ? '🔒 PIN actif' : '🔓 Sans PIN'}</div>
+          </div>
+          <div class="profile-item-actions">
+            <button class="btn-icon btn-icon-edit" onclick="window.openProfileModal('${p.id}')">✏️</button>
+            <button class="btn-icon btn-icon-del" onclick="window.deleteProfile('${p.id}')">🗑</button>
+          </div>
+        </div>`).join('')}
+    </div>
+    <button class="btn btn-primary" onclick="window.openProfileModal(null)" style="margin-top:8px">➕ Nouveau profil</button>`;
+}
+
+// ── Onglet Stats ──
+async function renderAdminStats(el){
+  const stats = await dbGet(STATS_REF) || {};
+  const sessions = stats.sessions || [];
+  const totalGames = sessions.length;
+  const totalPlayers = sessions.reduce((a,s)=>a+(s.players||0),0);
+  const lastLogin = stats.lastLogin;
+  el.innerHTML = `
+    <div class="admin-section">
+      <div class="admin-section-title">Activité</div>
+      <div class="card" style="padding:8px 14px">
+        <div class="stat-row"><span class="stat-label">Parties jouées</span><span class="stat-val">${totalGames}</span></div>
+        <div class="stat-row"><span class="stat-label">Joueurs totaux</span><span class="stat-val">${totalPlayers}</span></div>
+        <div class="stat-row"><span class="stat-label">Dernière connexion</span><span class="stat-val" style="font-size:12px;font-family:var(--fn)">${lastLogin ? lastLogin.name + ' · ' + new Date(lastLogin.at).toLocaleDateString('fr-FR') : '—'}</span></div>
+      </div>
+    </div>
+    <div class="admin-section">
+      <div class="admin-section-title">Dernières parties</div>
+      ${sessions.length ? sessions.slice(-10).reverse().map(s=>`
+        <div class="profile-item" style="margin-bottom:6px">
+          <div style="flex:1">
+            <div style="font-weight:700;font-size:13px">${s.title||'Sans titre'}</div>
+            <div style="font-size:11px;color:var(--muted)">${s.players||0} joueurs · ${s.rounds||0} manches · ${new Date(s.at).toLocaleDateString('fr-FR')}</div>
+          </div>
+        </div>`).join('') : '<div style="color:var(--muted);text-align:center;padding:20px">Aucune partie enregistrée</div>'}
+    </div>`;
+}
+
+// ── Onglet Questions ──
+async function renderAdminQuestions(el){
+  const idx = getSavedIdx();
+  el.innerHTML = `
+    <div class="admin-section">
+      <div class="admin-section-title">Parties sauvegardées (${idx.length})</div>
+      ${idx.length ? idx.sort((a,b)=>b.savedAt-a.savedAt).map(g=>`
+        <div class="profile-item">
+          <div style="font-size:24px">🎵</div>
+          <div class="profile-item-info">
+            <div class="profile-item-name">${g.title}</div>
+            <div class="profile-item-meta">${g.count} manche${g.count>1?'s':''} · ${fmtDate(g.savedAt)}</div>
+          </div>
+          <button class="btn-icon btn-icon-del" onclick="window.adminDelGame('${g.id}')">🗑</button>
+        </div>`).join('') : '<div style="color:var(--muted);text-align:center;padding:20px">Aucune partie sauvegardée</div>'}
+    </div>`;
+}
+
+window.adminDelGame = function(id){
+  if(!confirm('Supprimer cette partie ?')) return;
+  delGame(id);
+  renderAdminContent();
+};
+
+// ── Onglet Config ──
+async function renderAdminConfig(el){
+  const cfg = await dbGet(CONFIG_REF) || {timer:20, rounds:10, title:'Blind Test Famille'};
+  el.innerHTML = `
+    <div class="admin-section">
+      <div class="admin-section-title">Paramètres de la partie</div>
+      <div class="card" style="padding:8px 14px">
+        <div class="config-row">
+          <div><div class="config-label">Durée du timer</div><div class="config-sub">Secondes par question</div></div>
+          <div class="config-val">
+            <button class="config-btn" onclick="window.updateConfig('timer',-5)">−</button>
+            <span id="cfgTimer">${cfg.timer||20}</span>s
+            <button class="config-btn" onclick="window.updateConfig('timer',5)">+</button>
+          </div>
+        </div>
+        <div class="config-row">
+          <div><div class="config-label">Manches par défaut</div><div class="config-sub">Nombre de questions</div></div>
+          <div class="config-val">
+            <button class="config-btn" onclick="window.updateConfig('rounds',-1)">−</button>
+            <span id="cfgRounds">${cfg.rounds||10}</span>
+            <button class="config-btn" onclick="window.updateConfig('rounds',1)">+</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  window._adminCfg = {...cfg};
+}
+
+window.updateConfig = async function(key, delta){
+  if(!window._adminCfg) return;
+  const min = key==='timer'?5:1, max=key==='timer'?60:20;
+  window._adminCfg[key] = Math.min(max, Math.max(min, (window._adminCfg[key]||0) + delta));
+  document.getElementById('cfg'+key.charAt(0).toUpperCase()+key.slice(1)).textContent = window._adminCfg[key];
+  await dbSet(CONFIG_REF, window._adminCfg);
+};
+
+// ── Modal édition profil ──
+window.openProfileModal = function(profileId){
+  _editProfileId = profileId;
+  _selectedEmoji = '🎵';
+  _selectedColor = '#f97316';
+  document.getElementById('profileModalTitle').textContent = profileId ? 'Modifier le profil' : 'Nouveau profil';
+  document.getElementById('profileModalName').value = '';
+  document.getElementById('profileModalPin').value  = '';
+  document.getElementById('profileModalIsAdmin').checked = false;
+  // Emojis
+  document.getElementById('profileModalEmojis').innerHTML = EMOJIS.map(e =>
+    `<button class="emoji-opt ${e===_selectedEmoji?'selected':''}" onclick="window.selectEmoji('${e}')">${e}</button>`
+  ).join('');
+  // Couleurs
+  document.getElementById('profileModalColors').innerHTML = COLORS.map(c =>
+    `<div class="color-opt ${c===_selectedColor?'selected':''}" style="background:${c}" onclick="window.selectColor('${c}')"></div>`
+  ).join('');
+  // Pré-remplir si édition
+  if(profileId){
+    loadProfiles().then(profiles => {
+      const p = profiles.find(x=>x.id===profileId);
+      if(!p) return;
+      document.getElementById('profileModalName').value = p.name;
+      document.getElementById('profileModalIsAdmin').checked = !!p.isAdmin;
+      _selectedEmoji = p.avatar;
+      _selectedColor = p.color;
+      document.getElementById('profileModalEmojis').innerHTML = EMOJIS.map(e =>
+        `<button class="emoji-opt ${e===_selectedEmoji?'selected':''}" onclick="window.selectEmoji('${e}')">${e}</button>`
+      ).join('');
+      document.getElementById('profileModalColors').innerHTML = COLORS.map(c =>
+        `<div class="color-opt ${c===_selectedColor?'selected':''}" style="background:${c}" onclick="window.selectColor('${c}')"></div>`
+      ).join('');
+    });
+  }
+  document.getElementById('profileModal').style.display = 'flex';
+};
+
+window.closeProfileModal = function(){
+  document.getElementById('profileModal').style.display = 'none';
+};
+
+window.selectEmoji = function(e){
+  _selectedEmoji = e;
+  document.querySelectorAll('.emoji-opt').forEach(el=>el.classList.toggle('selected', el.textContent===e));
+};
+
+window.selectColor = function(c){
+  _selectedColor = c;
+  document.querySelectorAll('.color-opt').forEach(el=>el.classList.toggle('selected', el.style.background===c));
+};
+
+window.saveProfileModal = async function(){
+  const name  = document.getElementById('profileModalName').value.trim();
+  const pin   = document.getElementById('profileModalPin').value.trim();
+  const isAdmin = document.getElementById('profileModalIsAdmin').checked;
+  if(!name){ alert('Saisis un prénom'); return; }
+  if(pin && (!/^\d{6}$/.test(pin))){ alert('Le PIN doit être exactement 6 chiffres'); return; }
+  const id = _editProfileId || name.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\s+/g,'-');
+  let pinHash = null;
+  if(pin){ pinHash = await hashPin(pin); }
+  else if(_editProfileId){
+    // Conserver l'ancien hash si pas de nouveau PIN saisi
+    const existing = (await loadProfiles()).find(p=>p.id===_editProfileId);
+    pinHash = existing?.pinHash || null;
+  }
+  const profile = {id, name, avatar:_selectedEmoji, color:_selectedColor, isAdmin, pinHash};
+  await dbSet(PROFILES_REF+'/'+id, profile);
+  window.closeProfileModal();
+  renderAdminContent();
+};
+
+window.deleteProfile = async function(id){
+  if(id === AUTH.profile?.id){ alert('Tu ne peux pas supprimer ton propre profil'); return; }
+  if(!confirm('Supprimer ce profil ?')) return;
+  await dbRemove(PROFILES_REF+'/'+id);
+  renderAdminContent();
+};
+
+// ═══════════════════════════════════════════════════════════════════
+// INITIALISATION
+// ═══════════════════════════════════════════════════════════════════
+
+async function appInit(){
+  // 1. Tenter reconnexion auto (profil session < 2h)
+  const autoLogged = await tryAutoLogin();
+  if(!autoLogged){
+    // 2. Afficher la grille de profils
+    await renderProfilesGrid();
+    show('screenLogin');
+  }
+}
+
+appInit();
 
 // ── SAVED SCREEN ─────────────────────────────────────────
 function renderSaved(){
@@ -1562,5 +2098,83 @@ if('serviceWorker' in navigator && location.hostname === 'xavierpiza2-a11y.githu
   });
 }
 </script>
+
+<!-- ══════════════════════════════════════════
+     PIN PAD OVERLAY
+══════════════════════════════════════════ -->
+<div id="pinPadOverlay" class="pin-pad-overlay" style="display:none">
+  <div class="pin-pad-box">
+    <div class="pin-pad-avatar" id="pinPadAvatar">🎵</div>
+    <div class="pin-pad-name" id="pinPadName">Xavier</div>
+    <div class="pin-pad-sub" id="pinPadSub">Entrez votre code PIN</div>
+    <div class="pin-dots" id="pinDots"></div>
+    <div class="pin-err" id="pinErr"></div>
+    <div class="pin-grid">
+      <button class="pin-key" onclick="window.pinKey('1')">1</button>
+      <button class="pin-key" onclick="window.pinKey('2')">2</button>
+      <button class="pin-key" onclick="window.pinKey('3')">3</button>
+      <button class="pin-key" onclick="window.pinKey('4')">4</button>
+      <button class="pin-key" onclick="window.pinKey('5')">5</button>
+      <button class="pin-key" onclick="window.pinKey('6')">6</button>
+      <button class="pin-key" onclick="window.pinKey('7')">7</button>
+      <button class="pin-key" onclick="window.pinKey('8')">8</button>
+      <button class="pin-key" onclick="window.pinKey('9')">9</button>
+      <button class="pin-key empty"></button>
+      <button class="pin-key" onclick="window.pinKey('0')">0</button>
+      <button class="pin-key" onclick="window.pinKey('⌫')">⌫</button>
+    </div>
+    <div class="pin-blocked" id="pinBlocked" style="display:none"></div>
+    <button class="pin-cancel" onclick="window.closePinPad()">Annuler</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     MODAL ÉDITION PROFIL
+══════════════════════════════════════════ -->
+<div id="profileModal" class="modal-overlay" style="display:none" onclick="if(event.target===this)window.closeProfileModal()">
+  <div class="modal-box">
+    <div class="modal-title" id="profileModalTitle">Nouveau profil</div>
+    <div class="modal-label">Prénom</div>
+    <input class="modal-inp" id="profileModalName" placeholder="Prénom" maxlength="20">
+    <div class="modal-label">Avatar</div>
+    <div class="emoji-grid" id="profileModalEmojis"></div>
+    <div class="modal-label">Couleur</div>
+    <div class="color-grid" id="profileModalColors"></div>
+    <div class="modal-label" style="margin-bottom:4px">Code PIN (6 chiffres) <span style="color:var(--muted);font-weight:400">— optionnel</span></div>
+    <input class="modal-inp" id="profileModalPin" placeholder="Laisser vide = sans PIN" maxlength="6" type="password" inputmode="numeric" pattern="[0-9]*">
+    <div id="profileModalPinToggle" style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+      <input type="checkbox" id="profileModalIsAdmin" style="width:16px;height:16px">
+      <label for="profileModalIsAdmin" style="font-size:13px;color:var(--muted2)">Profil administrateur</label>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="window.closeProfileModal()" style="margin:0;flex:1">Annuler</button>
+      <button class="btn btn-primary" onclick="window.saveProfileModal()" style="margin:0;flex:1">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     ADMIN PANEL
+══════════════════════════════════════════ -->
+<div id="screenAdmin" class="screen">
+  <div class="admin-header">
+    <button class="admin-header-back" onclick="window.closeAdminPanel()">←</button>
+    <div class="admin-header-avatar">⚙️</div>
+    <div class="admin-header-info">
+      <div class="admin-header-title">Panneau Admin</div>
+      <div class="admin-header-sub" id="adminHeaderSub">Xavier · Administrateur</div>
+    </div>
+  </div>
+  <div class="admin-tabs">
+    <div class="admin-tab active" onclick="window.switchAdminTab('profiles')" id="atProfiles">👥 Profils</div>
+    <div class="admin-tab" onclick="window.switchAdminTab('stats')" id="atStats">📊 Statistiques</div>
+    <div class="admin-tab" onclick="window.switchAdminTab('questions')" id="atQuestions">🎵 Questions</div>
+    <div class="admin-tab" onclick="window.switchAdminTab('config')" id="atConfig">⚙️ Config</div>
+  </div>
+  <div class="admin-content" id="adminContent">
+    <!-- Rempli dynamiquement -->
+  </div>
+</div>
+
 </body>
 </html>
