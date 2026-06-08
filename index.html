@@ -1029,60 +1029,12 @@ async function doReconnect(){
 initReconnect();
 
 // ── ORIENTATION PAYSAGE/PORTRAIT ──────────────────────────
-// Stratégie : on utilise screen.orientation.lock quand c'est possible
-// (Android PWA), sinon on force la rotation CSS du <html> en fallback.
-// La rotation physique du téléphone est également écoutée pour basculer
-// automatiquement quand l'écran joueur est actif.
+// Stratégie unique : screen.orientation.lock() natif uniquement.
+// Le @media (orientation: landscape) CSS gère l'affichage automatiquement.
+// Pas de rotation CSS manuelle — le navigateur fait tout.
 
 let forcedLandscape = false;
 
-// CSS de rotation forcée (fallback pour les navigateurs sans screen.orientation.lock)
-(function(){
-  const s = document.createElement('style');
-  s.textContent = `
-    html.landscape-forced {
-      transform: rotate(90deg);
-      transform-origin: top left;
-      position: fixed;
-      top: 0;
-      left: 100vw;
-      width: 100vh;
-      height: 100vw;
-      overflow: hidden;
-    }
-  `;
-  document.head.appendChild(s);
-})();
-
-// Indique si l'écran joueur est actuellement affiché
-function isPlayerGameActive(){
-  return document.getElementById('screenPlayerGame')?.classList.contains('active');
-}
-
-// Applique le paysage (lock API ou CSS)
-async function goLandscape(){
-  if(screen.orientation?.lock){
-    try{
-      await screen.orientation.lock('landscape');
-      forcedLandscape = true;
-      _updateOrientationBtn();
-      return;
-    }catch(_){ /* API non dispo → fallback CSS */ }
-  }
-  document.documentElement.classList.add('landscape-forced');
-  forcedLandscape = true;
-  _updateOrientationBtn();
-}
-
-// Repasse en portrait (unlock API ou retrait classe CSS)
-function goPortrait(){
-  if(screen.orientation?.unlock) screen.orientation.unlock();
-  document.documentElement.classList.remove('landscape-forced');
-  forcedLandscape = false;
-  _updateOrientationBtn();
-}
-
-// Met à jour le bouton ⟳ / ↕
 function _updateOrientationBtn(){
   const btn = document.getElementById('btnToggleOrientation');
   if(!btn) return;
@@ -1090,37 +1042,47 @@ function _updateOrientationBtn(){
   else               { btn.textContent = '⟳'; btn.title = 'Passer en paysage'; }
 }
 
-// Bouton manuel : bascule portrait ↔ paysage
 async function toggleOrientation(){
-  if(!forcedLandscape) await goLandscape();
-  else                 goPortrait();
+  if(!forcedLandscape){
+    // Tenter le verrouillage paysage natif
+    if(screen.orientation?.lock){
+      try{
+        await screen.orientation.lock('landscape');
+        forcedLandscape = true;
+        _updateOrientationBtn();
+        return;
+      }catch(_){}
+    }
+    // Pas de lock dispo (iOS Safari etc.) : le @media gère si l'user tourne
+    // On affiche un petit toast d'indication
+    // Pas de lock dispo (iOS Safari) : le @media CSS gère automatiquement
+  } else {
+    // Déverrouiller
+    if(screen.orientation?.unlock) screen.orientation.unlock();
+    forcedLandscape = false;
+    _updateOrientationBtn();
+  }
 }
 
-// Réinitialise en portrait (appelé à l'interlude et aux scores)
 function resetOrientation(){
-  goPortrait();
+  if(screen.orientation?.unlock) screen.orientation.unlock();
+  forcedLandscape = false;
+  _updateOrientationBtn();
 }
 
-// Écoute la rotation physique du téléphone
-function _onPhysicalRotation(){
-  if(!isPlayerGameActive()) return; // Ignorer si pas sur l'écran joueur
-
-  const isLandscape = screen.orientation
-    ? screen.orientation.type.startsWith('landscape')
-    : Math.abs(window.orientation ?? 0) === 90;
-
-  // Si le lock API est actif, le navigateur gère déjà l'affichage
-  if(screen.orientation?.lock && forcedLandscape) return;
-
-  if(isLandscape && !forcedLandscape)      goLandscape();
-  else if(!isLandscape && forcedLandscape) goPortrait();
-}
-
-// Branchement de l'écouteur (API moderne ou fallback window)
+// Sync du bouton quand l'utilisateur tourne physiquement le téléphone
 if(screen.orientation?.addEventListener){
-  screen.orientation.addEventListener('change', _onPhysicalRotation);
-}else{
-  window.addEventListener('orientationchange', _onPhysicalRotation);
+  screen.orientation.addEventListener('change', () => {
+    const isLandscape = screen.orientation.type.startsWith('landscape');
+    // Si verrouillé par nous → pas touche
+    if(forcedLandscape) return;
+    // Sinon : juste mettre à jour l'état du bouton selon l'orientation réelle
+    _updateOrientationBtn();
+  });
+} else {
+  window.addEventListener('orientationchange', () => {
+    if(!forcedLandscape) _updateOrientationBtn();
+  });
 }
 
 // Exposer sur window (nécessaire car script type="module" → scope isolé)
