@@ -925,26 +925,32 @@ function launchConfetti(n=60){
 // La clé API est sécurisée côté Cloudflare Worker — jamais exposée ici.
 const CLAUDE_WORKER_URL = 'https://blind-test.xavier-piza2.workers.dev';
 
-async function callClaude(prompt){
+async function callClaude(prompt, options={}){
+  const {
+    system = `Tu es Xav, le présentateur légendaire et hilarant d'un blind test musical en famille.
+Tu as un humour décapant, tu taquines les joueurs par leur prénom, tu fais des comparaisons absurdes.
+Chaque commentaire est UNIQUE — tu n'utilises jamais les mêmes formulations d'une manche à l'autre.
+Varie ton registre : parfois poétique, parfois brutal, parfois complètement à côté.
+Réponds TOUJOURS en JSON valide uniquement, sans backticks ni markdown.`,
+    max_tokens = 1000,
+    temperature = 1,
+  } = options;
   try{
     const r=await fetch(CLAUDE_WORKER_URL,{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
         model:'claude-sonnet-4-6',
-        max_tokens:1000,
-        temperature:1,
-        system:`Tu es Xav, le présentateur légendaire et hilarant d'un blind test musical en famille.
-Tu as un humour décapant, tu taquines les joueurs par leur prénom, tu fais des comparaisons absurdes.
-Chaque commentaire est UNIQUE — tu n'utilises jamais les mêmes formulations d'une manche à l'autre.
-Varie ton registre : parfois poétique, parfois brutal, parfois complètement à côté.
-Réponds TOUJOURS en JSON valide uniquement, sans backticks ni markdown.`,
+        max_tokens,
+        temperature,
+        system,
         messages:[{role:'user',content:prompt}]
       })
     });
     const data=await r.json();
     const text=data.content?.find(c=>c.type==='text')?.text||'{}';
-    return JSON.parse(text.replace(/```json|```/g,'').trim());
+    const clean=text.replace(/`{3}[a-z]*/g,'').replace(/`{3}/g,'').trim();return JSON.parse(clean);
+
   }catch(e){console.error('Claude Worker:',e);return null;}
 }
 
@@ -1737,7 +1743,11 @@ Format : [{"artist":"Nom","title":"Titre","choices":["Faux1","Faux2","Faux3"]},.
 Génère exactement ${_aiCount} objets.`;
 
   try{
-    const result = await callClaude(prompt);
+    const result = await callClaude(prompt, {
+      system: "Tu es un générateur de questions de blind test musical. Tu réponds UNIQUEMENT avec un tableau JSON valide, sans texte avant, sans markdown, sans backticks. Rien d'autre que le JSON brut.",
+      max_tokens: 4000,
+      temperature: 0.9,
+    });
     clearInterval(msgTimer);
 
     if(!Array.isArray(result) || !result.length) throw new Error('Réponse invalide');
