@@ -488,6 +488,17 @@ textarea.inp{resize:none;line-height:1.6;font-size:14px}
 .color-opt{width:32px;height:32px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:all .12s;flex-shrink:0}
 .color-opt.selected{border-color:white;transform:scale(1.15)}
 .modal-actions{display:flex;gap:10px;margin-top:4px}
+
+/* ── GÉNÉRATEUR IA ── */
+.ai-diff-btn,.ai-count-btn{
+  padding:6px 10px;border-radius:10px;font-size:11px;font-weight:700;cursor:pointer;
+  background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.12);
+  color:var(--muted2);transition:all .15s;white-space:nowrap;
+}
+.ai-diff-btn.active,.ai-count-btn.active{
+  background:rgba(139,92,246,.25);border-color:rgba(139,92,246,.5);color:#c4b5fd;
+}
+.ai-diff-btn:active,.ai-count-btn:active{transform:scale(.93)}
 </style>
 </head>
 <body>
@@ -591,16 +602,46 @@ textarea.inp{resize:none;line-height:1.6;font-size:14px}
       <button id="saveBtn" title="Sauvegarder" style="flex-shrink:0;padding:10px 16px;background:rgba(16,185,129,.15);border:1.5px solid rgba(16,185,129,.3);color:var(--green);border-radius:12px;font-size:18px;cursor:pointer">💾</button>
     </div>
 
-    <!-- IMPORT RAPIDE -->
-    <div style="background:rgba(139,92,246,.07);border:1.5px dashed rgba(139,92,246,.3);border-radius:16px;padding:16px;margin-bottom:14px">
-      <div style="font-size:13px;font-weight:700;color:#c4b5fd;margin-bottom:6px">✨ Import ultra-rapide</div>
-      <div style="font-size:11px;color:var(--muted);margin-bottom:10px;line-height:1.6">
-        Colle une liste <strong>Artiste - Titre</strong> (une par ligne).<br>
-        Les questions, les mauvaises réponses <em>amusantes</em> et les liens Deezer sont générés automatiquement par IA 🤖
+    <!-- GÉNÉRATION IA -->
+    <div id="aiGenPanel" style="background:rgba(139,92,246,.07);border:1.5px dashed rgba(139,92,246,.3);border-radius:16px;padding:16px;margin-bottom:14px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <span style="font-size:18px">✨</span>
+        <div style="font-size:13px;font-weight:700;color:#c4b5fd">Générer avec l'IA</div>
       </div>
-      <div style="background:rgba(255,255,255,.04);border-radius:8px;padding:8px 12px;font-family:var(--fm);font-size:11px;color:var(--muted2);margin-bottom:10px;line-height:1.8">Michael Jackson - Thriller&#10;Daft Punk - Get Lucky&#10;Stromae - Papaoutai</div>
-      <textarea class="inp" id="importText" rows="4" placeholder="Colle ta liste ici..."></textarea>
-      <button class="btn btn-purple" id="btnImport" style="margin-bottom:0">✨ Générer avec l'IA</button>
+
+      <!-- Thème -->
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:6px">Thème</div>
+      <input class="inp" id="aiTheme" placeholder="Ex : variété française des années 80, hits Pop 2010…" style="margin-bottom:12px">
+
+      <!-- Difficulté + Manches sur la même ligne -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+        <div>
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:6px">Difficulté</div>
+          <div style="display:flex;gap:6px">
+            <button class="ai-diff-btn active" data-diff="facile" onclick="window.setDiff('facile')">😊 Facile</button>
+            <button class="ai-diff-btn" data-diff="moyen" onclick="window.setDiff('moyen')">🎯 Moyen</button>
+            <button class="ai-diff-btn" data-diff="difficile" onclick="window.setDiff('difficile')">🔥 Difficile</button>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:6px">Manches</div>
+          <div style="display:flex;gap:6px">
+            <button class="ai-count-btn" data-count="5" onclick="window.setCount(5)">5</button>
+            <button class="ai-count-btn active" data-count="10" onclick="window.setCount(10)">10</button>
+            <button class="ai-count-btn" data-count="15" onclick="window.setCount(15)">15</button>
+            <button class="ai-count-btn" data-count="20" onclick="window.setCount(20)">20</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bouton générer -->
+      <button class="btn btn-purple" id="btnAiGenerate" onclick="window.generateFromAI()" style="margin-bottom:0">✨ Générer la partie</button>
+
+      <!-- Spinner pendant génération -->
+      <div id="aiGenLoading" style="display:none;text-align:center;padding:16px 0">
+        <div style="font-size:28px;animation:spin .8s linear infinite;display:inline-block">⏳</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:8px" id="aiGenLoadingTxt">Xav prépare ta playlist… 🎵</div>
+      </div>
     </div>
 
     <div class="divider">ou ajoute manuellement</div>
@@ -893,7 +934,7 @@ async function callClaude(prompt){
         model:'claude-sonnet-4-6',
         max_tokens:1000,
         temperature:1,
-        system:`Tu es Dédé, le présentateur légendaire et hilarant d'un blind test musical en famille.
+        system:`Tu es Xav, le présentateur légendaire et hilarant d'un blind test musical en famille.
 Tu as un humour décapant, tu taquines les joueurs par leur prénom, tu fais des comparaisons absurdes.
 Chaque commentaire est UNIQUE — tu n'utilises jamais les mêmes formulations d'une manche à l'autre.
 Varie ton registre : parfois poétique, parfois brutal, parfois complètement à côté.
@@ -1059,7 +1100,7 @@ document.getElementById('saveBtn').addEventListener('click',async()=>{
   await saveGame(id,title,setupQs);
   const btn=document.getElementById('saveBtn');btn.textContent='✅';setTimeout(()=>btn.textContent='💾',1500);
 });
-document.getElementById('btnImport').addEventListener('click',doImport);
+// btnImport remplacé par btnAiGenerate
 document.getElementById('btnLaunch').addEventListener('click',doLaunch);
 document.getElementById('btnMjStop').addEventListener('click',doMjStop);
 document.getElementById('btnNextRound').addEventListener('click',doNextRound);
@@ -1636,35 +1677,93 @@ async function renderSaved(){
   }));
 }
 
-// ── IMPORT ───────────────────────────────────────────────
-async function doImport(){
-  const text=document.getElementById('importText').value;
-  const lines=text.split('\n').map(l=>l.trim()).filter(Boolean);
-  const parsed=lines.map(l=>{
-    const s=l.indexOf(' - ');if(s<0)return null;
-    return{artist:l.slice(0,s).trim(),title:l.slice(s+3).trim()};
-  }).filter(Boolean);
-  if(!parsed.length){alert('Format : Artiste - Titre');return;}
+// ── GÉNÉRATEUR IA ─────────────────────────────────────────
+let _aiDiff  = 'facile';
+let _aiCount = 10;
 
-  const btn=document.getElementById('btnImport');
-  btn.textContent='⏳ Génération IA...';btn.disabled=true;
+window.setDiff = function(d){
+  _aiDiff = d;
+  document.querySelectorAll('.ai-diff-btn').forEach(b=>b.classList.toggle('active', b.dataset.diff===d));
+};
 
-  const allArtists=[...new Set(parsed.map(p=>p.artist))];
-  const questions=[];
+window.setCount = function(n){
+  _aiCount = n;
+  document.querySelectorAll('.ai-count-btn').forEach(b=>b.classList.toggle('active', +b.dataset.count===n));
+};
 
-  for(const p of parsed){
-    const funnyChoices=await generateFunnyChoices(p.artist,allArtists);
-    const pos=Math.floor(Math.random()*4);
-    const choices=[...funnyChoices];choices.splice(pos,0,p.artist);
-    questions.push({id:ts()+Math.random(),url:'',title:p.title,choices,answer:pos});
+const LOADING_MSGS = [
+  'Xav fouille ses archives musicales… 🎵',
+  'Xav choisit les pièges les plus vicieux… 😈',
+  'Xav calibre la difficulté… 🎯',
+  'Xav prépare les fausses pistes… 🤪',
+  'Xav finalise ta playlist… 🎶',
+];
+
+window.generateFromAI = async function(){
+  const theme = document.getElementById('aiTheme').value.trim();
+  if(!theme){ document.getElementById('aiTheme').focus(); return; }
+
+  const btn     = document.getElementById('btnAiGenerate');
+  const loading = document.getElementById('aiGenLoading');
+  const loadTxt = document.getElementById('aiGenLoadingTxt');
+
+  btn.style.display     = 'none';
+  loading.style.display = 'block';
+
+  let msgIdx = 0;
+  const msgTimer = setInterval(()=>{
+    msgIdx = (msgIdx+1) % LOADING_MSGS.length;
+    loadTxt.textContent = LOADING_MSGS[msgIdx];
+  }, 2000);
+
+  const diffInstructions = {
+    facile:    "Choisis uniquement des hits très connus du grand public, faciles à reconnaître.",
+    moyen:     "Mélange des hits connus et des chansons moins évidentes, connues des amateurs du genre.",
+    difficile: "Choisis des chansons moins connues, des faces B ou albums peu médiatisés."
+  };
+
+  const seed = Math.random().toString(36).slice(2,8);
+
+  const prompt = `[SEED:${seed}]
+Génère exactement ${_aiCount} questions pour un blind test musical. Thème : "${theme}". Difficulté : ${_aiDiff}. ${diffInstructions[_aiDiff]}
+
+Pour chaque question :
+- "artist" : nom exact de l'artiste (bonne réponse)
+- "title" : titre exact de la chanson
+- "choices" : tableau de 3 MAUVAISES réponses uniquement (sans la bonne), variées et amusantes
+
+Réponds UNIQUEMENT avec un tableau JSON valide, sans markdown.
+Format : [{"artist":"Nom","title":"Titre","choices":["Faux1","Faux2","Faux3"]},...]
+Génère exactement ${_aiCount} objets.`;
+
+  try{
+    const result = await callClaude(prompt);
+    clearInterval(msgTimer);
+
+    if(!Array.isArray(result) || !result.length) throw new Error('Réponse invalide');
+
+    const questions = result.slice(0, _aiCount).map(q => {
+      const pos = Math.floor(Math.random()*4);
+      const choices = [...(q.choices||['???','???','???'])];
+      while(choices.length < 3) choices.push('???');
+      choices.splice(pos, 0, q.artist);
+      return { id:ts()+Math.random(), url:'', title:q.title||'', choices, answer:pos };
+    });
+
+    setupQs = questions;
+    document.getElementById('setupTitle').value = theme.charAt(0).toUpperCase()+theme.slice(1);
+    renderSetupQs();
+    setTimeout(()=>document.getElementById('setupQuestions').scrollIntoView({behavior:'smooth'}),200);
+
+  } catch(e){
+    clearInterval(msgTimer);
+    alert('Erreur lors de la génération. Réessaie !');
+    console.error('generateFromAI:', e);
+  } finally {
+    loading.style.display = 'none';
+    btn.style.display     = 'block';
   }
-
-  setupQs=questions;
-  renderSetupQs();
-  document.getElementById('importText').value='';
-  btn.textContent='✨ Générer avec l\'IA';btn.disabled=false;
-  setTimeout(()=>document.getElementById('setupQuestions').scrollIntoView({behavior:'smooth'}),200);
-}
+};
 
 // ── SETUP ────────────────────────────────────────────────
 function newQ(){return{id:ts()+Math.random(),url:'',title:'',choices:['','','',''],answer:0};}
