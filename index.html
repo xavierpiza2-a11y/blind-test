@@ -511,6 +511,12 @@ textarea.inp{resize:none;line-height:1.6;font-size:14px}
     <!-- Rempli dynamiquement -->
     <div style="grid-column:1/-1;text-align:center;color:var(--muted);padding:20px 0">Chargement…</div>
   </div>
+  <button onclick="window.openNewProfileFromLogin()" style="
+    margin-top:4px;padding:10px 20px;border-radius:14px;
+    background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.12);
+    color:var(--muted2);font-size:13px;font-weight:600;cursor:pointer;
+    display:flex;align-items:center;gap:6px;
+  ">➕ Créer un profil</button>
   <!-- Bannière de reconnexion de partie -->
   <div class="reconnect-banner" id="reconnectBanner" style="max-width:460px;width:100%">
     <div class="reconnect-title" id="reconnectTitle">🔄 Partie en cours détectée</div>
@@ -801,15 +807,21 @@ async function dbRemove(p){ await remove(ref(db,p)); }
 const lsGet=k=>{try{return JSON.parse(localStorage.getItem(k));}catch{return null;}};
 const lsSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));}catch{}};
 const lsDel=k=>{try{localStorage.removeItem(k);}catch{}};
-function getSavedIdx(){return lsGet('bt:idx')||[];}
-function saveGame(id,title,qs){
-  const idx=getSavedIdx(),i=idx.findIndex(x=>x.id===id);
-  const e={id,title,count:qs.length,savedAt:Date.now()};
-  if(i>=0)idx[i]=e;else idx.push(e);
-  lsSet('bt:idx',idx);lsSet('bt:g:'+id,{title,questions:qs});
+// ── Parties sauvegardées sur Firebase (/app/saved/{id}) ──
+const SAVED_REF = 'app/saved';
+async function getSavedIdx(){
+  const data = await dbGet(SAVED_REF);
+  if(!data) return [];
+  return Object.values(data).map(g=>({id:g.id,title:g.title,count:g.count,savedAt:g.savedAt}));
 }
-function delGame(id){lsSet('bt:idx',getSavedIdx().filter(x=>x.id!==id));lsDel('bt:g:'+id);}
-function getGame(id){return lsGet('bt:g:'+id);}
+async function saveGame(id,title,qs){
+  await dbSet(SAVED_REF+'/'+id, {id,title,count:qs.length,savedAt:Date.now(),questions:qs});
+}
+async function delGame(id){ await dbRemove(SAVED_REF+'/'+id); }
+async function getGame(id){
+  const g = await dbGet(SAVED_REF+'/'+id);
+  return g || null;
+}
 
 // ── SESSION PERSISTENCE (reconnexion) ────────────────────
 function saveSession(data){ lsSet('bt:session', data); }
@@ -1038,11 +1050,11 @@ document.getElementById('btnSavedBack').addEventListener('click',()=>show('scree
 document.getElementById('btnNewGame').addEventListener('click',()=>{G.saveId=null;setupQs=[newQ()];renderSetupQs();show('screenSetup');});
 document.getElementById('btnSetupBack').addEventListener('click',()=>show('screenHome'));
 document.getElementById('btnAddQ').addEventListener('click',()=>{setupQs.push(newQ());renderSetupQs();setTimeout(()=>window.scrollTo(0,document.body.scrollHeight),100);});
-document.getElementById('saveBtn').addEventListener('click',()=>{
+document.getElementById('saveBtn').addEventListener('click',async()=>{
   const title=document.getElementById('setupTitle').value.trim()||'Blind Test';
   if(!setupQs.length){alert('Ajoute au moins une manche !');return;}
   const id=G.saveId||('s'+ts());G.saveId=id;
-  saveGame(id,title,setupQs);
+  await saveGame(id,title,setupQs);
   const btn=document.getElementById('saveBtn');btn.textContent='✅';setTimeout(()=>btn.textContent='💾',1500);
 });
 document.getElementById('btnImport').addEventListener('click',doImport);
@@ -1368,7 +1380,7 @@ async function renderAdminProfiles(el){
           </div>
           <div class="profile-item-actions">
             <button class="btn-icon btn-icon-edit" onclick="window.openProfileModal('${p.id}')">✏️</button>
-            <button class="btn-icon btn-icon-del" onclick="window.deleteProfile('${p.id}')">🗑</button>
+            ${p.id !== 'xavier' ? `<button class="btn-icon btn-icon-del" onclick="window.deleteProfile('${p.id}')">🗑</button>` : ''}
           </div>
         </div>`).join('')}
     </div>
@@ -1405,7 +1417,7 @@ async function renderAdminStats(el){
 
 // ── Onglet Questions ──
 async function renderAdminQuestions(el){
-  const idx = getSavedIdx();
+  const idx = await getSavedIdx();
   el.innerHTML = `
     <div class="admin-section">
       <div class="admin-section-title">Parties sauvegardées (${idx.length})</div>
@@ -1421,9 +1433,9 @@ async function renderAdminQuestions(el){
     </div>`;
 }
 
-window.adminDelGame = function(id){
+window.adminDelGame = async function(id){
   if(!confirm('Supprimer cette partie ?')) return;
-  delGame(id);
+  await delGame(id);
   renderAdminContent();
 };
 
@@ -1463,8 +1475,13 @@ window.updateConfig = async function(key, delta){
   await dbSet(CONFIG_REF, window._adminCfg);
 };
 
+
+// ── Nouveau profil depuis l'écran de connexion (non-admin forcé) ──
+window.openNewProfileFromLogin = function(){
+  window.openProfileModal(null, true);
+};
 // ── Modal édition profil ──
-window.openProfileModal = function(profileId){
+window.openProfileModal = function(profileId, fromLogin=false){
   _editProfileId = profileId;
   _selectedEmoji = '🎵';
   _selectedColor = '#f97316';
@@ -1497,6 +1514,10 @@ window.openProfileModal = function(profileId){
       ).join('');
     });
   }
+  const isXavier = profileId === 'xavier';
+  const showAdmin = !fromLogin && !isXavier;
+  document.getElementById('profileModalPinToggle').style.display = showAdmin ? 'flex' : 'none';
+  if(!showAdmin && !profileId) document.getElementById('profileModalIsAdmin').checked = false;
   document.getElementById('profileModal').style.display = 'flex';
 };
 
@@ -1558,10 +1579,11 @@ async function appInit(){
 appInit();
 
 // ── SAVED SCREEN ─────────────────────────────────────────
-function renderSaved(){
+async function renderSaved(){
   show('screenSaved');
-  const idx=getSavedIdx();
   const el=document.getElementById('savedList');
+  el.innerHTML='<p style="color:var(--muted);text-align:center;padding:16px 0">Chargement…</p>';
+  const idx=await getSavedIdx();
   if(!idx.length){el.innerHTML='<p style="color:var(--muted);text-align:center;padding:16px 0">Aucune partie sauvegardée 😢</p>';return;}
   el.innerHTML=idx.sort((a,b)=>b.savedAt-a.savedAt).map(g=>`
     <div class="saved-item">
@@ -1572,15 +1594,15 @@ function renderSaved(){
       </div>
       <button class="saved-del" data-del="${esc(g.id)}">🗑️</button>
     </div>`).join('');
-  el.querySelectorAll('[data-load]').forEach(d=>d.addEventListener('click',()=>{
-    const game=getGame(d.dataset.load);if(!game){alert('Introuvable');return;}
+  el.querySelectorAll('[data-load]').forEach(d=>d.addEventListener('click',async()=>{
+    const game=await getGame(d.dataset.load);if(!game){alert('Introuvable');return;}
     setupQs=game.questions.map(q=>({...q,id:q.id||ts()+Math.random()}));
     G.saveId=d.dataset.load;
     document.getElementById('setupTitle').value=game.title;
     renderSetupQs();show('screenSetup');
   }));
-  el.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',()=>{
-    if(!confirm('Supprimer cette partie ?'))return;delGame(b.dataset.del);renderSaved();
+  el.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',async()=>{
+    if(!confirm('Supprimer cette partie ?'))return;await delGame(b.dataset.del);renderSaved();
   }));
 }
 
