@@ -948,9 +948,19 @@ Réponds TOUJOURS en JSON valide uniquement, sans backticks ni markdown.`,
       })
     });
     const data=await r.json();
-    const text=data.content?.find(c=>c.type==='text')?.text||'{}';
-    const clean=text.replace(/`{3}[a-z]*/g,'').replace(/`{3}/g,'').trim();return JSON.parse(clean);
-
+    if(data.error){ console.error('Claude API error:', data.error); return null; }
+    const text=data.content?.find(c=>c.type==='text')?.text||'';
+    console.log('Claude raw:', text.slice(0,300));
+    if(!text) return null;
+    let clean = text.trim();
+    // Supprimer les blocs markdown sans regex backtick (conflit template literal)
+    if(clean.startsWith('`')){clean=clean.slice(clean.indexOf('\n')+1);}
+    const fenceEnd=clean.lastIndexOf('`');
+    if(fenceEnd>0 && clean.slice(fenceEnd-2,fenceEnd+1)==='`'+'`'+'`') clean=clean.slice(0,fenceEnd-2).trim();
+    const arrStart = clean.indexOf('[');
+    const arrEnd   = clean.lastIndexOf(']');
+    if(arrStart > -1 && arrEnd > arrStart) clean = clean.slice(arrStart, arrEnd+1);
+    return JSON.parse(clean);
   }catch(e){console.error('Claude Worker:',e);return null;}
 }
 
