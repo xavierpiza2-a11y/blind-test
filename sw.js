@@ -1,18 +1,16 @@
-const CACHE = 'blindtest-v3';
+const CACHE = 'blindtest-v4';
 const ASSETS = [
   '/blind-test/',
   '/blind-test/index.html',
   '/blind-test/manifest.json'
 ];
 
-// Installation — mise en cache des ressources de base
 self.addEventListener('install', e => {
   e.waitUntil(
     caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting())
   );
 });
 
-// Activation — nettoyage des anciens caches
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys().then(keys =>
@@ -21,19 +19,25 @@ self.addEventListener('activate', e => {
   );
 });
 
-// Fetch — réseau en priorité, cache en fallback
 self.addEventListener('fetch', e => {
-  // On ne cache pas les requêtes Firebase (temps réel)
-  if (e.request.url.includes('firebasedatabase') ||
-      e.request.url.includes('googleapis') ||
-      e.request.url.includes('deezer.com') ||
-      e.request.url.includes('gstatic.com')) {
-    return;
+  const url = e.request.url;
+
+  // Ne jamais intercepter : Firebase, APIs externes, requêtes POST
+  if (
+    e.request.method !== 'GET' ||
+    url.includes('firebasedatabase') ||
+    url.includes('googleapis') ||
+    url.includes('deezer.com') ||
+    url.includes('gstatic.com') ||
+    url.includes('workers.dev') ||
+    url.includes('anthropic.com')
+  ) {
+    return; // Laisser passer sans interception
   }
+
   e.respondWith(
     fetch(e.request)
       .then(res => {
-        // Mettre en cache la réponse fraîche
         const clone = res.clone();
         caches.open(CACHE).then(c => c.put(e.request, clone));
         return res;
