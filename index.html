@@ -534,10 +534,12 @@ textarea.inp{resize:none;line-height:1.6;font-size:14px}
 <div id="screenHome" class="screen">
   <div class="wrap">
     <div class="hero" style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
-      <div id="homeProfileAvatar" style="width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0"></div>
+      <div id="homeProfileAvatar" onclick="window.editSelfProfile()" title="Modifier mon profil" style="width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;cursor:pointer;position:relative">
+        <span style="position:absolute;bottom:-2px;right:-2px;font-size:10px;background:#2d0a5e;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center">✏️</span>
+      </div>
       <div style="flex:1">
         <div style="font-family:var(--ft);font-weight:900;font-size:16px" id="homeProfileName">Bienvenue</div>
-        <div style="font-size:11px;color:var(--muted)">Blind Test Famille</div>
+        <div style="font-size:11px;color:var(--muted)">Blind Test Famille · <button onclick="window.editSelfProfile()" style="color:var(--orange);font-size:11px;font-weight:600;background:none;border:none;cursor:pointer;padding:0">Modifier mon profil</button></div>
       </div>
       <button onclick="window.doLogout()" style="color:var(--muted);font-size:12px;padding:6px 10px;background:rgba(255,255,255,.07);border-radius:10px;border:1px solid rgba(255,255,255,.1)">⬅ Quitter</button>
     </div>
@@ -1229,7 +1231,15 @@ async function connectAs(profile){
   // Mettre à jour l'UI home
   const av = document.getElementById('homeProfileAvatar');
   const nm = document.getElementById('homeProfileName');
-  if(av){ av.textContent = profile.avatar; av.style.background = profile.color + '30'; av.style.border = '2px solid ' + profile.color + '50'; }
+  if(av){ 
+    // Préserver le span ✏️ et mettre à jour seulement l'emoji
+    av.style.background = profile.color + '30'; 
+    av.style.border = '2px solid ' + profile.color + '50';
+    // Trouver ou créer le nœud texte emoji
+    let emojiNode = Array.from(av.childNodes).find(n=>n.nodeType===3);
+    if(emojiNode) emojiNode.textContent = profile.avatar;
+    else av.insertBefore(document.createTextNode(profile.avatar), av.firstChild);
+  }
   if(nm) nm.textContent = profile.name;
   // Bouton admin si applicable
   const adminBtn = document.getElementById('adminHomeBtn');
@@ -1476,12 +1486,18 @@ window.updateConfig = async function(key, delta){
 };
 
 
+
+// ── Édition de son propre profil (depuis screenHome) ──
+window.editSelfProfile = function(){
+  if(!AUTH.profile) return;
+  window.openProfileModal(AUTH.profile.id, false, true); // fromLogin=false, isSelf=true
+};
 // ── Nouveau profil depuis l'écran de connexion (non-admin forcé) ──
 window.openNewProfileFromLogin = function(){
   window.openProfileModal(null, true);
 };
 // ── Modal édition profil ──
-window.openProfileModal = function(profileId, fromLogin=false){
+window.openProfileModal = function(profileId, fromLogin=false, isSelf=false){
   _editProfileId = profileId;
   _selectedEmoji = '🎵';
   _selectedColor = '#f97316';
@@ -1515,7 +1531,7 @@ window.openProfileModal = function(profileId, fromLogin=false){
     });
   }
   const isXavier = profileId === 'xavier';
-  const showAdmin = !fromLogin && !isXavier;
+  const showAdmin = !fromLogin && !isSelf && !isXavier;
   document.getElementById('profileModalPinToggle').style.display = showAdmin ? 'flex' : 'none';
   if(!showAdmin && !profileId) document.getElementById('profileModalIsAdmin').checked = false;
   document.getElementById('profileModal').style.display = 'flex';
@@ -1551,8 +1567,22 @@ window.saveProfileModal = async function(){
   }
   const profile = {id, name, avatar:_selectedEmoji, color:_selectedColor, isAdmin, pinHash};
   await dbSet(PROFILES_REF+'/'+id, profile);
+  // Si on vient d'éditer son propre profil → mettre à jour la session et l'UI
+  if(AUTH.profile && AUTH.profile.id === id){
+    AUTH.profile = profile;
+    lsSet('bt:profile', {id: profile.id, expiry: Date.now() + 2*60*60*1000});
+    const av = document.getElementById('homeProfileAvatar');
+    const nm = document.getElementById('homeProfileName');
+    if(av){ av.childNodes[0].textContent = profile.avatar; av.style.background = profile.color + '30'; }
+    if(nm) nm.textContent = profile.name;
+  }
   window.closeProfileModal();
-  renderAdminContent();
+  // Rafraîchir l'admin si on y est, sinon rafraîchir la grille login
+  if(document.getElementById('screenAdmin').classList.contains('active')){
+    renderAdminContent();
+  } else {
+    renderProfilesGrid();
+  }
 };
 
 window.deleteProfile = async function(id){
