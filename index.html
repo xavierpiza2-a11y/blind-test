@@ -1010,22 +1010,15 @@ async function generateFunnyChoices(correctArtist,allArtists){
 
   const profile = profiles[Math.floor(Math.random() * profiles.length)];
 
-  const res=await callClaude(`
-[SEED:${seed}] PROFIL: "${profile.label}"
-Génère 3 mauvaises réponses pour un blind test. Bonne réponse : "${correctArtist}".
-Autres artistes de la playlist : ${allArtists.filter(a=>a!==correctArtist).slice(0,6).join(', ')||'aucun'}
-
-RÈGLES DU PROFIL :
-${profile.rules}
-
-CONTRAINTES :
-- Ne JAMAIS reprendre la bonne réponse "${correctArtist}" telle quelle
-- Ne jamais répéter les mêmes inventions que d'habitude (Mamie Yvette, DJ Baguette sont interdits)
-- Les jeux de mots doivent avoir un VRAI rapport avec "${correctArtist}" ou son univers musical
-- Les réponses doivent sembler plausibles au premier coup d'œil (pas trop faciles à éliminer)
-
-Réponds UNIQUEMENT avec ce JSON :
-{"choices":["réponse1","réponse2","réponse3"],"profile":"${profile.label}"}`);
+  // Construire le prompt depuis ACTIVE_PROMPTS
+  const promptTpl = ACTIVE_PROMPTS.funnyChoices;
+  const builtPrompt = promptTpl
+    .replace(/\{seed\}/g, seed)
+    .replace(/\{profile\}/g, profile.label)
+    .replace(/\{artist\}/g, correctArtist)
+    .replace(/\{others\}/g, allArtists.filter(a=>a!==correctArtist).slice(0,6).join(', ')||'aucun')
+    .replace(/\{rules\}/g, profile.rules);
+  const res=await callClaude(builtPrompt);
 
   if(res?.choices?.length===3) return res.choices;
 
@@ -1051,21 +1044,18 @@ async function generateInterludeComment(roundNum,scores,players,correctAnswer,an
   const loser=sorted[sorted.length-1];
   const nbCorrect=answeredCorrectly.length;
   const seed=Math.random().toString(36).slice(2,6);
-  const res=await callClaude(`
-[SEED:${seed}] Manche ${roundNum} terminée. Bonne réponse : "${correctAnswer}".
-Joueurs ayant trouvé (${nbCorrect}/${players.length}) : ${answeredCorrectly.join(', ')||'absolument personne 💀'}
-Scores actuels : ${sorted.map(p=>`${p.name} ${scores[p.id]||0}pts`).join(' | ')}
-Leader : ${leader?.name||'?'} | Lanterne rouge : ${loser?.name||'?'}
-
-Génère un commentaire UNIQUE et CRÉATIF (2 phrases max). Varie le style :
-- Moque-toi gentiment de ceux qui ont raté
-- Félicite avec exagération ceux qui ont trouvé
-- Fais une anecdote inventée sur l'artiste "${correctAnswer}"
-- Compare le score à quelque chose d'absurde
-N'utilise JAMAIS les formules génériques comme "Quelle manche !" ou "Bien joué !".
-
-Réponds UNIQUEMENT avec ce JSON :
-{"comment":"commentaire unique et drôle","emoji":"1 emoji"}`);
+  const promptTpl2 = ACTIVE_PROMPTS.interlude;
+  const builtPrompt2 = promptTpl2
+    .replace(/\{seed\}/g, seed)
+    .replace(/\{round\}/g, roundNum)
+    .replace(/\{answer\}/g, correctAnswer)
+    .replace(/\{correct\}/g, nbCorrect)
+    .replace(/\{total\}/g, players.length)
+    .replace(/\{found\}/g, answeredCorrectly.join(', ')||'absolument personne 💀')
+    .replace(/\{scores\}/g, sorted.map(p=>`${p.name} ${scores[p.id]||0}pts`).join(' | '))
+    .replace(/\{leader\}/g, leader?.name||'?')
+    .replace(/\{loser\}/g, loser?.name||'?');
+  const res=await callClaude(builtPrompt2);
   if(res?.comment) return res;
   const fallbacks=[
     {comment:`${correctAnswer}... ${nbCorrect===0?'et personne n\'a trouvé. La honte va durer longtemps.':'Même '+answeredCorrectly[0]+' a su. Respect.'}`,emoji:randItem(FUNNY_EMOJIS)},
@@ -1080,23 +1070,13 @@ async function generateFinalComments(players,scores){
   const sorted=[...players].sort((a,b)=>(scores[b.id]||0)-(scores[a.id]||0));
   const seed=Math.random().toString(36).slice(2,6);
   const ecartMax=sorted.length>1?(scores[sorted[0].id]||0)-(scores[sorted[sorted.length-1].id]||0):0;
-  const res=await callClaude(`
-[SEED:${seed}] Blind test terminé ! Classement final :
-${sorted.map((p,i)=>`${i+1}. ${p.name} : ${scores[p.id]||0} pts`).join('\n')}
-Écart entre 1er et dernier : ${ecartMax} pts
-
-Génère des commentaires UNIQUES pour chaque joueur ET un commentaire global.
-- Le commentaire global doit résumer la soirée avec humour (2 phrases, JAMAIS "Quelle soirée !")
-- Chaque commentaire joueur : une phrase personnalisée selon son rang et son score
-- Pour le 1er : fierté exagérée ou suspicion de triche
-- Pour le dernier : consolation absurde ou encouragement douteux
-- Pour les autres : quelque chose de spécifique à leur position
-
-Réponds UNIQUEMENT avec ce JSON (IDs exacts) :
-{
-  "globalComment":"commentaire global hilarant",
-  "playerComments":{${sorted.map(p=>`"${p.id}":"commentaire pour ${p.name}"`).join(',')}}
-}`);
+  const promptTpl3 = ACTIVE_PROMPTS.finalScores;
+  const builtPrompt3 = promptTpl3
+    .replace(/\{seed\}/g, seed)
+    .replace(/\{ranking\}/g, sorted.map((p,i)=>`${i+1}. ${p.name} : ${scores[p.id]||0} pts`).join('\n'))
+    .replace(/\{ecart\}/g, ecartMax)
+    .replace(/\{playerIds\}/g, '{'+sorted.map(p=>`"${p.id}":"commentaire pour ${p.name}"`).join(',')+'}');
+  const res=await callClaude(builtPrompt3);
   return res;
 }
 
@@ -1509,6 +1489,11 @@ window.adminDelGame = async function(id){
 // ── Onglet Config ──
 async function renderAdminConfig(el){
   const cfg = await dbGet(CONFIG_REF) || {timer:20, rounds:10, title:'Blind Test Famille'};
+  const prompts = await dbGet(CONFIG_REF + '/prompts') || {};
+  const pFunny     = prompts.funnyChoices || DEFAULT_PROMPTS.funnyChoices;
+  const pInterlude = prompts.interlude    || DEFAULT_PROMPTS.interlude;
+  const pFinal     = prompts.finalScores  || DEFAULT_PROMPTS.finalScores;
+
   el.innerHTML = `
     <div class="admin-section">
       <div class="admin-section-title">Paramètres de la partie</div>
@@ -1530,9 +1515,57 @@ async function renderAdminConfig(el){
           </div>
         </div>
       </div>
+    </div>
+
+    <div class="admin-section" style="margin-top:16px">
+      <div class="admin-section-title">Prompts IA de Xav</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:12px;line-height:1.5">
+        Variables disponibles : <code style="background:rgba(255,255,255,.08);padding:2px 6px;border-radius:6px;font-size:10px">{seed} {artist} {profile} {rules} {others}</code> pour les fausses réponses,
+        <code style="background:rgba(255,255,255,.08);padding:2px 6px;border-radius:6px;font-size:10px">{round} {answer} {found} {scores} {leader} {loser}</code> pour l'interlude,
+        <code style="background:rgba(255,255,255,.08);padding:2px 6px;border-radius:6px;font-size:10px">{ranking} {ecart} {playerIds}</code> pour le final.
+      </div>
+
+      <div style="margin-bottom:14px">
+        <div class="config-label" style="font-size:12px;font-weight:700;color:#c4b5fd;margin-bottom:6px">🎭 Fausses réponses</div>
+        <textarea id="promptFunny" rows="6" style="width:100%;padding:10px 12px;background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.12);border-radius:12px;color:var(--text);font-size:12px;font-family:monospace;resize:vertical;outline:none;line-height:1.5">${pFunny.replace(/</g,'&lt;')}</textarea>
+      </div>
+
+      <div style="margin-bottom:14px">
+        <div class="config-label" style="font-size:12px;font-weight:700;color:#fb923c;margin-bottom:6px">💬 Interlude (entre manches)</div>
+        <textarea id="promptInterlude" rows="6" style="width:100%;padding:10px 12px;background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.12);border-radius:12px;color:var(--text);font-size:12px;font-family:monospace;resize:vertical;outline:none;line-height:1.5">${pInterlude.replace(/</g,'&lt;')}</textarea>
+      </div>
+
+      <div style="margin-bottom:14px">
+        <div class="config-label" style="font-size:12px;font-weight:700;color:#fbbf24;margin-bottom:6px">🏆 Scores finaux</div>
+        <textarea id="promptFinal" rows="6" style="width:100%;padding:10px 12px;background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.12);border-radius:12px;color:var(--text);font-size:12px;font-family:monospace;resize:vertical;outline:none;line-height:1.5">${pFinal.replace(/</g,'&lt;')}</textarea>
+      </div>
+
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-secondary" onclick="window.resetPrompts()" style="flex:1;margin:0;font-size:13px">↺ Réinitialiser</button>
+        <button class="btn btn-primary" onclick="window.savePromptsAdmin()" style="flex:1;margin:0;font-size:13px">💾 Sauvegarder</button>
+      </div>
     </div>`;
   window._adminCfg = {...cfg};
 }
+
+
+window.savePromptsAdmin = async function(){
+  const funny     = document.getElementById('promptFunny')?.value;
+  const interlude = document.getElementById('promptInterlude')?.value;
+  const final_    = document.getElementById('promptFinal')?.value;
+  if(!funny || !interlude || !final_) return;
+  await savePrompts({ funnyChoices: funny, interlude, finalScores: final_ });
+  // Feedback visuel
+  const btn = document.querySelector('[onclick="window.savePromptsAdmin()"]');
+  if(btn){ const orig=btn.textContent; btn.textContent='✅ Sauvegardé !'; setTimeout(()=>btn.textContent=orig,2000); }
+};
+
+window.resetPrompts = async function(){
+  if(!confirm('Réinitialiser tous les prompts aux valeurs par défaut ?')) return;
+  await dbRemove(CONFIG_REF + '/prompts');
+  ACTIVE_PROMPTS = {...DEFAULT_PROMPTS};
+  renderAdminContent(); // Rafraîchir l'affichage
+};
 
 window.updateConfig = async function(key, delta){
   if(!window._adminCfg) return;
@@ -1654,6 +1687,8 @@ window.deleteProfile = async function(id){
 // ═══════════════════════════════════════════════════════════════════
 
 async function appInit(){
+  // 0. Charger les prompts IA depuis Firebase
+  await loadPrompts();
   // 1. Tenter reconnexion auto (profil session < 2h)
   const autoLogged = await tryAutoLogin();
   if(!autoLogged){
@@ -1691,6 +1726,66 @@ async function renderSaved(){
   el.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',async()=>{
     if(!confirm('Supprimer cette partie ?'))return;await delGame(b.dataset.del);renderSaved();
   }));
+}
+
+
+// ── PROMPTS IA PAR DÉFAUT ──────────────────────────────
+const DEFAULT_PROMPTS = {
+  funnyChoices: `[SEED:{seed}] PROFIL: "{profile}"
+Génère 3 mauvaises réponses pour un blind test. Bonne réponse : "{artist}".
+Autres artistes : {others}
+
+RÈGLES DU PROFIL :
+{rules}
+
+CONTRAINTES :
+- Ne JAMAIS reprendre la bonne réponse telle quelle
+- Les jeux de mots doivent avoir un rapport avec l'artiste
+- Les réponses doivent sembler plausibles
+
+Réponds UNIQUEMENT avec ce JSON :
+{"choices":["réponse1","réponse2","réponse3"],"profile":"{profile}"}`,
+
+  interlude: `[SEED:{seed}] Manche {round} terminée. Bonne réponse : "{answer}".
+Joueurs ayant trouvé ({correct}/{total}) : {found}
+Scores : {scores}
+Leader : {leader} | Lanterne rouge : {loser}
+
+Génère un commentaire COURT (1 phrase max, 15 mots max). Sois direct et drôle.
+- Moque-toi de ceux qui ont raté OU félicite ceux qui ont trouvé
+- Fais une vanne sur l'artiste ou le score
+- JAMAIS "Quelle manche !" ou "Bien joué !"
+
+Réponds UNIQUEMENT avec ce JSON :
+{"comment":"ta phrase courte","emoji":"1 emoji"}`,
+
+  finalScores: `[SEED:{seed}] Blind test terminé ! Classement :
+{ranking}
+Écart 1er/dernier : {ecart} pts
+
+Commentaire global : 1 phrase max (15 mots), résume la soirée avec humour.
+Chaque joueur : 1 phrase courte selon son rang.
+- 1er : fierté exagérée ou suspicion de triche
+- Dernier : consolation absurde
+- Autres : vanne selon leur position
+
+Réponds UNIQUEMENT avec ce JSON :
+{"globalComment":"phrase globale","playerComments":{playerIds}}`
+};
+
+// Prompts actifs (chargés depuis Firebase ou défauts)
+let ACTIVE_PROMPTS = {...DEFAULT_PROMPTS};
+
+async function loadPrompts(){
+  const saved = await dbGet(CONFIG_REF + '/prompts');
+  if(saved){
+    ACTIVE_PROMPTS = {...DEFAULT_PROMPTS, ...saved};
+  }
+}
+
+async function savePrompts(prompts){
+  await dbSet(CONFIG_REF + '/prompts', prompts);
+  ACTIVE_PROMPTS = {...DEFAULT_PROMPTS, ...prompts};
 }
 
 // ── GÉNÉRATEUR IA ─────────────────────────────────────────
