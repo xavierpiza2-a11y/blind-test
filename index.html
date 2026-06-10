@@ -215,13 +215,14 @@ textarea.inp{resize:none;line-height:1.6;font-size:14px}
 /* ═══════════════════════════════════════════
    SETUP — QUESTION CARDS
 ═══════════════════════════════════════════ */
-.q-card{background:rgba(139,92,246,.07);border:1px solid rgba(139,92,246,.2);border-radius:16px;padding:16px;margin-bottom:14px;transition:border-color .2s}
+#screenSetup .wrap{overflow-x:hidden;width:100%;box-sizing:border-box}
+.q-card{background:rgba(139,92,246,.07);border:1px solid rgba(139,92,246,.2);border-radius:16px;padding:12px;margin-bottom:14px;transition:border-color .2s;overflow:hidden;width:100%;box-sizing:border-box}
 .q-card:hover{border-color:rgba(139,92,246,.4)}
 .q-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
 .q-num{font-weight:800;color:var(--purple);font-size:13px;display:flex;align-items:center;gap:6px}
 .q-del{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.2);color:var(--red);border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer}
-.choice-row{display:flex;gap:8px;margin-bottom:8px;align-items:center}
-.choice-mark{width:36px;height:36px;border-radius:10px;border:2px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);flex-shrink:0;font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s}
+.choice-row{display:flex;gap:6px;margin-bottom:8px;align-items:center;width:100%}
+.choice-mark{width:32px;height:36px;border-radius:10px;border:2px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);flex-shrink:0;font-size:13px;font-weight:700;font-family:var(--ft);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;min-width:32px}
 .choice-mark.correct{background:var(--orange);border-color:var(--orange)}
 .ai-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(139,92,246,.2);border:1px solid rgba(139,92,246,.3);border-radius:8px;padding:3px 8px;font-size:11px;color:#c4b5fd;font-weight:600;margin-bottom:8px}
 
@@ -1885,7 +1886,7 @@ function newQ(){return{id:ts()+Math.random(),url:'',title:'',choices:['','','','
 function tid(url){const m=(url||'').match(/track\/(\d+)/);return m?m[1]:null;}
 
 function renderSetupQs(){
-  const L=['🅰️','🅱️','🅲️','🅳️'];
+  const L=['A','B','C','D'];
   document.getElementById('setupQuestions').innerHTML=setupQs.map((q,i)=>`
     <div class="q-card">
       <div class="q-header">
@@ -1904,7 +1905,7 @@ function renderSetupQs(){
       ${q.choices.map((c,ci)=>`
         <div class="choice-row">
           <button class="choice-mark${q.answer===ci?' correct':''}" data-ans="${i}-${ci}">${q.answer===ci?'✅':L[ci]}</button>
-          <input class="inp" data-choice="${i}-${ci}" style="margin-bottom:0;flex:1" placeholder="Artiste ${ci+1}" value="${esc(c)}">
+          <input class="inp" data-choice="${i}-${ci}" style="margin-bottom:0;flex:1;min-width:0" placeholder="Artiste ${ci+1}" value="${esc(c)}">
         </div>`).join('')}
     </div>`).join('');
 
