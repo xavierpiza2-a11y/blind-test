@@ -500,6 +500,12 @@ textarea.inp{resize:none;line-height:1.6;font-size:14px}
   background:rgba(139,92,246,.25);border-color:rgba(139,92,246,.5);color:#c4b5fd;
 }
 .ai-diff-btn:active,.ai-count-btn:active{transform:scale(.93)}
+
+/* ── TOGGLE CONFIG ── */
+.cfg-toggle{width:44px;height:24px;border-radius:12px;background:rgba(255,255,255,.15);position:relative;transition:background .2s;flex-shrink:0}
+.cfg-toggle.on{background:var(--orange)}
+.cfg-toggle::after{content:'';position:absolute;width:20px;height:20px;border-radius:50%;background:white;top:2px;left:2px;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.cfg-toggle.on::after{left:22px}
 </style>
 </head>
 <body>
@@ -1515,6 +1521,26 @@ async function renderAdminConfig(el){
             <button class="config-btn" onclick="window.updateConfig('rounds',1)">+</button>
           </div>
         </div>
+        <div class="config-row">
+          <div><div class="config-label">Commentaires interlude</div><div class="config-sub">Xav commente entre les manches</div></div>
+          <div onclick="window.updateConfig('interludeEnabled', 'toggle')" style="cursor:pointer">
+            <div class="cfg-toggle ${cfg.interludeEnabled!==false?'on':''}" id="cfgInterludeEnabled"></div>
+          </div>
+        </div>
+        <div class="config-row" id="cfgInterludeFreqRow" style="${cfg.interludeEnabled===false?'opacity:.4;pointer-events:none':''}">
+          <div><div class="config-label">Fréquence interlude</div><div class="config-sub">Toutes les N manches</div></div>
+          <div class="config-val">
+            <button class="config-btn" onclick="window.updateConfig('interludeFreq',-1)">−</button>
+            toutes les <span id="cfgInterludeFreq">${cfg.interludeFreq||3}</span>
+            <button class="config-btn" onclick="window.updateConfig('interludeFreq',1)">+</button>
+          </div>
+        </div>
+        <div class="config-row">
+          <div><div class="config-label">Commentaires scores finaux</div><div class="config-sub">Xav analyse le podium</div></div>
+          <div onclick="window.updateConfig('finalEnabled', 'toggle')" style="cursor:pointer">
+            <div class="cfg-toggle ${cfg.finalEnabled!==false?'on':''}" id="cfgFinalEnabled"></div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -1570,9 +1596,26 @@ window.resetPrompts = async function(){
 
 window.updateConfig = async function(key, delta){
   if(!window._adminCfg) return;
-  const min = key==='timer'?5:1, max=key==='timer'?60:20;
-  window._adminCfg[key] = Math.min(max, Math.max(min, (window._adminCfg[key]||0) + delta));
-  document.getElementById('cfg'+key.charAt(0).toUpperCase()+key.slice(1)).textContent = window._adminCfg[key];
+  if(delta === 'toggle'){
+    // Booléen on/off
+    window._adminCfg[key] = window._adminCfg[key] === false ? true : false;
+    const elId = 'cfg' + key.charAt(0).toUpperCase() + key.slice(1);
+    const el = document.getElementById(elId);
+    if(el) el.classList.toggle('on', window._adminCfg[key] !== false);
+    // Griser la fréquence si interlude désactivé
+    if(key === 'interludeEnabled'){
+      const row = document.getElementById('cfgInterludeFreqRow');
+      if(row) row.style.cssText = window._adminCfg[key] === false ? 'opacity:.4;pointer-events:none' : '';
+    }
+  } else {
+    const mins = {timer:5, rounds:1, interludeFreq:2};
+    const maxs = {timer:60, rounds:20, interludeFreq:5};
+    const min = mins[key]||1, max = maxs[key]||20;
+    window._adminCfg[key] = Math.min(max, Math.max(min, (window._adminCfg[key]||0) + delta));
+    const elId = 'cfg' + key.charAt(0).toUpperCase() + key.slice(1);
+    const el = document.getElementById(elId);
+    if(el) el.textContent = window._adminCfg[key];
+  }
   await dbSet(CONFIG_REF, window._adminCfg);
 };
 
@@ -1776,12 +1819,14 @@ Réponds UNIQUEMENT avec ce JSON :
 
 // Prompts actifs (chargés depuis Firebase ou défauts)
 let ACTIVE_PROMPTS = {...DEFAULT_PROMPTS};
+let APP_CONFIG = {timer:20, rounds:10, interludeEnabled:true, interludeFreq:3, finalEnabled:true};
 
 async function loadPrompts(){
   const saved = await dbGet(CONFIG_REF + '/prompts');
-  if(saved){
-    ACTIVE_PROMPTS = {...DEFAULT_PROMPTS, ...saved};
-  }
+  if(saved) ACTIVE_PROMPTS = {...DEFAULT_PROMPTS, ...saved};
+  // Charger aussi la config générale
+  const cfg = await dbGet(CONFIG_REF);
+  if(cfg) APP_CONFIG = {...APP_CONFIG, ...cfg};
 }
 
 async function savePrompts(prompts){
@@ -1928,7 +1973,7 @@ async function doLaunch(){
   const valid=setupQs.filter(q=>q.url.trim()&&tid(q.url)&&q.choices.every(c=>c.trim()));
   if(!valid.length){alert('Ajoute au moins une manche valide (lien Deezer + 4 artistes) !');return;}
   const code=genCode();
-  const room={title,questions:valid,phase:'lobby',currentQ:0,players:{},answers:{},scores:{},musicStartedAt:null,createdAt:ts()};
+  const room={title,questions:valid,phase:'lobby',currentQ:0,players:{},answers:{},scores:{},musicStartedAt:null,createdAt:ts(),interludeComment:null,finalComments:null};
   await dbSet('rooms/'+code,room);
   G.isMJ=true;G.roomCode=code;G.room=room;
   // Sauvegarder la session MJ pour reconnexion
@@ -1989,7 +2034,38 @@ function onRoom(fresh){
     }
     else if(fresh.phase==='reveal'&&(pc||qc)){stopTimer();renderPlayerGame();}
     else if(fresh.phase==='scores'&&prev?.phase!=='scores'){stopTimer();showFinalScores();}
-    else if(fresh.phase==='interlude'&&prev?.phase!=='interlude'){}
+    else if(fresh.phase==='interlude'&&prev?.phase!=='interlude'){
+      // Le joueur affiche l'écran interlude et attend le commentaire
+      show('screenInterlude');
+      const r=fresh;
+      const q=r.questions?.[r.currentQ];
+      const players2=Object.values(r.players||{});
+      const answers2=r.answers?.[r.currentQ]||{};
+      const correctAnswer2=q?.choices?.[q?.answer]||'';
+      const answeredCorrectly2=players2.filter(p=>answers2[p.id]?.choice===q?.answer).map(p=>p.name);
+      // Afficher le mini classement
+      const sorted2=[...players2].sort((a,b)=>(r.scores?.[b.id]||0)-(r.scores?.[a.id]||0));
+      document.getElementById('interlMiniScores').innerHTML=sorted2.map((p,i)=>`
+        <div class="mini-score-row" style="animation-delay:${i*0.1}s">
+          <span class="mini-score-pos">${MEDALS[i]||i+1+'.'}</span>
+          <span style="font-size:20px">${p.avatar}</span>
+          <span class="mini-score-name">${esc(p.name)}</span>
+          <span class="mini-score-pts">${r.scores?.[p.id]||0} pts</span>
+        </div>`).join('');
+      document.getElementById('interludeEmoji').textContent='⏳';
+      document.getElementById('interludeComment').textContent='Xav prépare son commentaire… 🎤';
+      // Polling Firebase pour le commentaire
+      let waited3=0;
+      const poll3=async()=>{
+        const data=await dbGet('rooms/'+G.roomCode+'/interludeComment');
+        if(data?.comment){
+          document.getElementById('interludeEmoji').textContent=data.emoji||'🎵';
+          document.getElementById('interludeComment').textContent=data.comment;
+        }else if(waited3<12000){waited3+=800;setTimeout(poll3,800);}
+        else{document.getElementById('interludeEmoji').textContent='🎵';document.getElementById('interludeComment').textContent=`Bonne réponse : ${correctAnswer2} !`;}
+      };
+      poll3();
+    }
   }
 }
 
@@ -2088,16 +2164,30 @@ function updateAnsBar(){
 async function doMjStop(){stopTimer();await dbSet('rooms/'+G.roomCode+'/phase','reveal');}
 
 async function doNextRound(){
-  // Afficher l'interlude d'abord
   const r=G.room,next=r.currentQ+1;
   const isLast=next>=r.questions.length;
   if(isLast){
     await dbSet('rooms/'+G.roomCode+'/phase','scores');
     return;
   }
-  // Préparer et afficher l'interlude
-  show('screenInterlude');
-  await showInterlude(r.currentQ,next);
+  // Recharger la config pour avoir les derniers paramètres
+  const cfg = await dbGet(CONFIG_REF);
+  if(cfg) APP_CONFIG = {...APP_CONFIG, ...cfg};
+  // Vérifier si l'interlude est activé ET si c'est la bonne fréquence
+  const freq = APP_CONFIG.interludeFreq || 3;
+  const interludeActive = APP_CONFIG.interludeEnabled !== false;
+  const isFreqRound = (next % freq === 0); // ex: toutes les 3 manches
+  if(interludeActive && isFreqRound){
+    show('screenInterlude');
+    await showInterlude(r.currentQ, next);
+  } else {
+    // Passer directement à la manche suivante
+    await dbSet('rooms/'+G.roomCode+'/currentQ', next);
+    await dbSet('rooms/'+G.roomCode+'/phase','music');
+    const now=Date.now();
+    await dbSet('rooms/'+G.roomCode+'/musicStartedAt', now);
+    show('screenMJGame');
+  }
 }
 
 // ── INTERLUDE ────────────────────────────────────────────
@@ -2111,12 +2201,36 @@ async function showInterlude(currentQIdx,nextQIdx){
 
   // Afficher le chargement
   document.getElementById('interludeEmoji').textContent='⏳';
-  document.getElementById('interludeComment').textContent='L\'IA réfléchit à un commentaire 🤖...';
+  document.getElementById('interludeComment').textContent='Xav prépare son commentaire… 🎤';
 
-  // Générer le commentaire
-  const result=await generateInterludeComment(currentQIdx+1,r.scores||{},players,correctAnswer,answeredCorrectly);
-  document.getElementById('interludeEmoji').textContent=result.emoji||'🎵';
-  document.getElementById('interludeComment').textContent=result.comment||`Bonne réponse : ${correctAnswer} !`;
+  if(G.isMJ){
+    // Le MJ génère et stocke dans Firebase pour tout le monde
+    const result=await generateInterludeComment(currentQIdx+1,r.scores||{},players,correctAnswer,answeredCorrectly);
+    const interludeData = {
+      emoji:   result?.emoji   || '🎵',
+      comment: result?.comment || `Bonne réponse : ${correctAnswer} !`
+    };
+    await dbSet('rooms/'+G.roomCode+'/interludeComment', interludeData);
+    document.getElementById('interludeEmoji').textContent   = interludeData.emoji;
+    document.getElementById('interludeComment').textContent = interludeData.comment;
+  } else {
+    // Le joueur attend et lit depuis Firebase
+    let waited = 0;
+    const waitForComment = async () => {
+      const data = await dbGet('rooms/'+G.roomCode+'/interludeComment');
+      if(data?.comment){
+        document.getElementById('interludeEmoji').textContent   = data.emoji   || '🎵';
+        document.getElementById('interludeComment').textContent = data.comment;
+      } else if(waited < 10000){
+        waited += 800;
+        setTimeout(waitForComment, 800);
+      } else {
+        document.getElementById('interludeEmoji').textContent   = '🎵';
+        document.getElementById('interludeComment').textContent = `Bonne réponse : ${correctAnswer} !`;
+      }
+    };
+    waitForComment();
+  }
 
   // Mini classement
   const sorted=[...players].sort((a,b)=>(r.scores?.[b.id]||0)-(r.scores?.[a.id]||0));
@@ -2230,7 +2344,10 @@ async function showFinalScores(){
   const sorted=[...players].sort((a,b)=>(r.scores?.[b.id]||0)-(r.scores?.[a.id]||0));
 
   document.getElementById('scoreTitle').textContent=r.title;
-  document.getElementById('finalCommentBox').textContent='💬 L\'IA analyse votre soirée... 🤖';
+  const finalEnabled = APP_CONFIG.finalEnabled !== false;
+  const fcBox = document.getElementById('finalCommentBox');
+  if(!finalEnabled){ fcBox.style.display='none'; }
+  else { fcBox.style.display=''; fcBox.textContent='💬 L\'IA analyse votre soirée... 🤖'; }
   document.getElementById('scoresRestartBtn').style.display=G.isMJ?'flex':'none';
 
   // Podium
@@ -2259,30 +2376,54 @@ async function showFinalScores(){
       <span class="fscore-pts">${r.scores?.[p.id]||0} pts</span>
     </div>`).join('');
 
-  // Commentaires IA
-  const comments=await generateFinalComments(players,r.scores||{});
-  if(comments?.globalComment){
-    document.getElementById('finalCommentBox').textContent=comments.globalComment;
-  }else{
-    const fallbacks=['Quelle soirée ! Les neurones ont chauffé 🔥','Certains ont brillé, d\'autres... ont participé 😅','La famille unie dans la défaite... et la victoire ! 🎉'];
-    document.getElementById('finalCommentBox').textContent=randItem(fallbacks);
-  }
-  sorted.forEach(p=>{
-    const el=document.getElementById('fcomment-'+p.id);
-    if(!el)return;
-    const c=comments?.playerComments?.[p.id];
-    if(c)el.textContent=c;
-    else{
-      const pts=r.scores?.[p.id]||0,idx=sorted.indexOf(p);
-      const fallbacks=[
-        `🏆 Champion incontesté de la soirée !`,
-        `😤 Pas loin du podium... presque !`,
-        `😅 Y'a du boulot avant le prochain blind test`,
-        `🐢 La lenteur a ses charmes... parfois`
-      ];
-      el.textContent=fallbacks[Math.min(idx,fallbacks.length-1)];
+  // Commentaires IA — MJ génère et stocke, joueurs lisent
+  const fallbackComments=['Quelle soirée ! Les neurones ont chauffé 🔥',"Certains ont brillé, d'autres... ont participé 😅",'La famille unie dans la défaite... et la victoire ! 🎉'];
+  const fallbackPlayer=['🏆 Champion incontesté de la soirée !','😤 Pas loin du podium... presque !','😅 Y\'a du boulot avant le prochain blind test','🐢 La lenteur a ses charmes... parfois'];
+
+  if(APP_CONFIG.finalEnabled !== false){
+    if(G.isMJ){
+      // MJ : générer et stocker dans Firebase
+      const comments=await generateFinalComments(players,r.scores||{});
+      const globalComment = comments?.globalComment || randItem(fallbackComments);
+      const playerComments = {};
+      sorted.forEach((p,i)=>{ playerComments[p.id] = comments?.playerComments?.[p.id] || fallbackPlayer[Math.min(i,fallbackPlayer.length-1)]; });
+      await dbSet('rooms/'+G.roomCode+'/finalComments', {globalComment, playerComments});
+      document.getElementById('finalCommentBox').textContent = globalComment;
+      sorted.forEach(p=>{
+        const el=document.getElementById('fcomment-'+p.id);
+        if(el) el.textContent = playerComments[p.id] || '';
+      });
+    } else {
+      // Joueur : lire depuis Firebase avec polling
+      let waited4=0;
+      const pollFinal=async()=>{
+        const data=await dbGet('rooms/'+G.roomCode+'/finalComments');
+        if(data?.globalComment){
+          document.getElementById('finalCommentBox').textContent=data.globalComment;
+          sorted.forEach(p=>{
+            const el=document.getElementById('fcomment-'+p.id);
+            if(el) el.textContent=data.playerComments?.[p.id]||'';
+          });
+        }else if(waited4<15000){
+          waited4+=1000;
+          setTimeout(pollFinal,1000);
+        }else{
+          document.getElementById('finalCommentBox').textContent=randItem(fallbackComments);
+          sorted.forEach((p,i)=>{
+            const el=document.getElementById('fcomment-'+p.id);
+            if(el) el.textContent=fallbackPlayer[Math.min(i,fallbackPlayer.length-1)];
+          });
+        }
+      };
+      pollFinal();
     }
-  });
+  } else {
+    // Pas de commentaires IA — fallbacks directs
+    sorted.forEach((p,i)=>{
+      const el=document.getElementById('fcomment-'+p.id);
+      if(el) el.textContent=fallbackPlayer[Math.min(i,fallbackPlayer.length-1)];
+    });
+  }
 }
 
 // ── TIMER ────────────────────────────────────────────────
