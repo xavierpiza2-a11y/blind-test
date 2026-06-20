@@ -861,7 +861,7 @@ textarea.inp{resize:none;line-height:1.6;font-size:14px}
 <div class="modal-overlay hidden" id="deezerModal">
   <div class="modal-sheet">
     <div class="modal-header">
-      <span class="modal-title">🔍 Recherche Deezer</span>
+      <span class="modal-title" id="modalTitleTxt">🔍 Recherche Deezer</span>
       <button class="modal-close" id="btnModalClose">✕</button>
     </div>
     <div class="modal-search-row">
@@ -2723,16 +2723,55 @@ function updateArc(px,left){
 }
 
 function openYoutubeSearch(idx){
-  const q=setupQs[idx],query=q.choices[q.answer]?(q.choices[q.answer]+(q.title?' '+q.title:'')):(q.title||'');
-  const url='https://www.youtube.com/results?search_query='+encodeURIComponent(query||'musique');
-  window.open(url,'_blank');
+  modalQIdx=idx;modalSrc='youtube';
+  const q=setupQs[idx];
+  document.getElementById('modalTitleTxt').textContent='🔍 Recherche YouTube';
+  document.getElementById('deezerModal').classList.remove('hidden');
+  const query=q.choices[q.answer]?(q.choices[q.answer]+(q.title?' '+q.title:'')):(q.title||'');
+  document.getElementById('modalSearchInput').value=query;
+  document.getElementById('modalBody').innerHTML='<div class="search-empty">🎵 Tape un artiste ou un titre</div>';
+  if(query)doSearchYoutube(query);else setTimeout(()=>document.getElementById('modalSearchInput').focus(),300);
+}
+
+async function doSearchYoutube(q){
+  if(!q)return;
+  document.getElementById('modalBody').innerHTML=`<div style="text-align:center;padding:32px 0"><div class="search-dots"><div class="search-dot"></div><div class="search-dot"></div><div class="search-dot"></div></div><p style="color:var(--muted);font-size:13px;margin-top:8px">Recherche en cours...</p></div>`;
+  try{
+    const r=await fetch(`${CLAUDE_WORKER_URL}/youtube-search?q=${encodeURIComponent(q)}`);
+    const data=await r.json();
+    const body=document.getElementById('modalBody');
+    if(data.error){body.innerHTML=`<div class="search-empty">⚠️ ${esc(data.error)}</div>`;return;}
+    const items=data.items||[];
+    if(!items.length){body.innerHTML='<div class="search-empty">Aucun résultat 😕</div>';return;}
+    body.innerHTML=items.map(it=>`
+      <div class="search-result">
+        <img class="search-cover" src="${esc(it.thumbnail)}" alt="" loading="lazy" onerror="this.style.display='none'">
+        <div class="search-info">
+          <div class="search-title">${esc(it.title)}</div>
+          <div class="search-artist">${esc(it.channel)}</div>
+        </div>
+        <button class="search-pick" data-pick-yt="${it.id}">Choisir</button>
+      </div>`).join('');
+    body.querySelectorAll('[data-pick-yt]').forEach(b=>b.addEventListener('click',()=>{
+      if(modalQIdx===null)return;
+      const idx=modalQIdx;
+      setupQs[idx].url='https://www.youtube.com/watch?v='+b.dataset.pickYt;
+      document.getElementById('deezerModal').classList.add('hidden');modalQIdx=null;
+      renderSetupQs();
+      setTimeout(()=>{const cards=document.querySelectorAll('.q-card');if(cards[idx])cards[idx].scrollIntoView({behavior:'smooth'});},200);
+    }));
+  }catch(e){
+    console.error('YouTube search:',e);
+    document.getElementById('modalBody').innerHTML='<div class="search-empty">⚠️ Recherche indisponible. Colle le lien directement.</div>';
+  }
 }
 
 // ── DEEZER MODAL ─────────────────────────────────────────
-let modalQIdx=null,searchTmr=null;
+let modalQIdx=null,searchTmr=null,modalSrc='deezer';
 
 function openModal(idx){
-  modalQIdx=idx;
+  modalQIdx=idx;modalSrc='deezer';
+  document.getElementById('modalTitleTxt').textContent='🔍 Recherche Deezer';
   const q=setupQs[idx],query=q.choices[q.answer]?(q.choices[q.answer]+(q.title?' '+q.title:'')):'';
   document.getElementById('modalSearchInput').value=query;
   document.getElementById('deezerModal').classList.remove('hidden');
@@ -2740,12 +2779,14 @@ function openModal(idx){
   if(query)doSearch(query);else setTimeout(()=>document.getElementById('modalSearchInput').focus(),300);
 }
 
+function doSearchDispatch(q){ modalSrc==='youtube' ? doSearchYoutube(q) : doSearch(q); }
+
 try {
 document.getElementById('btnModalClose').addEventListener('click',()=>{document.getElementById('deezerModal').classList.add('hidden');modalQIdx=null;});
 document.getElementById('deezerModal').addEventListener('click',e=>{if(e.target===document.getElementById('deezerModal')){document.getElementById('deezerModal').classList.add('hidden');modalQIdx=null;}});
-document.getElementById('btnModalSearch').addEventListener('click',()=>{clearTimeout(searchTmr);doSearch(document.getElementById('modalSearchInput').value.trim());});
-document.getElementById('modalSearchInput').addEventListener('keydown',e=>{if(e.key==='Enter'){clearTimeout(searchTmr);doSearch(e.target.value.trim());}});
-document.getElementById('modalSearchInput').addEventListener('input',e=>{clearTimeout(searchTmr);searchTmr=setTimeout(()=>doSearch(e.target.value.trim()),500);});
+document.getElementById('btnModalSearch').addEventListener('click',()=>{clearTimeout(searchTmr);doSearchDispatch(document.getElementById('modalSearchInput').value.trim());});
+document.getElementById('modalSearchInput').addEventListener('keydown',e=>{if(e.key==='Enter'){clearTimeout(searchTmr);doSearchDispatch(e.target.value.trim());}});
+document.getElementById('modalSearchInput').addEventListener('input',e=>{clearTimeout(searchTmr);searchTmr=setTimeout(()=>doSearchDispatch(e.target.value.trim()),500);});
 } catch(e) { console.error('Deezer binding error:', e); }
 
 function doSearch(q){
