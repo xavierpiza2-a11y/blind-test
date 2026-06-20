@@ -227,6 +227,9 @@ textarea.inp{resize:none;line-height:1.6;font-size:14px}
 .ai-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(139,92,246,.2);border:1px solid rgba(139,92,246,.3);border-radius:8px;padding:3px 8px;font-size:11px;color:#c4b5fd;font-weight:600;margin-bottom:8px}
 
 /* DEEZER ROW */
+.src-toggle{display:flex;gap:6px;margin-bottom:8px}
+.src-btn{flex:1;padding:8px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:var(--muted);transition:all .15s}
+.src-btn.active{border-color:var(--orange);background:rgba(249,115,22,.15);color:var(--orange)}
 .deezer-row{display:flex;gap:8px;align-items:stretch;margin-bottom:8px}
 .deezer-row .inp{margin-bottom:0;flex:1}
 .btn-deezer{flex-shrink:0;padding:10px 14px;background:rgba(249,115,22,.15);border:1.5px solid rgba(249,115,22,.3);color:var(--orange);border-radius:12px;font-size:15px;cursor:pointer;transition:all .15s}
@@ -2080,7 +2083,7 @@ Génère exactement ${_aiCount} objets.`;
       const choices = [...(q.choices||['???','???','???'])];
       while(choices.length < 3) choices.push('???');
       choices.splice(pos, 0, q.artist);
-      return { id:ts()+Math.random(), url:'', title:q.title||'', choices, answer:pos };
+      return { id:ts()+Math.random(), source:'deezer', url:'', title:q.title||'', choices, answer:pos };
     });
 
     setupQs = questions;
@@ -2099,8 +2102,13 @@ Génère exactement ${_aiCount} objets.`;
 };
 
 // ── SETUP ────────────────────────────────────────────────
-function newQ(){return{id:ts()+Math.random(),url:'',title:'',choices:['','','',''],answer:0};}
+function newQ(){return{id:ts()+Math.random(),source:'deezer',url:'',title:'',choices:['','','',''],answer:0};}
 function tid(url){const m=(url||'').match(/track\/(\d+)/);return m?m[1]:null;}
+function yid(url){
+  const m=(url||'').match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([A-Za-z0-9_-]{11})/);
+  return m?m[1]:null;
+}
+function trackId(q){return q.source==='youtube'?yid(q.url):tid(q.url);}
 
 function renderSetupQs(){
   const L=['A','B','C','D'];
@@ -2110,13 +2118,20 @@ function renderSetupQs(){
         <span class="q-num">🎵 Manche ${i+1}${q.title?` <span style="color:var(--muted2);font-weight:500;font-size:12px">— ${esc(q.title)}</span>`:''}</span>
         ${setupQs.length>1?`<button class="q-del" data-del="${i}">✕</button>`:''}
       </div>
+      <div class="src-toggle" data-src="${i}">
+        <button class="src-btn${(q.source||'deezer')==='deezer'?' active':''}" data-set-src="${i}-deezer">🎧 Deezer</button>
+        <button class="src-btn${q.source==='youtube'?' active':''}" data-set-src="${i}-youtube">▶️ YouTube</button>
+      </div>
       <div class="deezer-row">
-        <input class="inp" data-url="${i}" placeholder="🔗 Lien Deezer" value="${esc(q.url)}" style="margin-bottom:0">
+        <input class="inp" data-url="${i}" placeholder="${q.source==='youtube'?'🔗 Lien YouTube':'🔗 Lien Deezer'}" value="${esc(q.url)}" style="margin-bottom:0">
         <button class="btn-deezer" data-search="${i}">🔍</button>
       </div>
-      ${q.url&&tid(q.url)?
-        `<div class="deezer-wrap"><iframe scrolling="no" frameborder="0" allowtransparency="true" allow="autoplay;clipboard-write;encrypted-media;fullscreen;picture-in-picture"
-          src="https://widget.deezer.com/widget/dark/track/${tid(q.url)}" style="width:100%;height:80px;border-radius:12px"></iframe></div>`:
+      ${q.url&&trackId(q)?
+        (q.source==='youtube'?
+          `<div class="deezer-wrap"><iframe width="100%" height="160" frameborder="0" allow="autoplay;encrypted-media;picture-in-picture"
+            src="https://www.youtube-nocookie.com/embed/${trackId(q)}" style="border-radius:12px"></iframe></div>`:
+          `<div class="deezer-wrap"><iframe scrolling="no" frameborder="0" allowtransparency="true" allow="autoplay;clipboard-write;encrypted-media;fullscreen;picture-in-picture"
+            src="https://widget.deezer.com/widget/dark/track/${trackId(q)}" style="width:100%;height:80px;border-radius:12px"></iframe></div>`):
         (q.url?'<div class="deezer-warn">⚠️ URL invalide</div>':'')}
       <p style="font-size:11px;color:var(--muted);margin-bottom:8px">✅ = bonne réponse</p>
       ${q.choices.map((c,ci)=>`
@@ -2136,14 +2151,23 @@ function renderSetupQs(){
   sq.querySelectorAll('[data-choice]').forEach(inp=>inp.addEventListener('input',()=>{
     const[qi,ci]=inp.dataset.choice.split('-').map(Number);setupQs[qi].choices[ci]=inp.value;
   }));
-  sq.querySelectorAll('[data-search]').forEach(b=>b.addEventListener('click',()=>openModal(+b.dataset.search)));
+  sq.querySelectorAll('[data-set-src]').forEach(b=>b.addEventListener('click',()=>{
+    const[qi,src]=b.dataset.setSrc.split('-');
+    setupQs[+qi].source=src;
+    renderSetupQs();
+  }));
+  sq.querySelectorAll('[data-search]').forEach(b=>b.addEventListener('click',()=>{
+    const qi=+b.dataset.search;
+    if(setupQs[qi].source==='youtube') openYoutubeSearch(qi);
+    else openModal(qi);
+  }));
 }
 
 // ── LAUNCH ───────────────────────────────────────────────
 async function doLaunch(){
   const title=document.getElementById('setupTitle').value.trim()||'Blind Test';
-  const valid=setupQs.filter(q=>q.url.trim()&&tid(q.url)&&q.choices.every(c=>c.trim()));
-  if(!valid.length){alert('Ajoute au moins une manche valide (lien Deezer + 4 artistes) !');return;}
+  const valid=setupQs.filter(q=>q.url.trim()&&trackId(q)&&q.choices.every(c=>c.trim()));
+  if(!valid.length){alert('Ajoute au moins une manche valide (lien Deezer ou YouTube + 4 artistes) !');return;}
   const code=genCode();
   const room={title,questions:valid,phase:'lobby',currentQ:0,players:{},answers:{},scores:{},musicStartedAt:null,createdAt:ts(),interludeComment:null,finalComments:null};
   await dbSet('rooms/'+code,room);
@@ -2321,10 +2345,13 @@ function renderMJGame(){
     document.getElementById('mjPhaseMusic').style.display='flex';
     document.getElementById('mjPhaseReveal').style.display='none';
     stopBtn.style.display='flex';nextBtn.style.display='none';
-    const t=tid(q.url);
+    const t=trackId(q);
     document.getElementById('mjDeezerWrap').innerHTML=t?
-      `<iframe scrolling="no" frameborder="0" allowtransparency="true" allow="autoplay;clipboard-write;encrypted-media;fullscreen;picture-in-picture"
-        src="https://widget.deezer.com/widget/dark/track/${t}?autoplay=1" style="width:100%;height:80px;border-radius:12px"></iframe>`:
+      (q.source==='youtube'?
+        `<iframe width="100%" height="160" frameborder="0" allow="autoplay;encrypted-media;picture-in-picture"
+          src="https://www.youtube-nocookie.com/embed/${t}?autoplay=1" style="border-radius:12px"></iframe>`:
+        `<iframe scrolling="no" frameborder="0" allowtransparency="true" allow="autoplay;clipboard-write;encrypted-media;fullscreen;picture-in-picture"
+          src="https://widget.deezer.com/widget/dark/track/${t}?autoplay=1" style="width:100%;height:80px;border-radius:12px"></iframe>`):
       '<div class="deezer-warn">⚠️ Lecteur indisponible</div>';
     updateAnsBar();
   }else if(r.phase==='reveal'){
@@ -2693,6 +2720,12 @@ function updateArc(px,left){
   n.textContent=Math.ceil(left);
   const c=left<=0?'rgba(255,255,255,.3)':left<=5?'#fc8181':px==='mj'?'#10b981':'white';
   a.style.stroke=c;n.style.color=c;
+}
+
+function openYoutubeSearch(idx){
+  const q=setupQs[idx],query=q.choices[q.answer]?(q.choices[q.answer]+(q.title?' '+q.title:'')):(q.title||'');
+  const url='https://www.youtube.com/results?search_query='+encodeURIComponent(query||'musique');
+  window.open(url,'_blank');
 }
 
 // ── DEEZER MODAL ─────────────────────────────────────────
