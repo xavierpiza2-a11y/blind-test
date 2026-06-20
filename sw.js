@@ -1,4 +1,4 @@
-const CACHE = 'blindtest-v4';
+const CACHE = 'blindtest-v5';
 const ASSETS = [
   '/blind-test/',
   '/blind-test/index.html',
@@ -28,6 +28,9 @@ self.addEventListener('fetch', e => {
     url.includes('firebasedatabase') ||
     url.includes('googleapis') ||
     url.includes('deezer.com') ||
+    url.includes('youtube.com') ||
+    url.includes('youtube-nocookie.com') ||
+    url.includes('ytimg.com') ||
     url.includes('gstatic.com') ||
     url.includes('workers.dev') ||
     url.includes('anthropic.com')
