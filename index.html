@@ -833,6 +833,7 @@ textarea.inp{resize:none;line-height:1.6;font-size:14px}
     <div class="interlude-comment" id="interludeComment">Chargement...</div>
     <div class="interlude-mini-scores" id="interlMiniScores"></div>
     <button class="btn btn-pink" id="btnInterludeContinue" style="max-width:360px;width:100%">➡️ Manche suivante</button>
+    <p class="kah-wait-lbl" id="interludeWaitLbl" style="display:none">⏳ En attente du Maître du Jeu...</p>
   </div>
 </div>
 
@@ -1225,6 +1226,9 @@ async function doReconnect(){
       if(room.phase==='music')startTimer();
     }else if(room.phase==='scores'){
       showFinalScores();
+    }else if(room.phase==='interlude'){
+      show('screenInterlude');
+      await showInterlude(room.currentQ||0,(room.currentQ||0)+1);
     }
     startWatch();
   }
@@ -2228,7 +2232,7 @@ async function doJoin(){
 function startWatch(){stopWatch();G.watchRef=dbOn('rooms/'+G.roomCode,onRoom);}
 function stopWatch(){dbOff(G.watchRef);G.watchRef=null;}
 
-function onRoom(fresh){
+async function onRoom(fresh){
   if(!fresh)return;
   const prev=G.room;G.room=fresh;
   const pc=prev?.phase!==fresh.phase,qc=prev?.currentQ!==fresh.currentQ;
@@ -2249,36 +2253,9 @@ function onRoom(fresh){
     else if(fresh.phase==='reveal'&&(pc||qc)){stopTimer();renderPlayerGame();}
     else if(fresh.phase==='scores'&&prev?.phase!=='scores'){stopTimer();showFinalScores();}
     else if(fresh.phase==='interlude'&&prev?.phase!=='interlude'){
-      // Le joueur affiche l'écran interlude et attend le commentaire
+      // Le joueur affiche le même écran interlude que le MJ
       show('screenInterlude');
-      const r=fresh;
-      const q=r.questions?.[r.currentQ];
-      const players2=Object.values(r.players||{});
-      const answers2=r.answers?.[r.currentQ]||{};
-      const correctAnswer2=q?.choices?.[q?.answer]||'';
-      const answeredCorrectly2=players2.filter(p=>answers2[p.id]?.choice===q?.answer).map(p=>p.name);
-      // Afficher le mini classement
-      const sorted2=[...players2].sort((a,b)=>(r.scores?.[b.id]||0)-(r.scores?.[a.id]||0));
-      document.getElementById('interlMiniScores').innerHTML=sorted2.map((p,i)=>`
-        <div class="mini-score-row" style="animation-delay:${i*0.1}s">
-          <span class="mini-score-pos">${MEDALS[i]||i+1+'.'}</span>
-          <span style="font-size:20px">${p.avatar}</span>
-          <span class="mini-score-name">${esc(p.name)}</span>
-          <span class="mini-score-pts">${r.scores?.[p.id]||0} pts</span>
-        </div>`).join('');
-      document.getElementById('interludeEmoji').textContent='⏳';
-      document.getElementById('interludeComment').textContent='Xav prépare son commentaire… 🎤';
-      // Polling Firebase pour le commentaire
-      let waited3=0;
-      const poll3=async()=>{
-        const data=await dbGet('rooms/'+G.roomCode+'/interludeComment');
-        if(data?.comment){
-          document.getElementById('interludeEmoji').textContent=data.emoji||'🎵';
-          document.getElementById('interludeComment').textContent=data.comment;
-        }else if(waited3<12000){waited3+=800;setTimeout(poll3,800);}
-        else{document.getElementById('interludeEmoji').textContent='🎵';document.getElementById('interludeComment').textContent=`Bonne réponse : ${correctAnswer2} !`;}
-      };
-      poll3();
+      await showInterlude(fresh.currentQ, fresh.currentQ+1);
     }
   }
 }
@@ -2506,6 +2483,8 @@ async function showInterlude(currentQIdx,nextQIdx){
 
   // Stocker le next index pour le bouton "continuer"
   G.pendingNextRound=nextQIdx;
+  document.getElementById('btnInterludeContinue').style.display = G.isMJ ? 'flex' : 'none';
+  document.getElementById('interludeWaitLbl').style.display = G.isMJ ? 'none' : 'block';
 }
 
 async function doActualNextRound(){
@@ -2621,17 +2600,17 @@ async function showFinalScores(){
   else { fcBox.style.display=''; fcBox.textContent='💬 L\'IA analyse votre soirée... 🤖'; }
   document.getElementById('scoresRestartBtn').style.display=G.isMJ?'flex':'none';
 
-  // Podium
+  // Podium — 3e à gauche (petit), 1er au milieu (grand), 2e à droite (moyen)
   const podium=sorted.slice(0,3);
-  const order=[1,0,2]; // 2e, 1er, 3e pour le podium visuel
-  const heights=[90,120,70];
-  document.getElementById('podiumWrap').innerHTML=order.map(i=>{
-    const p=podium[i];if(!p)return'';
-    return `<div class="podium-col" style="animation:scoreRowIn .5s ease ${i*0.15}s both">
+  const order=[2,0,1]; // rank index : 3e, 1er, 2e, dans cet ordre visuel gauche→droite
+  const heights=[70,120,95];
+  document.getElementById('podiumWrap').innerHTML=order.map((rankIdx,col)=>{
+    const p=podium[rankIdx];if(!p)return'<div class="podium-col"></div>';
+    return `<div class="podium-col" style="animation:scoreRowIn .5s ease ${col*0.15}s both">
       <div class="podium-avatar">${p.avatar}</div>
       <div class="podium-name">${esc(p.name)}</div>
       <div class="podium-pts">${r.scores?.[p.id]||0}</div>
-      <div class="podium-block podium-${i+1}" style="height:${heights[i]}px">${MEDALS[i]||''}</div>
+      <div class="podium-block podium-${rankIdx+1}" style="height:${heights[col]}px">${MEDALS[rankIdx]||''}</div>
     </div>`;
   }).join('');
 
