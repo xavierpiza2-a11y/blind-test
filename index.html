@@ -597,17 +597,13 @@ textarea.inp{resize:none;line-height:1.6;font-size:14px}
     <div class="card">
       <p class="card-title">Rejoindre une partie</p>
       <input class="inp" id="joinName" placeholder="Ton prénom (sois créatif 😏)" maxlength="20">
-      <!-- Salles actives -->
-      <div id="activeRoomsList" style="margin-bottom:10px"></div>
-      <!-- Divider code manuel -->
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-        <div style="flex:1;height:1px;background:rgba(255,255,255,.1)"></div>
-        <span style="font-size:11px;color:var(--muted)">ou entrer un code</span>
-        <div style="flex:1;height:1px;background:rgba(255,255,255,.1)"></div>
-      </div>
       <input class="inp inp-code" id="joinCode" placeholder="CODE" maxlength="5">
       <p class="err" id="joinErr"></p>
       <button class="btn btn-secondary" id="joinBtn" style="margin-bottom:0">🚀 Rejoindre</button>
+    </div>
+    <div class="card" id="activeRoomsCard" style="display:none">
+      <p class="card-title">🗂️ Salles disponibles</p>
+      <div id="activeRoomsList"></div>
     </div>
     <div id="adminHomeBtn" style="display:none;margin-top:8px">
       <button class="btn" onclick="window.showAdminPanel()" style="background:rgba(249,115,22,.15);border:1.5px solid rgba(249,115,22,.3);color:var(--orange)">⚙️ Panneau Admin</button>
@@ -948,6 +944,7 @@ function show(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   window.scrollTo(0,0);
+  if(id==='screenHome') renderActiveRoomsList();
 }
 
 // ── CONFETTI ─────────────────────────────────────────────
@@ -1360,7 +1357,7 @@ window.closeAdminPanel = function(){ show('screenHome'); };
 
 window.switchAdminTab = function(tab){
   _adminTab = tab;
-  ['profiles','stats','questions','config','gallery','rooms'].forEach(t=>{
+  ['profiles','stats','questions','rooms','config','gallery'].forEach(t=>{
     document.getElementById('at'+t.charAt(0).toUpperCase()+t.slice(1)).classList.toggle('active', t===tab);
   });
   renderAdminContent();
@@ -1372,10 +1369,67 @@ async function renderAdminContent(){
   if(_adminTab === 'profiles')   await renderAdminProfiles(el);
   else if(_adminTab === 'stats')     await renderAdminStats(el);
   else if(_adminTab === 'questions') await renderAdminQuestions(el);
+  else if(_adminTab === 'rooms')     await renderAdminRooms(el);
   else if(_adminTab === 'config')    await renderAdminConfig(el);
   else if(_adminTab === 'gallery')   await window.renderAdminGallery(el);
-  else if(_adminTab === 'rooms')     await renderAdminRooms(el);
 }
+
+// ── Onglet Salles (gestion complète des parties en base) ──
+async function renderAdminRooms(el){
+  const rooms = await dbGet('rooms') || {};
+  const entries = Object.entries(rooms).sort((a,b)=>(b[1].createdAt||0)-(a[1].createdAt||0));
+  el.innerHTML = `
+    <div class="admin-section">
+      <div class="admin-section-title">Salles en base (${entries.length})</div>
+      ${entries.length ? entries.map(([code,r])=>`
+        <div class="profile-item">
+          <div style="font-size:22px">🎵</div>
+          <div class="profile-item-info">
+            <div class="profile-item-name">${esc(r.title||'Sans titre')} <span style="font-family:var(--fn);color:var(--muted);font-size:11px">· ${code}</span></div>
+            <div class="profile-item-meta">${phaseLabel(r.phase)} · ${Object.keys(r.players||{}).length} joueur(s) · ${(r.questions||[]).length} manche(s)${r.createdAt?' · '+fmtDate(r.createdAt):''}</div>
+          </div>
+          <div class="profile-item-actions" style="display:flex;gap:6px">
+            <button class="btn-icon" title="Reprendre comme MJ" onclick="window.adminTakeOverRoom('${code}')">🎤</button>
+            <button class="btn-icon btn-icon-del" onclick="window.adminDelRoomAdmin('${code}')">🗑</button>
+          </div>
+        </div>`).join('') : '<div style="color:var(--muted);text-align:center;padding:20px">Aucune salle en base</div>'}
+    </div>
+    ${entries.length ? `<button class="btn btn-red" id="btnPurgeFinishedRooms" style="margin-top:8px">🧹 Purger les parties terminées</button>` : ''}`;
+  const purgeBtn=document.getElementById('btnPurgeFinishedRooms');
+  if(purgeBtn) purgeBtn.addEventListener('click', async ()=>{
+    const finished = entries.filter(([,r])=>r.phase==='scores').map(([c])=>c);
+    if(!finished.length){alert('Aucune partie terminée à purger.');return;}
+    if(!confirm(`Supprimer ${finished.length} partie(s) terminée(s) ?`))return;
+    await Promise.all(finished.map(c=>dbRemove('rooms/'+c)));
+    renderAdminContent();
+  });
+}
+
+window.adminDelRoomAdmin = async function(code){
+  if(!confirm('Supprimer définitivement la salle '+code+' ?'))return;
+  await dbRemove('rooms/'+code);
+  renderAdminContent();
+};
+
+window.adminTakeOverRoom = async function(code){
+  const room = await dbGet('rooms/'+code);
+  if(!room){alert('Salle introuvable.');return;}
+  G.isMJ=true;G.roomCode=code;G.room=room;G.saveId=null;
+  saveSession({role:'mj', code, saveId:null, title:room.title});
+  window.closeAdminPanel();
+  if(room.phase==='lobby'){
+    document.getElementById('lobbyCODE').textContent=code;
+    document.getElementById('lobbyTitle').textContent=room.title;
+    document.getElementById('lobbyNbManches').textContent=room.questions?.length||'?';
+    show('screenMJLobby');
+  }else if(room.phase==='scores'){
+    showFinalScores();
+  }else{
+    show('screenMJGame');renderMJGame();
+    if(room.phase==='music') startTimer();
+  }
+  startWatch();
+};
 
 // ── Onglet Profils ──
 async function renderAdminProfiles(el){
@@ -1678,170 +1732,6 @@ window.saveProfileModal = async function(){
   } else {
     renderProfilesGrid();
   }
-};
-
-// ── Salles actives (pour joueurs sur screenHome) ──
-const PHASE_LABELS = {lobby:'⏳ En attente', music:'🎵 En cours', reveal:'🔍 Révélation', interlude:'💬 Interlude', scores:'🏆 Terminée'};
-const PHASE_COLORS = {lobby:'var(--green)', music:'var(--orange)', reveal:'#60a5fa', interlude:'#c4b5fd', scores:'var(--muted)'};
-
-async function renderActiveRooms(){
-  const el = document.getElementById('activeRoomsList');
-  if(!el) return;
-  el.innerHTML = '<div style="text-align:center;font-size:12px;color:var(--muted);padding:4px 0">⏳ Recherche des salles…</div>';
-  try {
-    const rooms = await dbGet('rooms');
-    if(!rooms){
-      el.innerHTML = '<div style="text-align:center;font-size:12px;color:var(--muted);padding:4px 0">Aucune salle active</div>';
-      return;
-    }
-    const list = Object.entries(rooms)
-      .map(([code,r])=>({code,...r}))
-      .filter(r=>r.phase && r.phase!=='scores')
-      .sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
-    if(!list.length){
-      el.innerHTML = '<div style="text-align:center;font-size:12px;color:var(--muted);padding:4px 0">Aucune salle active pour le moment</div>';
-      return;
-    }
-    el.innerHTML = `
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:6px">Salles en cours</div>
-      ${list.map(r=>{
-        const nbPlayers = Object.keys(r.players||{}).length;
-        const nbQ = r.questions?.length||0;
-        const curQ = (r.currentQ||0)+1;
-        const phase = r.phase||'lobby';
-        const col = PHASE_COLORS[phase]||'var(--muted)';
-        const label = PHASE_LABELS[phase]||phase;
-        return `<div onclick="window.joinRoomFromList('${r.code}')" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.1);border-radius:12px;margin-bottom:6px;cursor:pointer;transition:background .15s" onmouseover="this.style.background='rgba(255,255,255,.09)'" onmouseout="this.style.background='rgba(255,255,255,.05)'">
-          <div style="flex:1;min-width:0">
-            <div style="font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(r.title||'Sans titre')}</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:2px">${nbPlayers} joueur${nbPlayers>1?'s':''} · ${phase!=='lobby'?`Manche ${curQ}/${nbQ}`:`Pas encore commencé`}</div>
-          </div>
-          <div style="text-align:right;flex-shrink:0">
-            <div style="font-size:11px;font-weight:700;color:${col}">${label}</div>
-            <div style="font-size:12px;font-weight:900;color:var(--muted2);letter-spacing:2px;font-family:var(--fn)">${r.code}</div>
-          </div>
-        </div>`;
-      }).join('')}`;
-  } catch(e){
-    el.innerHTML = '<div style="text-align:center;font-size:12px;color:var(--muted);padding:4px 0">Impossible de charger les salles</div>';
-  }
-}
-
-window.joinRoomFromList = function(code){
-  const codeEl = document.getElementById('joinCode');
-  if(codeEl){ codeEl.value = code; }
-  doJoin();
-};
-
-// ── Onglet Admin : gestion des salles ──
-async function renderAdminRooms(el){
-  el.innerHTML = '<div style="text-align:center;color:var(--muted);padding:40px 0">Chargement…</div>';
-  const rooms = await dbGet('rooms');
-  if(!rooms){
-    el.innerHTML = '<div class="admin-section"><div style="text-align:center;color:var(--muted);padding:40px 0">Aucune salle en base</div></div>';
-    return;
-  }
-  const list = Object.entries(rooms)
-    .map(([code,r])=>({code,...r}))
-    .sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
-
-  const active = list.filter(r=>r.phase && r.phase!=='scores');
-  const ended  = list.filter(r=>!r.phase || r.phase==='scores');
-
-  function roomCard(r){
-    const players = Object.values(r.players||{});
-    const nbQ = r.questions?.length||0;
-    const curQ = (r.currentQ||0)+1;
-    const phase = r.phase||'?';
-    const col = PHASE_COLORS[phase]||'var(--muted)';
-    const label = PHASE_LABELS[phase]||phase;
-    const scores = r.scores||{};
-    const created = r.createdAt ? new Date(r.createdAt).toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : '—';
-    return `<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:14px;padding:12px 14px;margin-bottom:10px">
-      <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:8px">
-        <div style="flex:1;min-width:0">
-          <div style="font-weight:800;font-size:14px">${esc(r.title||'Sans titre')}</div>
-          <div style="font-size:11px;color:var(--muted);margin-top:2px">${created} · ${nbQ} question${nbQ>1?'s':''} · ${phase!=='lobby'?`Manche ${curQ}/${nbQ}`:''}</div>
-        </div>
-        <div style="text-align:right;flex-shrink:0">
-          <div style="font-size:11px;font-weight:700;color:${col};margin-bottom:2px">${label}</div>
-          <div style="font-family:var(--fn);font-size:13px;font-weight:900;letter-spacing:2px;color:var(--orange)">${r.code}</div>
-        </div>
-      </div>
-      ${players.length ? `<div style="margin-bottom:10px">
-        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:4px">Joueurs</div>
-        <div style="display:flex;flex-wrap:wrap;gap:4px">
-          ${players.map(p=>`
-            <div style="display:flex;align-items:center;gap:4px;background:rgba(255,255,255,.07);border-radius:20px;padding:3px 8px 3px 4px">
-              ${(p.customPhoto||p.photoURL)?`<img src="${p.customPhoto||p.photoURL}" style="width:18px;height:18px;border-radius:50%;object-fit:cover">`:`<span style="font-size:13px">${p.avatar||'👤'}</span>`}
-              <span style="font-size:11px;font-weight:600">${esc(p.name)}</span>
-              ${scores[p.id]!==undefined?`<span style="font-size:10px;color:var(--muted)">${scores[p.id]}pt</span>`:''}
-              <button onclick="window.adminKickPlayer('${r.code}','${p.id}')" title="Expulser" style="background:none;border:none;cursor:pointer;font-size:10px;color:var(--muted);padding:0;margin-left:2px;line-height:1">✕</button>
-            </div>`).join('')}
-        </div>
-      </div>` : '<div style="font-size:12px;color:var(--muted);margin-bottom:8px">Aucun joueur</div>'}
-      <div style="display:flex;gap:6px;flex-wrap:wrap">
-        ${phase!=='scores'?`<button onclick="window.adminResetRoom('${r.code}')" style="padding:5px 10px;font-size:11px;font-weight:700;background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.3);color:#a5b4fc;border-radius:8px;cursor:pointer">↺ Reset lobby</button>`:''}
-        ${phase==='music'||phase==='reveal'?`<button onclick="window.adminForceReveal('${r.code}')" style="padding:5px 10px;font-size:11px;font-weight:700;background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.3);color:#93c5fd;border-radius:8px;cursor:pointer">⏩ Forcer révélation</button>`:''}
-        <button onclick="window.adminDeleteRoom('${r.code}')" style="padding:5px 10px;font-size:11px;font-weight:700;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);color:#f87171;border-radius:8px;cursor:pointer">🗑 Supprimer</button>
-      </div>
-    </div>`;
-  }
-
-  el.innerHTML = `
-    <div class="admin-section">
-      <div class="admin-section-title" style="display:flex;align-items:center;justify-content:space-between">
-        <span>Salles actives (${active.length})</span>
-        <button onclick="window.switchAdminTab('rooms')" style="font-size:11px;padding:4px 8px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:8px;color:var(--muted);cursor:pointer">↻ Rafraîchir</button>
-      </div>
-      ${active.length ? active.map(roomCard).join('') : '<div style="color:var(--muted);text-align:center;padding:20px">Aucune salle active</div>'}
-    </div>
-    <div class="admin-section">
-      <div class="admin-section-title">Salles terminées / orphelines (${ended.length})</div>
-      ${ended.length ? ended.map(roomCard).join('') : '<div style="color:var(--muted);text-align:center;padding:20px">Aucune</div>'}
-    </div>
-    <div style="text-align:center;margin-top:8px">
-      ${ended.length ? `<button onclick="window.adminDeleteAllEnded()" style="padding:8px 16px;font-size:12px;font-weight:700;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#f87171;border-radius:10px;cursor:pointer">🗑 Supprimer toutes les salles terminées</button>` : ''}
-    </div>`;
-}
-
-window.adminKickPlayer = async function(code, pid){
-  if(!confirm('Expulser ce joueur ?')) return;
-  await dbRemove('rooms/'+code+'/players/'+pid);
-  await dbRemove('rooms/'+code+'/answers/'+pid);
-  await dbRemove('rooms/'+code+'/scores/'+pid);
-  renderAdminContent();
-};
-
-window.adminResetRoom = async function(code){
-  if(!confirm('Remettre cette salle en lobby ? Les scores et réponses seront effacés.')) return;
-  await dbSet('rooms/'+code+'/phase','lobby');
-  await dbSet('rooms/'+code+'/currentQ',0);
-  await dbRemove('rooms/'+code+'/answers');
-  await dbRemove('rooms/'+code+'/scores');
-  await dbRemove('rooms/'+code+'/musicStartedAt');
-  renderAdminContent();
-};
-
-window.adminForceReveal = async function(code){
-  if(!confirm('Forcer la révélation de la question en cours ?')) return;
-  await dbSet('rooms/'+code+'/phase','reveal');
-  renderAdminContent();
-};
-
-window.adminDeleteRoom = async function(code){
-  if(!confirm('Supprimer définitivement la salle '+code+' ?')) return;
-  await dbRemove('rooms/'+code);
-  renderAdminContent();
-};
-
-window.adminDeleteAllEnded = async function(){
-  if(!confirm('Supprimer toutes les salles terminées/orphelines ?')) return;
-  const rooms = await dbGet('rooms');
-  if(!rooms) return;
-  const toDelete = Object.entries(rooms).filter(([,r])=>!r.phase||r.phase==='scores').map(([code])=>code);
-  await Promise.all(toDelete.map(code=>dbRemove('rooms/'+code)));
-  renderAdminContent();
 };
 
 window.deleteProfile = async function(uid){
@@ -2256,6 +2146,44 @@ async function doLaunch(){
   startWatch();
 }
 
+// ── LISTE DES SALLES DISPONIBLES (depuis /rooms) ──────────
+function phaseLabel(p){
+  return p==='lobby'?'🕐 Lobby'
+       : p==='scores'?'🏁 Terminée'
+       : p==='interlude'?'🎙️ Interlude'
+       : '🎵 En jeu';
+}
+async function renderActiveRoomsList(){
+  const card=document.getElementById('activeRoomsCard');
+  const list=document.getElementById('activeRoomsList');
+  if(!card||!list)return;
+  const rooms=await dbGet('rooms');
+  if(!rooms){card.style.display='none';return;}
+  const entries=Object.entries(rooms).sort((a,b)=>(b[1].createdAt||0)-(a[1].createdAt||0));
+  if(!entries.length){card.style.display='none';return;}
+  card.style.display='block';
+  list.innerHTML=entries.map(([code,r])=>`
+    <div class="profile-item" data-room-pick="${code}" style="cursor:pointer">
+      <div style="font-size:22px">🎵</div>
+      <div class="profile-item-info">
+        <div class="profile-item-name">${esc(r.title||'Sans titre')} <span style="font-family:var(--fn);color:var(--muted);font-size:11px">· ${code}</span></div>
+        <div class="profile-item-meta">${phaseLabel(r.phase)} · ${Object.keys(r.players||{}).length} joueur(s)</div>
+      </div>
+      ${AUTH.profile?.isAdmin?`<button class="btn-icon btn-icon-del" onclick="event.stopPropagation();window.adminDelRoomFromHome('${code}')">🗑</button>`:''}
+    </div>`).join('');
+  list.querySelectorAll('[data-room-pick]').forEach(el=>{
+    el.addEventListener('click',()=>{
+      document.getElementById('joinCode').value=el.dataset.roomPick;
+      document.getElementById('joinName').focus();
+    });
+  });
+}
+window.adminDelRoomFromHome = async function(code){
+  if(!confirm('Supprimer définitivement la salle '+code+' ?'))return;
+  await dbRemove('rooms/'+code);
+  renderActiveRoomsList();
+};
+
 // ── JOIN ─────────────────────────────────────────────────
 async function doJoin(){
   const name=document.getElementById('joinName').value.trim();
@@ -2268,7 +2196,12 @@ async function doJoin(){
   for(let i=0;i<4;i++){room=await dbGet('rooms/'+code);if(room)break;await new Promise(r=>setTimeout(r,1000));}
   btn.textContent='🚀 Rejoindre';btn.disabled=false;
   if(!room){errEl.textContent='Salle introuvable. Vérifie le code !';return;}
-  if(room.phase==='scores'){errEl.textContent='Cette partie est déjà terminée !';return;}
+  if(room.phase==='scores'){
+    // Partie terminée mais encore en base : on l'affiche en lecture (scores finaux)
+    G.roomCode=code;G.room=room;G.isMJ=false;G.player=null;
+    showFinalScores();
+    return;
+  }
   const pid='p'+ts()+Math.random().toString(36).slice(2,5),avatar=randAvatar();
   const playerData={id:pid,name,avatar,color:AUTH.profile?.color||'#8b5cf6',photoURL:AUTH.profile?.photoURL||'',customPhoto:AUTH.profile?.customPhoto||''};
   G.player=playerData;G.isMJ=false;G.roomCode=code;
@@ -2891,9 +2824,9 @@ if('serviceWorker' in navigator && location.hostname === 'xavierpiza2-a11y.githu
     <div class="admin-tab active" onclick="window.switchAdminTab('profiles')" id="atProfiles">👥 Profils</div>
     <div class="admin-tab" onclick="window.switchAdminTab('stats')" id="atStats">📊 Statistiques</div>
     <div class="admin-tab" onclick="window.switchAdminTab('questions')" id="atQuestions">🎵 Questions</div>
+    <div class="admin-tab" onclick="window.switchAdminTab('rooms')" id="atRooms">🗂️ Salles</div>
     <div class="admin-tab" onclick="window.switchAdminTab('config')" id="atConfig">⚙️ Config</div>
     <div class="admin-tab" onclick="window.switchAdminTab('gallery')" id="atGallery">🖼️ Galerie</div>
-    <div class="admin-tab" onclick="window.switchAdminTab('rooms')" id="atRooms">🏠 Salles</div>
   </div>
   <div class="admin-content" id="adminContent">
     <!-- Rempli dynamiquement -->
