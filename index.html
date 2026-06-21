@@ -236,6 +236,9 @@ textarea.inp{resize:none;line-height:1.6;font-size:14px}
 .btn-deezer:hover{background:rgba(249,115,22,.3)}
 .deezer-wrap{border-radius:12px;overflow:hidden;margin-bottom:12px}
 .deezer-warn{color:var(--orange);font-size:12px;text-align:center;padding:8px;background:rgba(249,115,22,.08);border-radius:10px;margin-bottom:10px}
+.deezer-ok{color:#10b981;font-size:12px;text-align:center;padding:8px;background:rgba(16,185,129,.08);border-radius:10px;margin-bottom:10px}
+.deezer-ok a{color:#10b981;text-decoration:underline}
+.btn-open-track{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:16px;border-radius:14px;background:linear-gradient(135deg,var(--orange),var(--orange2));color:#fff;font-weight:700;font-size:15px;text-decoration:none}
 
 /* ═══════════════════════════════════════════
    DEEZER SEARCH MODAL
@@ -2104,11 +2107,14 @@ Génère exactement ${_aiCount} objets.`;
 // ── SETUP ────────────────────────────────────────────────
 function newQ(){return{id:ts()+Math.random(),source:'deezer',url:'',title:'',choices:['','','',''],answer:0};}
 function tid(url){const m=(url||'').match(/track\/(\d+)/);return m?m[1]:null;}
-function yid(url){
-  const m=(url||'').match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([A-Za-z0-9_-]{11})/);
+function sid(url){
+  const m=(url||'').match(/(?:open\.spotify\.com\/track\/|spotify:track:)([A-Za-z0-9]+)/);
   return m?m[1]:null;
 }
-function trackId(q){return q.source==='youtube'?yid(q.url):tid(q.url);}
+function trackId(q){return q.source==='spotify'?sid(q.url):q.source==='amazon'?(q.url.trim()?q.url.trim():null):tid(q.url);}
+function sourceLabel(src){
+  return src==='spotify'?{emoji:'🟢',name:'Spotify'}:src==='amazon'?{emoji:'🟠',name:'Amazon Music'}:{emoji:'🎧',name:'Deezer'};
+}
 
 function renderSetupQs(){
   const L=['A','B','C','D'];
@@ -2120,19 +2126,18 @@ function renderSetupQs(){
       </div>
       <div class="src-toggle" data-src="${i}">
         <button class="src-btn${(q.source||'deezer')==='deezer'?' active':''}" data-set-src="${i}-deezer">🎧 Deezer</button>
-        <button class="src-btn${q.source==='youtube'?' active':''}" data-set-src="${i}-youtube">▶️ YouTube</button>
+        <button class="src-btn${q.source==='spotify'?' active':''}" data-set-src="${i}-spotify">🟢 Spotify</button>
+        <button class="src-btn${q.source==='amazon'?' active':''}" data-set-src="${i}-amazon">🟠 Amazon Music</button>
       </div>
       <div class="deezer-row">
-        <input class="inp" data-url="${i}" placeholder="${q.source==='youtube'?'🔗 Lien YouTube':'🔗 Lien Deezer'}" value="${esc(q.url)}" style="margin-bottom:0">
+        <input class="inp" data-url="${i}" placeholder="🔗 Lien ${sourceLabel(q.source).name}" value="${esc(q.url)}" style="margin-bottom:0">
         <button class="btn-deezer" data-search="${i}">🔍</button>
       </div>
-      ${q.url&&trackId(q)?
-        (q.source==='youtube'?
-          `<div class="deezer-wrap"><iframe width="100%" height="160" frameborder="0" allow="autoplay;encrypted-media;picture-in-picture"
-            src="https://www.youtube-nocookie.com/embed/${trackId(q)}" style="border-radius:12px"></iframe></div>`:
-          `<div class="deezer-wrap"><iframe scrolling="no" frameborder="0" allowtransparency="true" allow="autoplay;clipboard-write;encrypted-media;fullscreen;picture-in-picture"
-            src="https://widget.deezer.com/widget/dark/track/${trackId(q)}" style="width:100%;height:80px;border-radius:12px"></iframe></div>`):
-        (q.url?'<div class="deezer-warn">⚠️ URL invalide</div>':'')}
+      ${q.url?
+        (trackId(q)?
+          `<div class="deezer-ok">✅ Lien ${sourceLabel(q.source).name} valide — <a href="${esc(q.url)}" target="_blank" rel="noopener">tester le lien ↗</a></div>`:
+          '<div class="deezer-warn">⚠️ Lien invalide</div>')
+        :''}
       <p style="font-size:11px;color:var(--muted);margin-bottom:8px">✅ = bonne réponse</p>
       ${q.choices.map((c,ci)=>`
         <div class="choice-row">
@@ -2157,17 +2162,23 @@ function renderSetupQs(){
     renderSetupQs();
   }));
   sq.querySelectorAll('[data-search]').forEach(b=>b.addEventListener('click',()=>{
-    const qi=+b.dataset.search;
-    if(setupQs[qi].source==='youtube') openYoutubeSearch(qi);
+    const qi=+b.dataset.search,src=setupQs[qi].source;
+    if(src==='spotify') openExternalSearch(qi,'https://open.spotify.com/search/');
+    else if(src==='amazon') openExternalSearch(qi,'https://music.amazon.com/search/');
     else openModal(qi);
   }));
+}
+
+function openExternalSearch(idx,base){
+  const q=setupQs[idx],query=q.choices[q.answer]?(q.choices[q.answer]+(q.title?' '+q.title:'')):(q.title||'');
+  window.open(base+encodeURIComponent(query||'musique'),'_blank');
 }
 
 // ── LAUNCH ───────────────────────────────────────────────
 async function doLaunch(){
   const title=document.getElementById('setupTitle').value.trim()||'Blind Test';
   const valid=setupQs.filter(q=>q.url.trim()&&trackId(q)&&q.choices.every(c=>c.trim()));
-  if(!valid.length){alert('Ajoute au moins une manche valide (lien Deezer ou YouTube + 4 artistes) !');return;}
+  if(!valid.length){alert('Ajoute au moins une manche valide (lien Deezer, Spotify ou Amazon Music + 4 artistes) !');return;}
   const code=genCode();
   const room={title,questions:valid,phase:'lobby',currentQ:0,players:{},answers:{},scores:{},musicStartedAt:null,createdAt:ts(),interludeComment:null,finalComments:null};
   await dbSet('rooms/'+code,room);
@@ -2345,13 +2356,13 @@ function renderMJGame(){
     document.getElementById('mjPhaseMusic').style.display='flex';
     document.getElementById('mjPhaseReveal').style.display='none';
     stopBtn.style.display='flex';nextBtn.style.display='none';
-    const t=trackId(q);
+    const t=trackId(q),lbl=sourceLabel(q.source);
     document.getElementById('mjDeezerWrap').innerHTML=t?
-      (q.source==='youtube'?
-        `<iframe width="100%" height="160" frameborder="0" allow="autoplay;encrypted-media;picture-in-picture"
-          src="https://www.youtube-nocookie.com/embed/${t}?autoplay=1" style="border-radius:12px"></iframe>`:
-        `<iframe scrolling="no" frameborder="0" allowtransparency="true" allow="autoplay;clipboard-write;encrypted-media;fullscreen;picture-in-picture"
-          src="https://widget.deezer.com/widget/dark/track/${t}?autoplay=1" style="width:100%;height:80px;border-radius:12px"></iframe>`):
+      `<a class="btn-open-track" href="${esc(q.url)}" target="_blank" rel="noopener">
+        <span style="font-size:22px">${lbl.emoji}</span>
+        <span>Ouvrir dans ${lbl.name} et lancer le son</span>
+      </a>
+      <p class="kah-wait-lbl" style="margin-top:6px">Joue le morceau en entier depuis l'appli, puis reviens ici pour gérer la manche</p>`:
       '<div class="deezer-warn">⚠️ Lecteur indisponible</div>';
     updateAnsBar();
   }else if(r.phase==='reveal'){
@@ -2722,50 +2733,6 @@ function updateArc(px,left){
   a.style.stroke=c;n.style.color=c;
 }
 
-function openYoutubeSearch(idx){
-  modalQIdx=idx;modalSrc='youtube';
-  const q=setupQs[idx];
-  document.getElementById('modalTitleTxt').textContent='🔍 Recherche YouTube';
-  document.getElementById('deezerModal').classList.remove('hidden');
-  const query=q.choices[q.answer]?(q.choices[q.answer]+(q.title?' '+q.title:'')):(q.title||'');
-  document.getElementById('modalSearchInput').value=query;
-  document.getElementById('modalBody').innerHTML='<div class="search-empty">🎵 Tape un artiste ou un titre</div>';
-  if(query)doSearchYoutube(query);else setTimeout(()=>document.getElementById('modalSearchInput').focus(),300);
-}
-
-async function doSearchYoutube(q){
-  if(!q)return;
-  document.getElementById('modalBody').innerHTML=`<div style="text-align:center;padding:32px 0"><div class="search-dots"><div class="search-dot"></div><div class="search-dot"></div><div class="search-dot"></div></div><p style="color:var(--muted);font-size:13px;margin-top:8px">Recherche en cours...</p></div>`;
-  try{
-    const r=await fetch(`${CLAUDE_WORKER_URL}/youtube-search?q=${encodeURIComponent(q)}`);
-    const data=await r.json();
-    const body=document.getElementById('modalBody');
-    if(data.error){body.innerHTML=`<div class="search-empty">⚠️ ${esc(data.error)}</div>`;return;}
-    const items=data.items||[];
-    if(!items.length){body.innerHTML='<div class="search-empty">Aucun résultat 😕</div>';return;}
-    body.innerHTML=items.map(it=>`
-      <div class="search-result">
-        <img class="search-cover" src="${esc(it.thumbnail)}" alt="" loading="lazy" onerror="this.style.display='none'">
-        <div class="search-info">
-          <div class="search-title">${esc(it.title)}</div>
-          <div class="search-artist">${esc(it.channel)}</div>
-        </div>
-        <button class="search-pick" data-pick-yt="${it.id}">Choisir</button>
-      </div>`).join('');
-    body.querySelectorAll('[data-pick-yt]').forEach(b=>b.addEventListener('click',()=>{
-      if(modalQIdx===null)return;
-      const idx=modalQIdx;
-      setupQs[idx].url='https://www.youtube.com/watch?v='+b.dataset.pickYt;
-      document.getElementById('deezerModal').classList.add('hidden');modalQIdx=null;
-      renderSetupQs();
-      setTimeout(()=>{const cards=document.querySelectorAll('.q-card');if(cards[idx])cards[idx].scrollIntoView({behavior:'smooth'});},200);
-    }));
-  }catch(e){
-    console.error('YouTube search:',e);
-    document.getElementById('modalBody').innerHTML='<div class="search-empty">⚠️ Recherche indisponible. Colle le lien directement.</div>';
-  }
-}
-
 // ── DEEZER MODAL ─────────────────────────────────────────
 let modalQIdx=null,searchTmr=null,modalSrc='deezer';
 
@@ -2779,7 +2746,7 @@ function openModal(idx){
   if(query)doSearch(query);else setTimeout(()=>document.getElementById('modalSearchInput').focus(),300);
 }
 
-function doSearchDispatch(q){ modalSrc==='youtube' ? doSearchYoutube(q) : doSearch(q); }
+function doSearchDispatch(q){ doSearch(q); }
 
 try {
 document.getElementById('btnModalClose').addEventListener('click',()=>{document.getElementById('deezerModal').classList.add('hidden');modalQIdx=null;});
