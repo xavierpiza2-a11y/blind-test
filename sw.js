@@ -1,4 +1,4 @@
-const CACHE = 'blindtest-v6';
+const CACHE = 'blindtest-v7';
 const ASSETS = [
   '/blind-test/',
   '/blind-test/index.html',
@@ -28,9 +28,6 @@ self.addEventListener('fetch', e => {
     url.includes('firebasedatabase') ||
     url.includes('googleapis') ||
     url.includes('deezer.com') ||
-    url.includes('spotify.com') ||
-    url.includes('scdn.co') ||
-    url.includes('music.amazon') ||
     url.includes('gstatic.com') ||
     url.includes('workers.dev') ||
     url.includes('anthropic.com')
