@@ -2303,8 +2303,6 @@ async function doStartGame(){
       throw new Error('Aucune question disponible. Retourne à la configuration.');
     }
     const update={...G.room,questions,phase:'music',currentQ:0,answers:{},scores:{},musicStartedAt:ts()};
-    const firstTrack=trackId(questions[0]);
-    if(firstTrack) window.open(questions[0].url,'_blank');
     await dbSet('rooms/'+G.roomCode,update);
     G.room=update;
   }catch(e){
@@ -2331,9 +2329,9 @@ function renderMJGame(){
     document.getElementById('mjDeezerWrap').innerHTML=t?
       `<a class="btn-open-track" href="${esc(q.url)}" target="_blank" rel="noopener">
         <span style="font-size:22px">🎧</span>
-        <span>Réouvrir Deezer si besoin</span>
+        <span>Ouvrir dans Deezer et lancer le son</span>
       </a>
-      <p class="kah-wait-lbl" style="margin-top:6px">Le son s'est ouvert automatiquement dans Deezer au lancement de la manche</p>`:
+      <p class="kah-wait-lbl" style="margin-top:6px">Joue le morceau en entier depuis l'appli, puis reviens ici pour gérer la manche</p>`:
       '<div class="deezer-warn">⚠️ Lecteur indisponible</div>';
     updateAnsBar();
   }else if(r.phase==='reveal'){
@@ -2499,8 +2497,6 @@ async function showInterlude(currentQIdx,nextQIdx){
 async function doActualNextRound(){
   if(G.pendingNextRound===false)return;
   const next=G.pendingNextRound;G.pendingNextRound=false;
-  const nextQ=G.room.questions[next];
-  if(nextQ&&trackId(nextQ)) window.open(nextQ.url,'_blank');
   await dbSet('rooms/'+G.roomCode,{...G.room,phase:'music',currentQ:next,musicStartedAt:ts()});
 }
 
