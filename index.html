@@ -2327,11 +2327,9 @@ function renderMJGame(){
     stopBtn.style.display='flex';nextBtn.style.display='none';
     const t=trackId(q);
     document.getElementById('mjDeezerWrap').innerHTML=t?
-      `<a class="btn-open-track" href="${esc(q.url)}" target="_blank" rel="noopener">
-        <span style="font-size:22px">🎧</span>
-        <span>Ouvrir dans Deezer et lancer le son</span>
-      </a>
-      <p class="kah-wait-lbl" style="margin-top:6px">Joue le morceau en entier depuis l'appli, puis reviens ici pour gérer la manche</p>`:
+      `<iframe scrolling="no" frameborder="0" allowtransparency="true" allow="autoplay;clipboard-write;encrypted-media;fullscreen;picture-in-picture"
+        src="https://widget.deezer.com/widget/dark/track/${t}?autoplay=1" style="width:100%;height:80px;border-radius:12px"></iframe>
+      <p class="kah-wait-lbl" style="margin-top:6px">🎧 Connecté à Deezer Premium dans ce navigateur → lecture du morceau en entier</p>`:
       '<div class="deezer-warn">⚠️ Lecteur indisponible</div>';
     updateAnsBar();
   }else if(r.phase==='reveal'){
