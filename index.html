@@ -239,6 +239,7 @@ textarea.inp{resize:none;line-height:1.6;font-size:14px}
 .btn-deezer:hover{background:rgba(249,115,22,.3)}
 .deezer-wrap{border-radius:12px;overflow:hidden;margin-bottom:12px}
 .deezer-warn{color:var(--orange);font-size:12px;text-align:center;padding:8px;background:rgba(249,115,22,.08);border-radius:10px;margin-bottom:10px}
+.quiz-question-box{background:rgba(139,92,246,.1);border:1.5px solid rgba(139,92,246,.3);border-radius:14px;padding:18px;font-size:17px;font-weight:700;text-align:center;line-height:1.4;color:#f5f3ff}
 .deezer-ok{color:#10b981;font-size:12px;text-align:center;padding:8px;background:rgba(16,185,129,.08);border-radius:10px;margin-bottom:10px}
 .deezer-ok a{color:#10b981;text-decoration:underline}
 .btn-open-track{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:16px;border-radius:14px;background:linear-gradient(135deg,var(--orange),var(--orange2));color:#fff;font-weight:700;font-size:15px;text-decoration:none}
@@ -687,7 +688,7 @@ textarea.inp{resize:none;line-height:1.6;font-size:14px}
           </div>
         </div>
         <div>
-          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:6px">Manches</div>
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:6px" id="aiCountLabel">Manches</div>
           <div style="display:flex;gap:6px">
             <button class="ai-count-btn" data-count="5" onclick="window.setCount(5)">5</button>
             <button class="ai-count-btn active" data-count="10" onclick="window.setCount(10)">10</button>
@@ -822,11 +823,12 @@ textarea.inp{resize:none;line-height:1.6;font-size:14px}
     </div>
   </div>
   <div id="pPhaseMusic" class="kah-stage">
-    <div class="kah-music-visual">
+    <div class="kah-music-visual" id="pMusicVisual">
       <div class="kah-note-bg">🎵</div>
       <div class="kah-bars-center"><div class="kah-bar"></div><div class="kah-bar"></div><div class="kah-bar"></div><div class="kah-bar"></div><div class="kah-bar"></div><div class="kah-bar"></div></div>
       <p class="kah-playing-txt">La musique joue chez le MJ...</p>
     </div>
+    <div id="pQuizQuestionBox" class="quiz-question-box" style="display:none;margin:0 16px 10px;max-width:440px;width:calc(100% - 32px)"></div>
     <div id="pStatusBox"></div>
     <div class="card" style="margin:10px 16px 0;padding:10px 12px;max-width:440px;width:calc(100% - 32px)">
       <div class="ans-bar-label"><span>Réponses</span><span id="pAnsBarLabel">0/0</span></div>
@@ -936,7 +938,7 @@ async function getSavedIdx(){
   return Object.values(data).map(g=>({id:g.id,title:g.title,count:g.count,savedAt:g.savedAt}));
 }
 async function saveGame(id,title,qs){
-  await dbSet(SAVED_REF+'/'+id, {id,title,count:qs.length,savedAt:Date.now(),questions:qs});
+  await dbSet(SAVED_REF+'/'+id, {id,title,gameType:G.gameType||'blindtest',count:qs.length,savedAt:Date.now(),questions:qs});
 }
 async function delGame(id){ await dbRemove(SAVED_REF+'/'+id); }
 async function getGame(id){
@@ -976,7 +978,7 @@ let setupQs=[];
 // sa fiche ici. Pour l'instant seul "blindtest" est implémenté.
 const GAMES={
   blindtest:{ id:'blindtest', name:'Blind Test', emoji:'🎵', desc:'Devine l\'artiste à l\'écoute', available:true },
-  quiz:     { id:'quiz',      name:'Quiz Culture G.', emoji:'🧠', desc:'Questions/réponses à choix multiples', available:false },
+  quiz:     { id:'quiz',      name:'Quiz Culture G.', emoji:'🧠', desc:'Questions/réponses à choix multiples', available:true },
   imposteur:{ id:'imposteur', name:'Le Saboteur', emoji:'🕵️', desc:'Un joueur ne connaît pas le mot secret', available:false },
 };
 function renderGamePicker(){
@@ -989,7 +991,9 @@ function renderGamePicker(){
     </button>`).join('');
   el.querySelectorAll('[data-game]:not(.disabled)').forEach(b=>b.addEventListener('click',()=>{
     G.gameType=b.dataset.game;
-    G.saveId=null;setupQs=[newQ()];renderSetupQs();show('screenSetup');
+    G.saveId=null;setupQs=[newQ()];renderSetupQs();
+    document.getElementById('setupTitle').value=G.gameType==='quiz'?'Quiz Culture Générale':'Blind Test Famille';
+    show('screenSetup');
   }));
 }
 
@@ -1003,6 +1007,10 @@ function show(id){
   if(id==='screenSetup'){
     const g=GAMES[G.gameType]||GAMES.blindtest;
     document.getElementById('setupHeaderTitle').textContent=`${g.emoji} Créer la partie`;
+    const isQuiz=G.gameType==='quiz';
+    document.getElementById('aiTheme').placeholder=isQuiz?'Ex : Histoire de France, Géographie, Cinéma…':'Ex : variété française des années 80, hits Pop 2010…';
+    document.getElementById('aiCountLabel').textContent=isQuiz?'Questions':'Manches';
+    document.getElementById('btnAddQ').textContent=isQuiz?'➕ Ajouter une question':'➕ Ajouter une manche';
   }
 }
 
@@ -1987,6 +1995,7 @@ async function renderSaved(){
     const game=await getGame(d.dataset.load);if(!game){alert('Introuvable');return;}
     setupQs=game.questions.map(q=>({...q,id:q.id||ts()+Math.random()}));
     G.saveId=d.dataset.load;
+    G.gameType=game.gameType||'blindtest';
     document.getElementById('setupTitle').value=game.title;
     renderSetupQs();show('screenSetup');
   }));
@@ -2082,6 +2091,7 @@ const LOADING_MSGS = [
 window.generateFromAI = async function(){
   const theme = document.getElementById('aiTheme').value.trim();
   if(!theme){ document.getElementById('aiTheme').focus(); return; }
+  const isQuiz = G.gameType==='quiz';
 
   const btn     = document.getElementById('btnAiGenerate');
   const loading = document.getElementById('aiGenLoading');
@@ -2096,15 +2106,34 @@ window.generateFromAI = async function(){
     loadTxt.textContent = LOADING_MSGS[msgIdx];
   }, 2000);
 
-  const diffInstructions = {
-    facile:    "Choisis uniquement des hits très connus du grand public, faciles à reconnaître.",
-    moyen:     "Mélange des hits connus et des chansons moins évidentes, connues des amateurs du genre.",
-    difficile: "Choisis des chansons moins connues, des faces B ou albums peu médiatisés."
-  };
-
   const seed = Math.random().toString(36).slice(2,8);
 
-  const prompt = `[SEED:${seed}]
+  let prompt, system;
+  if(isQuiz){
+    const diffInstructionsQ = {
+      facile:    "Questions faciles, connues du grand public.",
+      moyen:     "Questions de difficulté moyenne, demandant une bonne culture générale.",
+      difficile: "Questions difficiles, pointues, pour des connaisseurs."
+    };
+    prompt = `[SEED:${seed}]
+Génère exactement ${_aiCount} questions de quiz de culture générale. Thème : "${theme}". Difficulté : ${_aiDiff}. ${diffInstructionsQ[_aiDiff]}
+
+Pour chaque question :
+- "question" : l'énoncé de la question
+- "answer" : la bonne réponse, courte et précise
+- "choices" : tableau de 3 MAUVAISES réponses uniquement (sans la bonne), plausibles mais fausses
+
+Réponds UNIQUEMENT avec un tableau JSON valide, sans markdown.
+Format : [{"question":"...","answer":"...","choices":["Faux1","Faux2","Faux3"]},...]
+Génère exactement ${_aiCount} objets.`;
+    system = "Tu es un générateur de questions de quiz de culture générale. Tu réponds UNIQUEMENT avec un tableau JSON valide, sans texte avant, sans markdown, sans backticks. Rien d'autre que le JSON brut.";
+  } else {
+    const diffInstructions = {
+      facile:    "Choisis uniquement des hits très connus du grand public, faciles à reconnaître.",
+      moyen:     "Mélange des hits connus et des chansons moins évidentes, connues des amateurs du genre.",
+      difficile: "Choisis des chansons moins connues, des faces B ou albums peu médiatisés."
+    };
+    prompt = `[SEED:${seed}]
 Génère exactement ${_aiCount} questions pour un blind test musical. Thème : "${theme}". Difficulté : ${_aiDiff}. ${diffInstructions[_aiDiff]}
 
 Pour chaque question :
@@ -2115,13 +2144,11 @@ Pour chaque question :
 Réponds UNIQUEMENT avec un tableau JSON valide, sans markdown.
 Format : [{"artist":"Nom","title":"Titre","choices":["Faux1","Faux2","Faux3"]},...]
 Génère exactement ${_aiCount} objets.`;
+    system = "Tu es un générateur de questions de blind test musical. Tu réponds UNIQUEMENT avec un tableau JSON valide, sans texte avant, sans markdown, sans backticks. Rien d'autre que le JSON brut.";
+  }
 
   try{
-    const result = await callClaude(prompt, {
-      system: "Tu es un générateur de questions de blind test musical. Tu réponds UNIQUEMENT avec un tableau JSON valide, sans texte avant, sans markdown, sans backticks. Rien d'autre que le JSON brut.",
-      max_tokens: 4000,
-      temperature: 0.9,
-    });
+    const result = await callClaude(prompt, { system, max_tokens: 4000, temperature: 0.9 });
     clearInterval(msgTimer);
 
     if(!Array.isArray(result) || !result.length) throw new Error('Réponse invalide');
@@ -2130,6 +2157,10 @@ Génère exactement ${_aiCount} objets.`;
       const pos = Math.floor(Math.random()*4);
       const choices = [...(q.choices||['???','???','???'])];
       while(choices.length < 3) choices.push('???');
+      if(isQuiz){
+        choices.splice(pos, 0, q.answer);
+        return { id:ts()+Math.random(), url:'', title:q.question||'', choices, answer:pos };
+      }
       choices.splice(pos, 0, q.artist);
       return { id:ts()+Math.random(), url:'', title:q.title||'', choices, answer:pos };
     });
@@ -2156,12 +2187,15 @@ function trackId(q){return tid(q.url);}
 
 function renderSetupQs(){
   const L=['A','B','C','D'];
+  const isQuiz=G.gameType==='quiz';
   document.getElementById('setupQuestions').innerHTML=setupQs.map((q,i)=>`
     <div class="q-card">
       <div class="q-header">
-        <span class="q-num">🎵 Manche ${i+1}${q.title?` <span style="color:var(--muted2);font-weight:500;font-size:12px">— ${esc(q.title)}</span>`:''}</span>
+        <span class="q-num">${isQuiz?`🧠 Question ${i+1}`:`🎵 Manche ${i+1}${q.title?` <span style="color:var(--muted2);font-weight:500;font-size:12px">— ${esc(q.title)}</span>`:''}`}</span>
         ${setupQs.length>1?`<button class="q-del" data-del="${i}">✕</button>`:''}
       </div>
+      ${isQuiz?`
+      <textarea class="inp" data-question="${i}" placeholder="Pose ta question ici…" style="margin-bottom:10px;min-height:60px;resize:vertical">${esc(q.title)}</textarea>`:`
       <div class="deezer-row">
         <input class="inp" data-url="${i}" placeholder="🔗 Lien Deezer" value="${esc(q.url)}" style="margin-bottom:0">
         <button class="btn-deezer" data-search="${i}">🔍</button>
@@ -2169,12 +2203,12 @@ function renderSetupQs(){
       ${q.url&&trackId(q)?
         `<div class="deezer-wrap"><iframe scrolling="no" frameborder="0" allowtransparency="true" allow="autoplay;clipboard-write;encrypted-media;fullscreen;picture-in-picture"
           src="https://widget.deezer.com/widget/dark/track/${trackId(q)}" style="width:100%;height:80px;border-radius:12px"></iframe></div>`:
-        (q.url?'<div class="deezer-warn">⚠️ URL invalide</div>':'')}
+        (q.url?'<div class="deezer-warn">⚠️ URL invalide</div>':'')}`}
       <p style="font-size:11px;color:var(--muted);margin-bottom:8px">✅ = bonne réponse</p>
       ${q.choices.map((c,ci)=>`
         <div class="choice-row">
           <button class="choice-mark${q.answer===ci?' correct':''}" data-ans="${i}-${ci}">${q.answer===ci?'✅':L[ci]}</button>
-          <input class="inp" data-choice="${i}-${ci}" style="margin-bottom:0;flex:1;min-width:0" placeholder="Artiste ${ci+1}" value="${esc(c)}">
+          <input class="inp" data-choice="${i}-${ci}" style="margin-bottom:0;flex:1;min-width:0" placeholder="${isQuiz?`Réponse ${ci+1}`:`Artiste ${ci+1}`}" value="${esc(c)}">
         </div>`).join('')}
     </div>`).join('');
 
@@ -2185,6 +2219,9 @@ function renderSetupQs(){
     inp.addEventListener('input',()=>setupQs[+inp.dataset.url].url=inp.value);
     inp.addEventListener('blur',()=>renderSetupQs());
   });
+  sq.querySelectorAll('[data-question]').forEach(inp=>{
+    inp.addEventListener('input',()=>setupQs[+inp.dataset.question].title=inp.value);
+  });
   sq.querySelectorAll('[data-choice]').forEach(inp=>inp.addEventListener('input',()=>{
     const[qi,ci]=inp.dataset.choice.split('-').map(Number);setupQs[qi].choices[ci]=inp.value;
   }));
@@ -2193,9 +2230,12 @@ function renderSetupQs(){
 
 // ── LAUNCH ───────────────────────────────────────────────
 async function doLaunch(){
-  const title=document.getElementById('setupTitle').value.trim()||'Blind Test';
-  const valid=setupQs.filter(q=>q.url.trim()&&trackId(q)&&q.choices.every(c=>c.trim()));
-  if(!valid.length){alert('Ajoute au moins une manche valide (lien Deezer + 4 artistes) !');return;}
+  const title=document.getElementById('setupTitle').value.trim()||(G.gameType==='quiz'?'Quiz Culture G.':'Blind Test');
+  const isQuiz=G.gameType==='quiz';
+  const valid=isQuiz
+    ? setupQs.filter(q=>q.title.trim()&&q.choices.every(c=>c.trim()))
+    : setupQs.filter(q=>q.url.trim()&&trackId(q)&&q.choices.every(c=>c.trim()));
+  if(!valid.length){alert(isQuiz?'Ajoute au moins une question valide (texte + 4 réponses) !':'Ajoute au moins une manche valide (lien Deezer + 4 artistes) !');return;}
   const code=genCode();
   const room={title,gameType:G.gameType||'blindtest',questions:valid,phase:'lobby',currentQ:0,players:{},answers:{},scores:{},musicStartedAt:null,createdAt:ts(),interludeComment:null,finalComments:null};
   await dbSet('rooms/'+code,room);
@@ -2373,12 +2413,17 @@ function renderMJGame(){
     document.getElementById('mjPhaseMusic').style.display='flex';
     document.getElementById('mjPhaseReveal').style.display='none';
     stopBtn.style.display='flex';nextBtn.style.display='none';
-    const t=trackId(q);
-    document.getElementById('mjDeezerWrap').innerHTML=t?
-      `<iframe scrolling="no" frameborder="0" allowtransparency="true" allow="autoplay;clipboard-write;encrypted-media;fullscreen;picture-in-picture"
-        src="https://widget.deezer.com/widget/dark/track/${t}?autoplay=1" style="width:100%;height:80px;border-radius:12px"></iframe>
-      <p class="kah-wait-lbl" style="margin-top:6px">🎧 Connecté à Deezer Premium dans ce navigateur → lecture du morceau en entier</p>`:
-      '<div class="deezer-warn">⚠️ Lecteur indisponible</div>';
+    if(r.gameType==='quiz'){
+      document.getElementById('mjDeezerWrap').innerHTML=
+        `<div class="quiz-question-box">🧠 ${esc(q.title)}</div>`;
+    }else{
+      const t=trackId(q);
+      document.getElementById('mjDeezerWrap').innerHTML=t?
+        `<iframe scrolling="no" frameborder="0" allowtransparency="true" allow="autoplay;clipboard-write;encrypted-media;fullscreen;picture-in-picture"
+          src="https://widget.deezer.com/widget/dark/track/${t}?autoplay=1" style="width:100%;height:80px;border-radius:12px"></iframe>
+        <p class="kah-wait-lbl" style="margin-top:6px">🎧 Connecté à Deezer Premium dans ce navigateur → lecture du morceau en entier</p>`:
+        '<div class="deezer-warn">⚠️ Lecteur indisponible</div>';
+    }
     updateAnsBar();
   }else if(r.phase==='reveal'){
     document.getElementById('mjPhaseMusic').style.display='none';
@@ -2571,6 +2616,15 @@ function renderPlayerGame(){
   if(r.phase==='music'){
     document.getElementById('pPhaseMusic').style.display='flex';
     document.getElementById('pPhaseReveal').style.display='none';
+    const visual=document.getElementById('pMusicVisual'),qBox=document.getElementById('pQuizQuestionBox');
+    if(r.gameType==='quiz'){
+      visual.style.display='none';
+      qBox.style.display='block';
+      qBox.textContent='🧠 '+q.title;
+    }else{
+      visual.style.display='flex';
+      qBox.style.display='none';
+    }
     const left=Math.max(0,ANSWER_TIME-(ts()-r.musicStartedAt)/1000);
     updateArc('p',left);
     const sb=document.getElementById('pStatusBox');
