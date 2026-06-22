@@ -142,6 +142,12 @@ button{cursor:pointer;border:none;background:none}
    CARD
 ═══════════════════════════════════════════ */
 .card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:18px;margin-bottom:14px;backdrop-filter:blur(12px)}
+.game-card{display:flex;flex-direction:column;align-items:center;gap:4px;width:100%;padding:20px;border-radius:18px;background:var(--card);border:1.5px solid var(--border);cursor:pointer;text-align:center;transition:all .15s}
+.game-card:not(.disabled):hover{border-color:var(--orange);background:rgba(249,115,22,.08)}
+.game-card.disabled{opacity:.4;cursor:not-allowed}
+.game-card-emoji{font-size:32px}
+.game-card-name{font-family:var(--ft);font-weight:800;font-size:16px}
+.game-card-desc{font-size:12px;color:var(--muted)}
 .card-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:14px}
 
 /* ═══════════════════════════════════════════
@@ -631,13 +637,26 @@ textarea.inp{resize:none;line-height:1.6;font-size:14px}
 </div>
 
 <!-- ══════════════════════════════════════════
+     CHOIX DU JEU
+══════════════════════════════════════════ -->
+<div id="screenGamePicker" class="screen">
+  <div class="wrap">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-top:16px">
+      <button class="btn-back" id="btnGamePickerBack">←</button>
+      <h2 class="title-purple" style="font-size:20px;flex:1">🎮 Choisir un jeu</h2>
+    </div>
+    <div id="gamePickerList" style="display:flex;flex-direction:column;gap:10px"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
      SETUP
 ══════════════════════════════════════════ -->
 <div id="screenSetup" class="screen">
   <div class="wrap">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-top:16px">
       <button class="btn-back" id="btnSetupBack">←</button>
-      <h2 class="title-purple" style="font-size:20px;flex:1">🎤 Créer la partie</h2>
+      <h2 class="title-purple" style="font-size:20px;flex:1" id="setupHeaderTitle">🎤 Créer la partie</h2>
     </div>
 
     <!-- Nom + save -->
@@ -947,9 +966,32 @@ function randItem(arr){return arr[Math.floor(Math.random()*arr.length)];}
 const G={
   isMJ:false,roomCode:null,room:null,player:null,
   timerInt:null,watchRef:null,saveId:null,
-  pendingNextRound:false
+  pendingNextRound:false,gameType:'blindtest'
 };
 let setupQs=[];
+
+// ── REGISTRE DES JEUX ─────────────────────────────────────
+// Étape 1 de la migration multi-jeux : le moteur (lobby, scores,
+// admin, profils...) est générique ; chaque jeu n'a qu'à déclarer
+// sa fiche ici. Pour l'instant seul "blindtest" est implémenté.
+const GAMES={
+  blindtest:{ id:'blindtest', name:'Blind Test', emoji:'🎵', desc:'Devine l\'artiste à l\'écoute', available:true },
+  quiz:     { id:'quiz',      name:'Quiz Culture G.', emoji:'🧠', desc:'Questions/réponses à choix multiples', available:false },
+  imposteur:{ id:'imposteur', name:'Le Saboteur', emoji:'🕵️', desc:'Un joueur ne connaît pas le mot secret', available:false },
+};
+function renderGamePicker(){
+  const el=document.getElementById('gamePickerList');
+  el.innerHTML=Object.values(GAMES).map(g=>`
+    <button class="game-card${g.available?'':' disabled'}" data-game="${g.id}" ${g.available?'':'disabled'}>
+      <span class="game-card-emoji">${g.emoji}</span>
+      <span class="game-card-name">${g.name}</span>
+      <span class="game-card-desc">${g.available?g.desc:'Bientôt disponible'}</span>
+    </button>`).join('');
+  el.querySelectorAll('[data-game]:not(.disabled)').forEach(b=>b.addEventListener('click',()=>{
+    G.gameType=b.dataset.game;
+    G.saveId=null;setupQs=[newQ()];renderSetupQs();show('screenSetup');
+  }));
+}
 
 // ── SCREEN ───────────────────────────────────────────────
 function show(id){
@@ -957,6 +999,11 @@ function show(id){
   document.getElementById(id).classList.add('active');
   window.scrollTo(0,0);
   if(id==='screenHome') renderActiveRoomsList();
+  if(id==='screenGamePicker') renderGamePicker();
+  if(id==='screenSetup'){
+    const g=GAMES[G.gameType]||GAMES.blindtest;
+    document.getElementById('setupHeaderTitle').textContent=`${g.emoji} Créer la partie`;
+  }
 }
 
 // ── CONFETTI ─────────────────────────────────────────────
@@ -1143,11 +1190,12 @@ async function generateFinalComments(players,scores){
 // ── HOME BINDINGS ─────────────────────────────────────────
 // Enregistrés immédiatement — indépendants de Firebase
 try {
-document.getElementById('btnMJ').addEventListener('click',()=>{G.saveId=null;setupQs=[newQ()];renderSetupQs();show('screenSetup');});
+document.getElementById('btnMJ').addEventListener('click',()=>{show('screenGamePicker');});
+document.getElementById('btnGamePickerBack').addEventListener('click',()=>show('screenHome'));
 document.getElementById('btnSaved').addEventListener('click',renderSaved);
 document.getElementById('btnSavedBack').addEventListener('click',()=>show('screenHome'));
 document.getElementById('btnNewGame').addEventListener('click',()=>{G.saveId=null;setupQs=[newQ()];renderSetupQs();show('screenSetup');});
-document.getElementById('btnSetupBack').addEventListener('click',()=>show('screenHome'));
+document.getElementById('btnSetupBack').addEventListener('click',()=>show('screenGamePicker'));
 document.getElementById('btnAddQ').addEventListener('click',()=>{setupQs.push(newQ());renderSetupQs();setTimeout(()=>window.scrollTo(0,document.body.scrollHeight),100);});
 document.getElementById('saveBtn').addEventListener('click',async()=>{
   const title=document.getElementById('setupTitle').value.trim()||'Blind Test';
@@ -1213,9 +1261,8 @@ async function doReconnect(){
       show('screenMJGame');renderMJGame();
     }else if(room.phase==='interlude'){
       show('screenInterlude');
-      const doneQ = room.currentQ||0;
-      const nextQ = Math.min(doneQ + 1, (room.questions?.length||1) - 1);
-      await showInterlude(doneQ, nextQ);
+      const next=(room.currentQ||0)+1;
+      await showInterlude(room.currentQ||0,next);
     }
     startWatch();
   }else{
@@ -1232,9 +1279,7 @@ async function doReconnect(){
       showFinalScores();
     }else if(room.phase==='interlude'){
       show('screenInterlude');
-      const doneQ = room.currentQ||0;
-      const nextQ = Math.min(doneQ + 1, (room.questions?.length||1) - 1);
-      await showInterlude(doneQ, nextQ);
+      await showInterlude(room.currentQ||0,(room.currentQ||0)+1);
     }
     startWatch();
   }
@@ -1401,7 +1446,7 @@ async function renderAdminRooms(el){
       <div class="admin-section-title">Salles en base (${entries.length})</div>
       ${entries.length ? entries.map(([code,r])=>`
         <div class="profile-item">
-          <div style="font-size:22px">🎵</div>
+          <div style="font-size:22px">${(GAMES[r.gameType]||GAMES.blindtest).emoji}</div>
           <div class="profile-item-info">
             <div class="profile-item-name">${esc(r.title||'Sans titre')} <span style="font-family:var(--fn);color:var(--muted);font-size:11px">· ${code}</span></div>
             <div class="profile-item-meta">${phaseLabel(r.phase)} · ${Object.keys(r.players||{}).length} joueur(s) · ${(r.questions||[]).length} manche(s)${r.createdAt?' · '+fmtDate(r.createdAt):''}</div>
@@ -1442,11 +1487,6 @@ window.adminTakeOverRoom = async function(code){
     show('screenMJLobby');
   }else if(room.phase==='scores'){
     showFinalScores();
-  }else if(room.phase==='interlude'){
-    show('screenInterlude');
-    const doneQ = room.currentQ||0;
-    const nextQ = Math.min(doneQ + 1, (room.questions?.length||1) - 1);
-    await showInterlude(doneQ, nextQ);
   }else{
     show('screenMJGame');renderMJGame();
     if(room.phase==='music') startTimer();
@@ -2157,7 +2197,7 @@ async function doLaunch(){
   const valid=setupQs.filter(q=>q.url.trim()&&trackId(q)&&q.choices.every(c=>c.trim()));
   if(!valid.length){alert('Ajoute au moins une manche valide (lien Deezer + 4 artistes) !');return;}
   const code=genCode();
-  const room={title,questions:valid,phase:'lobby',currentQ:0,players:{},answers:{},scores:{},musicStartedAt:null,createdAt:ts(),interludeComment:null,finalComments:null};
+  const room={title,gameType:G.gameType||'blindtest',questions:valid,phase:'lobby',currentQ:0,players:{},answers:{},scores:{},musicStartedAt:null,createdAt:ts(),interludeComment:null,finalComments:null};
   await dbSet('rooms/'+code,room);
   G.isMJ=true;G.roomCode=code;G.room=room;
   // Sauvegarder la session MJ pour reconnexion
@@ -2188,7 +2228,7 @@ async function renderActiveRoomsList(){
   card.style.display='block';
   list.innerHTML=entries.map(([code,r])=>`
     <div class="profile-item" data-room-pick="${code}" style="cursor:pointer">
-      <div style="font-size:22px">🎵</div>
+      <div style="font-size:22px">${(GAMES[r.gameType]||GAMES.blindtest).emoji}</div>
       <div class="profile-item-info">
         <div class="profile-item-name">${esc(r.title||'Sans titre')} <span style="font-family:var(--fn);color:var(--muted);font-size:11px">· ${code}</span></div>
         <div class="profile-item-meta">${phaseLabel(r.phase)} · ${Object.keys(r.players||{}).length} joueur(s)</div>
@@ -2266,11 +2306,8 @@ async function onRoom(fresh){
     else if(fresh.phase==='scores'&&prev?.phase!=='scores'){stopTimer();showFinalScores();}
     else if(fresh.phase==='interlude'&&prev?.phase!=='interlude'){
       // Le joueur affiche le même écran interlude que le MJ
-      // currentQ dans fresh peut déjà pointer sur la prochaine manche ;
-      // on utilise l'index de la manche qui vient d'être jouée (prev.currentQ).
       show('screenInterlude');
-      const doneQ = prev?.currentQ ?? fresh.currentQ;
-      await showInterlude(doneQ, doneQ + 1);
+      await showInterlude(fresh.currentQ, fresh.currentQ+1);
     }
   }
 }
