@@ -1126,7 +1126,7 @@ async function generateFunnyChoices(correctArtist,allArtists){
   const profile = profiles[Math.floor(Math.random() * profiles.length)];
 
   // Construire le prompt depuis ACTIVE_PROMPTS
-  const promptTpl = ACTIVE_PROMPTS.funnyChoices;
+  const promptTpl = promptsFor('blindtest').funnyChoices;
   const builtPrompt = promptTpl
     .replace(/\{seed\}/g, seed)
     .replace(/\{profile\}/g, profile.label)
@@ -1159,7 +1159,7 @@ async function generateInterludeComment(roundNum,scores,players,correctAnswer,an
   const loser=sorted[sorted.length-1];
   const nbCorrect=answeredCorrectly.length;
   const seed=Math.random().toString(36).slice(2,6);
-  const promptTpl2 = gameType==='quiz' ? DEFAULT_PROMPTS_QUIZ.interlude : ACTIVE_PROMPTS.interlude;
+  const promptTpl2 = promptsFor(gameType).interlude;
   const builtPrompt2 = promptTpl2
     .replace(/\{seed\}/g, seed)
     .replace(/\{round\}/g, roundNum)
@@ -1189,7 +1189,7 @@ async function generateFinalComments(players,scores,gameType){
   const sorted=[...players].sort((a,b)=>(scores[b.id]||0)-(scores[a.id]||0));
   const seed=Math.random().toString(36).slice(2,6);
   const ecartMax=sorted.length>1?(scores[sorted[0].id]||0)-(scores[sorted[sorted.length-1].id]||0):0;
-  const promptTpl3 = gameType==='quiz' ? DEFAULT_PROMPTS_QUIZ.finalScores : ACTIVE_PROMPTS.finalScores;
+  const promptTpl3 = promptsFor(gameType).finalScores;
   const builtPrompt3 = promptTpl3
     .replace(/\{seed\}/g, seed)
     .replace(/\{ranking\}/g, sorted.map((p,i)=>`${i+1}. ${p.name} : ${scores[p.id]||0} pts`).join('\n'))
@@ -1586,10 +1586,12 @@ window.adminDelGame = async function(id){
 // ── Onglet Config ──
 async function renderAdminConfig(el){
   const cfg = await dbGet(CONFIG_REF) || {timer:20, rounds:10, title:'Blind Test Famille'};
-  const prompts = await dbGet(CONFIG_REF + '/prompts') || {};
-  const pFunny     = prompts.funnyChoices || DEFAULT_PROMPTS.funnyChoices;
-  const pInterlude = prompts.interlude    || DEFAULT_PROMPTS.interlude;
-  const pFinal     = prompts.finalScores  || DEFAULT_PROMPTS.finalScores;
+  window._adminPromptGame = window._adminPromptGame || 'blindtest';
+  const pg = window._adminPromptGame;
+  const isQuizPg = pg==='quiz';
+  const pFunny     = promptsFor('blindtest').funnyChoices;
+  const pInterlude = promptsFor(pg).interlude;
+  const pFinal     = promptsFor(pg).finalScores;
 
   el.innerHTML = `
     <div class="admin-section">
@@ -1636,19 +1638,26 @@ async function renderAdminConfig(el){
 
     <div class="admin-section" style="margin-top:16px">
       <div class="admin-section-title">Prompts IA de Xav</div>
+      <div style="display:flex;gap:6px;margin-bottom:14px">
+        <button class="ai-diff-btn${!isQuizPg?' active':''}" onclick="window.switchPromptGame('blindtest')">🎵 Blind Test</button>
+        <button class="ai-diff-btn${isQuizPg?' active':''}" onclick="window.switchPromptGame('quiz')">🧠 Quiz</button>
+      </div>
       <div style="font-size:11px;color:var(--muted);margin-bottom:12px;line-height:1.5">
-        Variables disponibles : <code style="background:rgba(255,255,255,.08);padding:2px 6px;border-radius:6px;font-size:10px">{seed} {artist} {profile} {rules} {others}</code> pour les fausses réponses,
+        ${isQuizPg?`Variables disponibles : <code style="background:rgba(255,255,255,.08);padding:2px 6px;border-radius:6px;font-size:10px">{round} {answer} {found} {scores} {leader} {loser}</code> pour l'interlude,
+        <code style="background:rgba(255,255,255,.08);padding:2px 6px;border-radius:6px;font-size:10px">{ranking} {ecart} {playerIds}</code> pour le final.`
+        :`Variables disponibles : <code style="background:rgba(255,255,255,.08);padding:2px 6px;border-radius:6px;font-size:10px">{seed} {artist} {profile} {rules} {others}</code> pour les fausses réponses,
         <code style="background:rgba(255,255,255,.08);padding:2px 6px;border-radius:6px;font-size:10px">{round} {answer} {found} {scores} {leader} {loser}</code> pour l'interlude,
-        <code style="background:rgba(255,255,255,.08);padding:2px 6px;border-radius:6px;font-size:10px">{ranking} {ecart} {playerIds}</code> pour le final.
+        <code style="background:rgba(255,255,255,.08);padding:2px 6px;border-radius:6px;font-size:10px">{ranking} {ecart} {playerIds}</code> pour le final.`}
       </div>
 
+      ${isQuizPg?'':`
       <div style="margin-bottom:14px">
         <div class="config-label" style="font-size:12px;font-weight:700;color:#c4b5fd;margin-bottom:6px">🎭 Fausses réponses</div>
         <textarea id="promptFunny" rows="6" style="width:100%;padding:10px 12px;background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.12);border-radius:12px;color:var(--text);font-size:12px;font-family:monospace;resize:vertical;outline:none;line-height:1.5">${pFunny.replace(/</g,'&lt;')}</textarea>
-      </div>
+      </div>`}
 
       <div style="margin-bottom:14px">
-        <div class="config-label" style="font-size:12px;font-weight:700;color:#fb923c;margin-bottom:6px">💬 Interlude (entre manches)</div>
+        <div class="config-label" style="font-size:12px;font-weight:700;color:#fb923c;margin-bottom:6px">💬 Interlude (entre ${isQuizPg?'questions':'manches'})</div>
         <textarea id="promptInterlude" rows="6" style="width:100%;padding:10px 12px;background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.12);border-radius:12px;color:var(--text);font-size:12px;font-family:monospace;resize:vertical;outline:none;line-height:1.5">${pInterlude.replace(/</g,'&lt;')}</textarea>
       </div>
 
@@ -1665,22 +1674,34 @@ async function renderAdminConfig(el){
   window._adminCfg = {...cfg};
 }
 
+window.switchPromptGame = function(gameType){
+  window._adminPromptGame = gameType;
+  renderAdminConfig(document.getElementById('adminContent'));
+};
+
 
 window.savePromptsAdmin = async function(){
-  const funny     = document.getElementById('promptFunny')?.value;
+  const pg = window._adminPromptGame || 'blindtest';
   const interlude = document.getElementById('promptInterlude')?.value;
   const final_    = document.getElementById('promptFinal')?.value;
-  if(!funny || !interlude || !final_) return;
-  await savePrompts({ funnyChoices: funny, interlude, finalScores: final_ });
+  if(!interlude || !final_) return;
+  const payload = { interlude, finalScores: final_ };
+  if(pg==='blindtest'){
+    const funny = document.getElementById('promptFunny')?.value;
+    if(!funny) return;
+    payload.funnyChoices = funny;
+  }
+  await savePromptsForGame(pg, payload);
   // Feedback visuel
   const btn = document.querySelector('[onclick="window.savePromptsAdmin()"]');
   if(btn){ const orig=btn.textContent; btn.textContent='✅ Sauvegardé !'; setTimeout(()=>btn.textContent=orig,2000); }
 };
 
 window.resetPrompts = async function(){
-  if(!confirm('Réinitialiser tous les prompts aux valeurs par défaut ?')) return;
-  await dbRemove(CONFIG_REF + '/prompts');
-  ACTIVE_PROMPTS = {...DEFAULT_PROMPTS};
+  const pg = window._adminPromptGame || 'blindtest';
+  if(!confirm(`Réinitialiser les prompts ${pg==='quiz'?'Quiz':'Blind Test'} aux valeurs par défaut ?`)) return;
+  await dbRemove(CONFIG_REF + '/prompts/' + pg);
+  ACTIVE_PROMPTS[pg] = {...defaultsFor(pg)};
   renderAdminContent(); // Rafraîchir l'affichage
 };
 
@@ -2082,21 +2103,35 @@ Réponds UNIQUEMENT avec ce JSON :
 {"globalComment":"phrase globale","playerComments":{playerIds}}`
 };
 
-// Prompts actifs (chargés depuis Firebase ou défauts)
-let ACTIVE_PROMPTS = {...DEFAULT_PROMPTS};
+// Prompts actifs (chargés depuis Firebase ou défauts) — un jeu de prompts par type de jeu
+let ACTIVE_PROMPTS = {
+  blindtest: {...DEFAULT_PROMPTS},
+  quiz: {...DEFAULT_PROMPTS_QUIZ}
+};
+function promptsFor(gameType){ return ACTIVE_PROMPTS[gameType] || ACTIVE_PROMPTS.blindtest; }
+function defaultsFor(gameType){ return gameType==='quiz' ? DEFAULT_PROMPTS_QUIZ : DEFAULT_PROMPTS; }
 let APP_CONFIG = {timer:20, rounds:10, interludeEnabled:true, interludeFreq:3, finalEnabled:true};
 
 async function loadPrompts(){
   const saved = await dbGet(CONFIG_REF + '/prompts');
-  if(saved) ACTIVE_PROMPTS = {...DEFAULT_PROMPTS, ...saved};
+  if(saved){
+    // Rétrocompatibilité : ancienne structure plate = prompts blind test
+    const legacyFlat = (saved.funnyChoices||saved.interlude||saved.finalScores) ? saved : null;
+    const savedBlind  = saved.blindtest || legacyFlat || {};
+    const savedQuiz   = saved.quiz || {};
+    ACTIVE_PROMPTS = {
+      blindtest: {...DEFAULT_PROMPTS, ...savedBlind},
+      quiz: {...DEFAULT_PROMPTS_QUIZ, ...savedQuiz}
+    };
+  }
   // Charger aussi la config générale
   const cfg = await dbGet(CONFIG_REF);
   if(cfg) APP_CONFIG = {...APP_CONFIG, ...cfg};
 }
 
-async function savePrompts(prompts){
-  await dbSet(CONFIG_REF + '/prompts', prompts);
-  ACTIVE_PROMPTS = {...DEFAULT_PROMPTS, ...prompts};
+async function savePromptsForGame(gameType,prompts){
+  await dbSet(CONFIG_REF + '/prompts/' + gameType, prompts);
+  ACTIVE_PROMPTS[gameType] = {...defaultsFor(gameType), ...prompts};
 }
 
 // ── GÉNÉRATEUR IA ─────────────────────────────────────────
