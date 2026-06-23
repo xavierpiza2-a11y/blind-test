@@ -1153,13 +1153,13 @@ async function generateFunnyChoices(correctArtist,allArtists){
 }
 
 // Commentaire entre manches
-async function generateInterludeComment(roundNum,scores,players,correctAnswer,answeredCorrectly){
+async function generateInterludeComment(roundNum,scores,players,correctAnswer,answeredCorrectly,gameType){
   const sorted=[...players].sort((a,b)=>(scores[b.id]||0)-(scores[a.id]||0));
   const leader=sorted[0];
   const loser=sorted[sorted.length-1];
   const nbCorrect=answeredCorrectly.length;
   const seed=Math.random().toString(36).slice(2,6);
-  const promptTpl2 = ACTIVE_PROMPTS.interlude;
+  const promptTpl2 = gameType==='quiz' ? DEFAULT_PROMPTS_QUIZ.interlude : ACTIVE_PROMPTS.interlude;
   const builtPrompt2 = promptTpl2
     .replace(/\{seed\}/g, seed)
     .replace(/\{round\}/g, roundNum)
@@ -1172,7 +1172,11 @@ async function generateInterludeComment(roundNum,scores,players,correctAnswer,an
     .replace(/\{loser\}/g, loser?.name||'?');
   const res=await callClaude(builtPrompt2);
   if(res?.comment) return res;
-  const fallbacks=[
+  const fallbacks=gameType==='quiz'?[
+    {comment:`${correctAnswer}... ${nbCorrect===0?'et personne n\'a trouvé. La honte va durer longtemps.':'Même '+answeredCorrectly[0]+' a su. Respect.'}`,emoji:randItem(FUNNY_EMOJIS)},
+    {comment:`${leader?.name} écrase tout le monde comme un dictionnaire ambulant 🧠`,emoji:'🏆'},
+    {comment:`${loser?.name} prouve qu'on peut participer sans rien savoir. C'est beau.`,emoji:'💀'}
+  ]:[
     {comment:`${correctAnswer}... ${nbCorrect===0?'et personne n\'a trouvé. La honte va durer longtemps.':'Même '+answeredCorrectly[0]+' a su. Respect.'}`,emoji:randItem(FUNNY_EMOJIS)},
     {comment:`${leader?.name} écrase tout le monde comme un rouleau compresseur musical 🎸`,emoji:'🏆'},
     {comment:`${loser?.name} prouve qu'on peut aimer la musique sans la connaître. C'est beau.`,emoji:'💀'}
@@ -1181,11 +1185,11 @@ async function generateInterludeComment(roundNum,scores,players,correctAnswer,an
 }
 
 // Commentaire final
-async function generateFinalComments(players,scores){
+async function generateFinalComments(players,scores,gameType){
   const sorted=[...players].sort((a,b)=>(scores[b.id]||0)-(scores[a.id]||0));
   const seed=Math.random().toString(36).slice(2,6);
   const ecartMax=sorted.length>1?(scores[sorted[0].id]||0)-(scores[sorted[sorted.length-1].id]||0):0;
-  const promptTpl3 = ACTIVE_PROMPTS.finalScores;
+  const promptTpl3 = gameType==='quiz' ? DEFAULT_PROMPTS_QUIZ.finalScores : ACTIVE_PROMPTS.finalScores;
   const builtPrompt3 = promptTpl3
     .replace(/\{seed\}/g, seed)
     .replace(/\{ranking\}/g, sorted.map((p,i)=>`${i+1}. ${p.name} : ${scores[p.id]||0} pts`).join('\n'))
@@ -2049,6 +2053,35 @@ Réponds UNIQUEMENT avec ce JSON :
 {"globalComment":"phrase globale","playerComments":{playerIds}}`
 };
 
+// Variante des prompts pour le mode Quiz (musique → culture générale)
+const DEFAULT_PROMPTS_QUIZ = {
+  interlude: `[SEED:{seed}] Question {round} terminée. Bonne réponse : "{answer}".
+Joueurs ayant trouvé ({correct}/{total}) : {found}
+Scores : {scores}
+Leader : {leader} | Lanterne rouge : {loser}
+
+Génère un commentaire COURT (1 phrase max, 15 mots max). Sois direct et drôle.
+- Moque-toi de ceux qui ont raté OU félicite ceux qui ont trouvé
+- Fais une vanne sur la question ou le score
+- JAMAIS "Bonne question !" ou "Bien joué !"
+
+Réponds UNIQUEMENT avec ce JSON :
+{"comment":"ta phrase courte","emoji":"1 emoji"}`,
+
+  finalScores: `[SEED:{seed}] Quiz terminé ! Classement :
+{ranking}
+Écart 1er/dernier : {ecart} pts
+
+Commentaire global : 1 phrase max (15 mots), résume la soirée avec humour.
+Chaque joueur : 1 phrase courte selon son rang.
+- 1er : fierté exagérée ou suspicion de triche
+- Dernier : consolation absurde
+- Autres : vanne selon leur position
+
+Réponds UNIQUEMENT avec ce JSON :
+{"globalComment":"phrase globale","playerComments":{playerIds}}`
+};
+
 // Prompts actifs (chargés depuis Firebase ou défauts)
 let ACTIVE_PROMPTS = {...DEFAULT_PROMPTS};
 let APP_CONFIG = {timer:20, rounds:10, interludeEnabled:true, interludeFreq:3, finalEnabled:true};
@@ -2515,6 +2548,8 @@ async function doNextRound(){
   const interludeActive = APP_CONFIG.interludeEnabled !== false;
   const isFreqRound = (next % freq === 0); // ex: toutes les 3 manches
   if(interludeActive && isFreqRound){
+    await dbSet('rooms/'+G.roomCode+'/phase','interlude');
+    G.room={...G.room,phase:'interlude'};
     show('screenInterlude');
     await showInterlude(r.currentQ, next);
   } else {
@@ -2542,7 +2577,7 @@ async function showInterlude(currentQIdx,nextQIdx){
 
   if(G.isMJ){
     // Le MJ génère et stocke dans Firebase pour tout le monde
-    const result=await generateInterludeComment(currentQIdx+1,r.scores||{},players,correctAnswer,answeredCorrectly);
+    const result=await generateInterludeComment(currentQIdx+1,r.scores||{},players,correctAnswer,answeredCorrectly,r.gameType);
     const interludeData = {
       emoji:   result?.emoji   || '🎵',
       comment: result?.comment || `Bonne réponse : ${correctAnswer} !`
@@ -2734,13 +2769,16 @@ async function showFinalScores(){
     </div>`).join('');
 
   // Commentaires IA — MJ génère et stocke, joueurs lisent
-  const fallbackComments=['Quelle soirée ! Les neurones ont chauffé 🔥',"Certains ont brillé, d'autres... ont participé 😅",'La famille unie dans la défaite... et la victoire ! 🎉'];
-  const fallbackPlayer=['🏆 Champion incontesté de la soirée !','😤 Pas loin du podium... presque !','😅 Y\'a du boulot avant le prochain blind test','🐢 La lenteur a ses charmes... parfois'];
+  const isQuizGame = r.gameType==='quiz';
+  const fallbackComments=isQuizGame?['Quelle soirée ! Les neurones ont chauffé 🔥',"Certains ont brillé, d'autres... ont participé 😅",'La famille unie dans la défaite... et la victoire ! 🎉']
+    :['Quelle soirée ! Les neurones ont chauffé 🔥',"Certains ont brillé, d'autres... ont participé 😅",'La famille unie dans la défaite... et la victoire ! 🎉'];
+  const fallbackPlayer=isQuizGame?['🏆 Champion incontesté de la soirée !','😤 Pas loin du podium... presque !','😅 Y\'a du boulot avant le prochain quiz','🐢 La lenteur a ses charmes... parfois']
+    :['🏆 Champion incontesté de la soirée !','😤 Pas loin du podium... presque !','😅 Y\'a du boulot avant le prochain blind test','🐢 La lenteur a ses charmes... parfois'];
 
   if(APP_CONFIG.finalEnabled !== false){
     if(G.isMJ){
       // MJ : générer et stocker dans Firebase
-      const comments=await generateFinalComments(players,r.scores||{});
+      const comments=await generateFinalComments(players,r.scores||{},r.gameType);
       const globalComment = comments?.globalComment || randItem(fallbackComments);
       const playerComments = {};
       sorted.forEach((p,i)=>{ playerComments[p.id] = comments?.playerComments?.[p.id] || fallbackPlayer[Math.min(i,fallbackPlayer.length-1)]; });
