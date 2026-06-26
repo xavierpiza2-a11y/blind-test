@@ -197,6 +197,9 @@ textarea.inp{resize:none;line-height:1.6;font-size:14px}
 /* CHIPS */
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chip{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:6px 14px;font-size:13px;color:var(--muted2)}
+button.chip{display:flex;align-items:center;gap:8px;cursor:pointer;transition:all .15s}
+button.chip.active{background:rgba(249,115,22,.18);border-color:var(--orange);color:var(--orange);font-weight:700}
+button.chip:disabled{opacity:.55;cursor:not-allowed}
 
 /* ═══════════════════════════════════════════
    WAITING DOTS
@@ -862,6 +865,74 @@ textarea.inp{resize:none;line-height:1.6;font-size:14px}
 </div>
 
 <!-- ══════════════════════════════════════════
+     IMPOSTEUR — VUE MJ
+══════════════════════════════════════════ -->
+<div id="screenMJImposteur" class="screen" style="background:linear-gradient(160deg,#1a0533,#2d0a5e,#1a0533)">
+  <div class="wrap" style="padding-top:16px;padding-bottom:32px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <span class="q-num" id="impMjRoundLabel">🕵️ Manche 1/10</span>
+    </div>
+
+    <div id="impMjRolePhase">
+      <div class="card" style="text-align:center;padding:24px 16px">
+        <div style="font-size:13px;color:var(--muted);margin-bottom:6px">Mot secret de cette manche</div>
+        <div style="font-size:24px;font-weight:800;margin-bottom:14px" id="impMjWord"></div>
+        <div style="font-size:13px;color:var(--muted)">🕵️ L'imposteur est :</div>
+        <div style="font-size:18px;font-weight:700;color:var(--orange)" id="impMjImposteurName"></div>
+      </div>
+      <p class="kah-wait-lbl" style="text-align:center;margin:12px 0">Chaque joueur voit son rôle sur son téléphone. Demande un tour de table à voix haute (un mot/indice chacun), puis lance le vote.</p>
+      <button class="btn btn-pink" id="btnImpLaunchVote">🗳️ Lancer le vote</button>
+    </div>
+
+    <div id="impMjVotePhase" style="display:none">
+      <div class="card" style="padding:10px 12px">
+        <div class="ans-bar-label"><span>Votes</span><span id="impMjVoteCount">0/0</span></div>
+        <div id="impMjVoteList" style="display:flex;flex-direction:column;gap:6px;margin-top:8px"></div>
+      </div>
+      <button class="btn btn-pink" id="btnImpReveal" style="margin-top:14px">🔎 Révéler l'imposteur</button>
+    </div>
+
+    <div id="impMjRevealPhase" style="display:none">
+      <div class="card" style="text-align:center;padding:20px 16px">
+        <div id="impMjResultBanner" style="font-size:17px;font-weight:800;margin-bottom:10px"></div>
+        <div style="font-size:13px;color:var(--muted)">L'imposteur était :</div>
+        <div style="font-size:18px;font-weight:700;color:var(--orange);margin-bottom:14px" id="impMjRevealName"></div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:6px">Répartition des votes</div>
+        <div id="impMjVoteTally" style="display:flex;flex-direction:column;gap:6px"></div>
+      </div>
+      <button class="btn btn-pink" id="btnImpNext" style="margin-top:14px">➡️ Manche suivante</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     IMPOSTEUR — VUE JOUEUR
+══════════════════════════════════════════ -->
+<div id="screenPlayerImposteur" class="screen kah-screen" style="background:linear-gradient(160deg,#1a0533,#2d0a5e,#1a0533)">
+  <div id="impPRolePhase" class="kah-stage">
+    <div class="card" id="impPRoleCard" style="text-align:center;padding:28px 18px;max-width:360px;width:calc(100% - 32px)">
+      <div style="font-size:38px;margin-bottom:10px" id="impPRoleEmoji">🤫</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:8px" id="impPRoleSub">Le mot secret est</div>
+      <div style="font-size:22px;font-weight:800" id="impPRoleWord"></div>
+    </div>
+    <p class="kah-wait-lbl" style="margin-top:12px">⏳ Discutez à voix haute, le MJ lancera le vote</p>
+  </div>
+  <div id="impPVotePhase" class="kah-stage" style="display:none">
+    <p class="kah-playing-txt" style="margin-bottom:10px">🗳️ Qui est l'imposteur selon toi ?</p>
+    <div id="impPVoteList" style="display:flex;flex-direction:column;gap:8px;width:100%;max-width:360px;padding:0 16px"></div>
+    <p class="kah-wait-lbl" id="impPVoteConfirm" style="display:none;margin-top:10px">✅ Vote enregistré, en attente des autres joueurs...</p>
+  </div>
+  <div id="impPRevealPhase" class="kah-stage" style="display:none">
+    <div class="card" style="text-align:center;padding:20px 16px;max-width:380px;width:calc(100% - 32px)">
+      <div id="impPResultBanner" style="font-size:16px;font-weight:800;margin-bottom:8px"></div>
+      <div style="font-size:13px;color:var(--muted)">L'imposteur était :</div>
+      <div style="font-size:18px;font-weight:700;color:var(--orange)" id="impPRevealName"></div>
+    </div>
+    <p class="kah-wait-lbl" style="margin-top:10px">⏳ En attente du Maître du Jeu...</p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
      SCORES FINAUX
 ══════════════════════════════════════════ -->
 <div id="screenScores" class="screen" style="background:linear-gradient(160deg,#1a0533,#2d0a5e,#1a0533)">
@@ -979,7 +1050,7 @@ let setupQs=[];
 const GAMES={
   blindtest:{ id:'blindtest', name:'Blind Test', emoji:'🎵', desc:'Devine l\'artiste à l\'écoute', available:true },
   quiz:     { id:'quiz',      name:'Quiz Culture G.', emoji:'🧠', desc:'Questions/réponses à choix multiples', available:true },
-  imposteur:{ id:'imposteur', name:'Le Saboteur', emoji:'🕵️', desc:'Un joueur ne connaît pas le mot secret', available:false },
+  imposteur:{ id:'imposteur', name:'Le Saboteur', emoji:'🕵️', desc:'Un joueur ne connaît pas le mot secret', available:true },
 };
 function renderGamePicker(){
   const el=document.getElementById('gamePickerList');
@@ -992,7 +1063,7 @@ function renderGamePicker(){
   el.querySelectorAll('[data-game]:not(.disabled)').forEach(b=>b.addEventListener('click',()=>{
     G.gameType=b.dataset.game;
     G.saveId=null;setupQs=[newQ()];renderSetupQs();
-    document.getElementById('setupTitle').value=G.gameType==='quiz'?'Quiz Culture Générale':'Blind Test Famille';
+    document.getElementById('setupTitle').value=G.gameType==='quiz'?'Quiz Culture Générale':G.gameType==='imposteur'?'Le Saboteur':'Blind Test Famille';
     show('screenSetup');
   }));
 }
@@ -1008,9 +1079,10 @@ function show(id){
     const g=GAMES[G.gameType]||GAMES.blindtest;
     document.getElementById('setupHeaderTitle').textContent=`${g.emoji} Créer la partie`;
     const isQuiz=G.gameType==='quiz';
-    document.getElementById('aiTheme').placeholder=isQuiz?'Ex : Histoire de France, Géographie, Cinéma…':'Ex : variété française des années 80, hits Pop 2010…';
-    document.getElementById('aiCountLabel').textContent=isQuiz?'Questions':'Manches';
-    document.getElementById('btnAddQ').textContent=isQuiz?'➕ Ajouter une question':'➕ Ajouter une manche';
+    const isImp=G.gameType==='imposteur';
+    document.getElementById('aiTheme').placeholder=isQuiz?'Ex : Histoire de France, Géographie, Cinéma…':isImp?'Ex : Animaux, Métiers, Pays du monde…':'Ex : variété française des années 80, hits Pop 2010…';
+    document.getElementById('aiCountLabel').textContent=isQuiz?'Questions':isImp?'Mots':'Manches';
+    document.getElementById('btnAddQ').textContent=isQuiz?'➕ Ajouter une question':isImp?'➕ Ajouter un mot':'➕ Ajouter une manche';
   }
 }
 
@@ -1221,6 +1293,9 @@ document.getElementById('btnLaunch').addEventListener('click',doLaunch);
 document.getElementById('btnMjStop').addEventListener('click',doMjStop);
 document.getElementById('btnNextRound').addEventListener('click',doNextRound);
 document.getElementById('btnInterludeContinue').addEventListener('click',doActualNextRound);
+document.getElementById('btnImpLaunchVote').addEventListener('click',window.launchImposteurVote);
+document.getElementById('btnImpReveal').addEventListener('click',window.revealImposteur);
+document.getElementById('btnImpNext').addEventListener('click',window.doNextRoundImposteur);
 document.getElementById('scoresRestartBtn').addEventListener('click',()=>{stopWatch();stopTimer();setupQs=[newQ()];renderSetupQs();show('screenSetup');});
 document.getElementById('btnScoresHome').addEventListener('click',()=>{stopWatch();stopTimer();clearSession();G.isMJ=false;G.roomCode=null;G.room=null;G.player=null;show('screenHome');});
 document.getElementById('btnReconnectDismiss').addEventListener('click',()=>{
@@ -1257,7 +1332,7 @@ async function doReconnect(){
   document.getElementById('reconnectBanner').classList.remove('visible');
   const room=await dbGet('rooms/'+sess.code);
   if(!room||room.phase==='scores'){clearSession();alert('Cette partie est déjà terminée.');return;}
-  G.roomCode=sess.code;G.room=room;
+  G.roomCode=sess.code;G.room=room;G.gameType=room.gameType||'blindtest';
 
   if(sess.role==='mj'){
     G.isMJ=true;G.saveId=sess.saveId||null;
@@ -1269,12 +1344,18 @@ async function doReconnect(){
       show('screenMJLobby');
     }else if(room.phase==='music'){
       show('screenMJGame');renderMJGame();startTimer();
+    }else if(room.phase==='reveal'&&room.gameType==='imposteur'){
+      renderMJImposteurReveal();
     }else if(room.phase==='reveal'){
       show('screenMJGame');renderMJGame();
     }else if(room.phase==='interlude'){
       show('screenInterlude');
       const next=(room.currentQ||0)+1;
       await showInterlude(room.currentQ||0,next);
+    }else if(room.phase==='role'){
+      renderMJImposteurRole();
+    }else if(room.phase==='vote'){
+      renderMJImposteurVote();
     }
     startWatch();
   }else{
@@ -1284,6 +1365,12 @@ async function doReconnect(){
     if(!fbPlayer){await dbSet('rooms/'+sess.code+'/players/'+sess.playerId,G.player);}
     if(room.phase==='lobby'){
       renderPlayerLobby();show('screenPlayerLobby');
+    }else if(room.gameType==='imposteur'&&room.phase==='role'){
+      show('screenPlayerImposteur');renderPlayerImposteurRole();
+    }else if(room.gameType==='imposteur'&&room.phase==='vote'){
+      show('screenPlayerImposteur');renderPlayerImposteurVote();
+    }else if(room.gameType==='imposteur'&&room.phase==='reveal'){
+      show('screenPlayerImposteur');renderPlayerImposteurReveal();
     }else if(room.phase==='music'||room.phase==='reveal'){
       renderPlayerGame();show('screenPlayerGame');
       if(room.phase==='music')startTimer();
@@ -1489,7 +1576,7 @@ window.adminDelRoomAdmin = async function(code){
 window.adminTakeOverRoom = async function(code){
   const room = await dbGet('rooms/'+code);
   if(!room){alert('Salle introuvable.');return;}
-  G.isMJ=true;G.roomCode=code;G.room=room;G.saveId=null;
+  G.isMJ=true;G.roomCode=code;G.room=room;G.saveId=null;G.gameType=room.gameType||'blindtest';
   saveSession({role:'mj', code, saveId:null, title:room.title});
   window.closeAdminPanel();
   if(room.phase==='lobby'){
@@ -1499,6 +1586,12 @@ window.adminTakeOverRoom = async function(code){
     show('screenMJLobby');
   }else if(room.phase==='scores'){
     showFinalScores();
+  }else if(room.gameType==='imposteur'&&room.phase==='role'){
+    renderMJImposteurRole();
+  }else if(room.gameType==='imposteur'&&room.phase==='vote'){
+    renderMJImposteurVote();
+  }else if(room.gameType==='imposteur'&&room.phase==='reveal'){
+    renderMJImposteurReveal();
   }else{
     show('screenMJGame');renderMJGame();
     if(room.phase==='music') startTimer();
@@ -1589,6 +1682,8 @@ async function renderAdminConfig(el){
   window._adminPromptGame = window._adminPromptGame || 'blindtest';
   const pg = window._adminPromptGame;
   const isQuizPg = pg==='quiz';
+  const isImpPg  = pg==='imposteur';
+  const showFunny = pg==='blindtest';
   const pFunny     = promptsFor('blindtest').funnyChoices;
   const pInterlude = promptsFor(pg).interlude;
   const pFinal     = promptsFor(pg).finalScores;
@@ -1639,25 +1734,26 @@ async function renderAdminConfig(el){
     <div class="admin-section" style="margin-top:16px">
       <div class="admin-section-title">Prompts IA de Xav</div>
       <div style="display:flex;gap:6px;margin-bottom:14px">
-        <button class="ai-diff-btn${!isQuizPg?' active':''}" onclick="window.switchPromptGame('blindtest')">🎵 Blind Test</button>
+        <button class="ai-diff-btn${pg==='blindtest'?' active':''}" onclick="window.switchPromptGame('blindtest')">🎵 Blind Test</button>
         <button class="ai-diff-btn${isQuizPg?' active':''}" onclick="window.switchPromptGame('quiz')">🧠 Quiz</button>
+        <button class="ai-diff-btn${isImpPg?' active':''}" onclick="window.switchPromptGame('imposteur')">🕵️ Saboteur</button>
       </div>
       <div style="font-size:11px;color:var(--muted);margin-bottom:12px;line-height:1.5">
-        ${isQuizPg?`Variables disponibles : <code style="background:rgba(255,255,255,.08);padding:2px 6px;border-radius:6px;font-size:10px">{round} {answer} {found} {scores} {leader} {loser}</code> pour l'interlude,
+        ${isQuizPg||isImpPg?`Variables disponibles : <code style="background:rgba(255,255,255,.08);padding:2px 6px;border-radius:6px;font-size:10px">{round} {answer} {found} {scores} {leader} {loser}</code> pour l'interlude,
         <code style="background:rgba(255,255,255,.08);padding:2px 6px;border-radius:6px;font-size:10px">{ranking} {ecart} {playerIds}</code> pour le final.`
         :`Variables disponibles : <code style="background:rgba(255,255,255,.08);padding:2px 6px;border-radius:6px;font-size:10px">{seed} {artist} {profile} {rules} {others}</code> pour les fausses réponses,
         <code style="background:rgba(255,255,255,.08);padding:2px 6px;border-radius:6px;font-size:10px">{round} {answer} {found} {scores} {leader} {loser}</code> pour l'interlude,
         <code style="background:rgba(255,255,255,.08);padding:2px 6px;border-radius:6px;font-size:10px">{ranking} {ecart} {playerIds}</code> pour le final.`}
       </div>
 
-      ${isQuizPg?'':`
+      ${showFunny?`
       <div style="margin-bottom:14px">
         <div class="config-label" style="font-size:12px;font-weight:700;color:#c4b5fd;margin-bottom:6px">🎭 Fausses réponses</div>
         <textarea id="promptFunny" rows="6" style="width:100%;padding:10px 12px;background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.12);border-radius:12px;color:var(--text);font-size:12px;font-family:monospace;resize:vertical;outline:none;line-height:1.5">${pFunny.replace(/</g,'&lt;')}</textarea>
-      </div>`}
+      </div>`:''}
 
       <div style="margin-bottom:14px">
-        <div class="config-label" style="font-size:12px;font-weight:700;color:#fb923c;margin-bottom:6px">💬 Interlude (entre ${isQuizPg?'questions':'manches'})</div>
+        <div class="config-label" style="font-size:12px;font-weight:700;color:#fb923c;margin-bottom:6px">💬 Interlude (entre ${isQuizPg?'questions':isImpPg?'manches':'manches'})</div>
         <textarea id="promptInterlude" rows="6" style="width:100%;padding:10px 12px;background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.12);border-radius:12px;color:var(--text);font-size:12px;font-family:monospace;resize:vertical;outline:none;line-height:1.5">${pInterlude.replace(/</g,'&lt;')}</textarea>
       </div>
 
@@ -1699,7 +1795,7 @@ window.savePromptsAdmin = async function(){
 
 window.resetPrompts = async function(){
   const pg = window._adminPromptGame || 'blindtest';
-  if(!confirm(`Réinitialiser les prompts ${pg==='quiz'?'Quiz':'Blind Test'} aux valeurs par défaut ?`)) return;
+  if(!confirm(`Réinitialiser les prompts ${pg==='quiz'?'Quiz':pg==='imposteur'?'Saboteur':'Blind Test'} aux valeurs par défaut ?`)) return;
   await dbRemove(CONFIG_REF + '/prompts/' + pg);
   ACTIVE_PROMPTS[pg] = {...defaultsFor(pg)};
   renderAdminContent(); // Rafraîchir l'affichage
@@ -2103,13 +2199,37 @@ Réponds UNIQUEMENT avec ce JSON :
 {"globalComment":"phrase globale","playerComments":{playerIds}}`
 };
 
+const DEFAULT_PROMPTS_IMPOSTEUR = {
+  interlude: `[SEED:{seed}] Manche {round} terminée. Le mot secret était "{answer}".
+Scores : {scores}
+Leader : {leader} | Lanterne rouge : {loser}
+
+Génère un commentaire COURT (1 phrase max, 15 mots max) sur l'issue de la manche (imposteur démasqué ou pas).
+- Sois taquin envers l'imposteur ou les enquêteurs ratés
+- JAMAIS "Bien joué !" tout court
+
+Réponds UNIQUEMENT avec ce JSON :
+{"comment":"ta phrase courte","emoji":"1 emoji"}`,
+
+  finalScores: `[SEED:{seed}] Partie de Saboteur terminée ! Classement :
+{ranking}
+Écart 1er/dernier : {ecart} pts
+
+Commentaire global : 1 phrase max (15 mots), résume la soirée d'enquête avec humour.
+Chaque joueur : 1 phrase courte selon son rang (meilleur enquêteur ou meilleur saboteur).
+
+Réponds UNIQUEMENT avec ce JSON :
+{"globalComment":"phrase globale","playerComments":{playerIds}}`
+};
+
 // Prompts actifs (chargés depuis Firebase ou défauts) — un jeu de prompts par type de jeu
 let ACTIVE_PROMPTS = {
   blindtest: {...DEFAULT_PROMPTS},
-  quiz: {...DEFAULT_PROMPTS_QUIZ}
+  quiz: {...DEFAULT_PROMPTS_QUIZ},
+  imposteur: {...DEFAULT_PROMPTS_IMPOSTEUR}
 };
 function promptsFor(gameType){ return ACTIVE_PROMPTS[gameType] || ACTIVE_PROMPTS.blindtest; }
-function defaultsFor(gameType){ return gameType==='quiz' ? DEFAULT_PROMPTS_QUIZ : DEFAULT_PROMPTS; }
+function defaultsFor(gameType){ return gameType==='quiz' ? DEFAULT_PROMPTS_QUIZ : gameType==='imposteur' ? DEFAULT_PROMPTS_IMPOSTEUR : DEFAULT_PROMPTS; }
 let APP_CONFIG = {timer:20, rounds:10, interludeEnabled:true, interludeFreq:3, finalEnabled:true};
 
 async function loadPrompts(){
@@ -2119,9 +2239,11 @@ async function loadPrompts(){
     const legacyFlat = (saved.funnyChoices||saved.interlude||saved.finalScores) ? saved : null;
     const savedBlind  = saved.blindtest || legacyFlat || {};
     const savedQuiz   = saved.quiz || {};
+    const savedImp    = saved.imposteur || {};
     ACTIVE_PROMPTS = {
       blindtest: {...DEFAULT_PROMPTS, ...savedBlind},
-      quiz: {...DEFAULT_PROMPTS_QUIZ, ...savedQuiz}
+      quiz: {...DEFAULT_PROMPTS_QUIZ, ...savedQuiz},
+      imposteur: {...DEFAULT_PROMPTS_IMPOSTEUR, ...savedImp}
     };
   }
   // Charger aussi la config générale
@@ -2177,7 +2299,16 @@ window.generateFromAI = async function(){
   const seed = Math.random().toString(36).slice(2,8);
 
   let prompt, system;
-  if(isQuiz){
+  if(G.gameType==='imposteur'){
+    prompt = `[SEED:${seed}]
+Génère exactement ${_aiCount} mots secrets pour un jeu façon "Loup-garou / Undercover" (un joueur ne connaît pas le mot, les autres doivent le démasquer). Thème : "${theme}". Difficulté : ${_aiDiff}.
+Choisis des mots concrets et faciles à décrire par un indice sans jamais les dire directement.
+
+Réponds UNIQUEMENT avec un tableau JSON valide de chaînes de caractères, sans markdown.
+Format : ["Mot1","Mot2","Mot3",...]
+Génère exactement ${_aiCount} mots.`;
+    system = "Tu es un générateur de mots secrets pour un jeu de société façon Undercover. Tu réponds UNIQUEMENT avec un tableau JSON de chaînes de caractères, sans texte avant, sans markdown, sans backticks. Rien d'autre que le JSON brut.";
+  } else if(isQuiz){
     const diffInstructionsQ = {
       facile:    "Questions faciles, connues du grand public.",
       moyen:     "Questions de difficulté moyenne, demandant une bonne culture générale.",
@@ -2221,17 +2352,24 @@ Génère exactement ${_aiCount} objets.`;
 
     if(!Array.isArray(result) || !result.length) throw new Error('Réponse invalide');
 
-    const questions = result.slice(0, _aiCount).map(q => {
-      const pos = Math.floor(Math.random()*4);
-      const choices = [...(q.choices||['???','???','???'])];
-      while(choices.length < 3) choices.push('???');
-      if(isQuiz){
-        choices.splice(pos, 0, q.answer);
-        return { id:ts()+Math.random(), url:'', title:q.question||'', choices, answer:pos };
-      }
-      choices.splice(pos, 0, q.artist);
-      return { id:ts()+Math.random(), url:'', title:q.title||'', choices, answer:pos };
-    });
+    let questions;
+    if(G.gameType==='imposteur'){
+      questions = result.slice(0, _aiCount).map(word => (
+        { id:ts()+Math.random(), url:'', title:String(word||''), choices:['','','',''], answer:0 }
+      ));
+    } else {
+      questions = result.slice(0, _aiCount).map(q => {
+        const pos = Math.floor(Math.random()*4);
+        const choices = [...(q.choices||['???','???','???'])];
+        while(choices.length < 3) choices.push('???');
+        if(isQuiz){
+          choices.splice(pos, 0, q.answer);
+          return { id:ts()+Math.random(), url:'', title:q.question||'', choices, answer:pos };
+        }
+        choices.splice(pos, 0, q.artist);
+        return { id:ts()+Math.random(), url:'', title:q.title||'', choices, answer:pos };
+      });
+    }
 
     setupQs = questions;
     document.getElementById('setupTitle').value = theme.charAt(0).toUpperCase()+theme.slice(1);
@@ -2256,6 +2394,23 @@ function trackId(q){return tid(q.url);}
 function renderSetupQs(){
   const L=['A','B','C','D'];
   const isQuiz=G.gameType==='quiz';
+  const isImp=G.gameType==='imposteur';
+  if(isImp){
+    document.getElementById('setupQuestions').innerHTML=setupQs.map((q,i)=>`
+      <div class="q-card">
+        <div class="q-header">
+          <span class="q-num">🕵️ Mot ${i+1}</span>
+          ${setupQs.length>1?`<button class="q-del" data-del="${i}">✕</button>`:''}
+        </div>
+        <input class="inp" data-question="${i}" placeholder="Ex : Pyramide, Tour Eiffel…" value="${esc(q.title)}" style="margin-bottom:0">
+      </div>`).join('');
+    const sq=document.getElementById('setupQuestions');
+    sq.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',()=>{setupQs.splice(+b.dataset.del,1);renderSetupQs();}));
+    sq.querySelectorAll('[data-question]').forEach(inp=>{
+      inp.addEventListener('input',()=>setupQs[+inp.dataset.question].title=inp.value);
+    });
+    return;
+  }
   document.getElementById('setupQuestions').innerHTML=setupQs.map((q,i)=>`
     <div class="q-card">
       <div class="q-header">
@@ -2298,12 +2453,15 @@ function renderSetupQs(){
 
 // ── LAUNCH ───────────────────────────────────────────────
 async function doLaunch(){
-  const title=document.getElementById('setupTitle').value.trim()||(G.gameType==='quiz'?'Quiz Culture G.':'Blind Test');
+  const title=document.getElementById('setupTitle').value.trim()||(G.gameType==='quiz'?'Quiz Culture G.':G.gameType==='imposteur'?'Le Saboteur':'Blind Test');
   const isQuiz=G.gameType==='quiz';
-  const valid=isQuiz
+  const isImp=G.gameType==='imposteur';
+  const valid=isImp
+    ? setupQs.filter(q=>q.title.trim())
+    : isQuiz
     ? setupQs.filter(q=>q.title.trim()&&q.choices.every(c=>c.trim()))
     : setupQs.filter(q=>q.url.trim()&&trackId(q)&&q.choices.every(c=>c.trim()));
-  if(!valid.length){alert(isQuiz?'Ajoute au moins une question valide (texte + 4 réponses) !':'Ajoute au moins une manche valide (lien Deezer + 4 artistes) !');return;}
+  if(!valid.length){alert(isImp?'Ajoute au moins un mot secret !':isQuiz?'Ajoute au moins une question valide (texte + 4 réponses) !':'Ajoute au moins une manche valide (lien Deezer + 4 artistes) !');return;}
   const code=genCode();
   const room={title,gameType:G.gameType||'blindtest',questions:valid,phase:'lobby',currentQ:0,players:{},answers:{},scores:{},musicStartedAt:null,createdAt:ts(),interludeComment:null,finalComments:null};
   await dbSet('rooms/'+code,room);
@@ -2323,6 +2481,8 @@ function phaseLabel(p){
   return p==='lobby'?'🕐 Lobby'
        : p==='scores'?'🏁 Terminée'
        : p==='interlude'?'🎙️ Interlude'
+       : p==='role'?'🕵️ Rôles'
+       : p==='vote'?'🗳️ Vote'
        : '🎵 En jeu';
 }
 async function renderActiveRoomsList(){
@@ -2378,13 +2538,20 @@ async function doJoin(){
   const existing = room.players?.[pid];
   const avatar = existing?.avatar || randAvatar();
   const playerData={id:pid,name,avatar,color:AUTH.profile?.color||existing?.color||'#8b5cf6',photoURL:AUTH.profile?.photoURL||'',customPhoto:AUTH.profile?.customPhoto||''};
-  G.player=playerData;G.isMJ=false;G.roomCode=code;
+  G.player=playerData;G.isMJ=false;G.roomCode=code;G.gameType=room.gameType||'blindtest';
   await dbSet('rooms/'+code+'/players/'+pid,playerData);
   // Sauvegarder la session joueur pour reconnexion
   saveSession({role:'player', code, playerId:pid, name, avatar});
   G.room={...room,players:{...(room.players||{}),[pid]:playerData}};
-  renderPlayerLobby();
-  show(room.phase==='lobby'?'screenPlayerLobby':'screenPlayerGame');
+  if(room.phase==='lobby'){
+    renderPlayerLobby();show('screenPlayerLobby');
+  }else if(room.gameType==='imposteur'){
+    if(room.phase==='role'){show('screenPlayerImposteur');renderPlayerImposteurRole();}
+    else if(room.phase==='vote'){show('screenPlayerImposteur');renderPlayerImposteurVote();}
+    else if(room.phase==='reveal'){show('screenPlayerImposteur');renderPlayerImposteurReveal();}
+  }else{
+    show('screenPlayerGame');
+  }
   startWatch();
 }
 
@@ -2396,6 +2563,22 @@ async function onRoom(fresh){
   if(!fresh)return;
   const prev=G.room;G.room=fresh;
   const pc=prev?.phase!==fresh.phase,qc=prev?.currentQ!==fresh.currentQ;
+  if(fresh.gameType==='imposteur'){
+    if(G.isMJ){
+      if(fresh.phase==='lobby')updateMJLobby();
+      else if(fresh.phase==='role'&&(pc||qc))renderMJImposteurRole();
+      else if(fresh.phase==='vote'){ if(pc)renderMJImposteurVote(); else updateMJImposteurVoteTally(); }
+      else if(fresh.phase==='reveal'&&pc)renderMJImposteurReveal();
+      else if(fresh.phase==='scores'&&prev?.phase!=='scores'){stopTimer();showFinalScores();}
+    }else{
+      if(fresh.phase==='lobby')renderPlayerLobbyChips();
+      else if(fresh.phase==='role'&&(pc||qc)){show('screenPlayerImposteur');renderPlayerImposteurRole();}
+      else if(fresh.phase==='vote'&&pc){show('screenPlayerImposteur');renderPlayerImposteurVote();}
+      else if(fresh.phase==='reveal'&&pc){show('screenPlayerImposteur');renderPlayerImposteurReveal();}
+      else if(fresh.phase==='scores'&&prev?.phase!=='scores'){stopTimer();showFinalScores();}
+    }
+    return;
+  }
   if(G.isMJ){
     if(fresh.phase==='lobby')updateMJLobby();
     else if(fresh.phase==='music'){
@@ -2451,14 +2634,20 @@ async function doStartGame(){
   btn.textContent='⏳ Démarrage...';
   try{
     let questions;
-    if(setupQs&&setupQs.length&&setupQs[0].url&&setupQs[0].url.trim()){
+    if(setupQs&&setupQs.length&&(setupQs[0].url&&setupQs[0].url.trim()||setupQs[0].title&&setupQs[0].title.trim())){
       questions=setupQs;
     }else if(G.room?.questions?.length){
       questions=G.room.questions;
     }else{
       throw new Error('Aucune question disponible. Retourne à la configuration.');
     }
-    const update={...G.room,questions,phase:'music',currentQ:0,answers:{},scores:{},musicStartedAt:ts()};
+    let update;
+    if(G.gameType==='imposteur'){
+      const imposteurId=players[Math.floor(Math.random()*players.length)].id;
+      update={...G.room,questions,phase:'role',currentQ:0,scores:G.room.scores||{},gameData:{imposteurId,votes:{}}};
+    }else{
+      update={...G.room,questions,phase:'music',currentQ:0,answers:{},scores:{},musicStartedAt:ts()};
+    }
     await dbSet('rooms/'+G.roomCode,update);
     G.room=update;
   }catch(e){
@@ -2854,6 +3043,162 @@ async function showFinalScores(){
       if(el) el.textContent=fallbackPlayer[Math.min(i,fallbackPlayer.length-1)];
     });
   }
+}
+
+// ── IMPOSTEUR ────────────────────────────────────────────
+function impCurrentWord(){
+  const r=G.room;
+  return (r.questions?.[r.currentQ]?.title)||'???';
+}
+
+// MJ : phase "rôle" — affiche le mot + qui est l'imposteur (vue MJ uniquement)
+function renderMJImposteurRole(){
+  const r=G.room,players=Object.values(r.players||{});
+  const imp=players.find(p=>p.id===r.gameData?.imposteurId);
+  document.getElementById('impMjRoundLabel').textContent=`🕵️ Manche ${r.currentQ+1}/${r.questions.length}`;
+  document.getElementById('impMjWord').textContent=impCurrentWord();
+  document.getElementById('impMjImposteurName').textContent=imp?`${imp.avatar} ${imp.name}`:'?';
+  document.getElementById('impMjRolePhase').style.display='block';
+  document.getElementById('impMjVotePhase').style.display='none';
+  document.getElementById('impMjRevealPhase').style.display='none';
+  show('screenMJImposteur');
+}
+
+window.launchImposteurVote = async function(){
+  await dbSet('rooms/'+G.roomCode+'/phase','vote');
+};
+
+function renderMJImposteurVote(){
+  document.getElementById('impMjRolePhase').style.display='none';
+  document.getElementById('impMjVotePhase').style.display='block';
+  document.getElementById('impMjRevealPhase').style.display='none';
+  show('screenMJImposteur');
+  updateMJImposteurVoteTally();
+}
+
+function updateMJImposteurVoteTally(){
+  const r=G.room,players=Object.values(r.players||{}),votes=r.gameData?.votes||{};
+  const nbVoted=Object.keys(votes).length;
+  document.getElementById('impMjVoteCount').textContent=`${nbVoted}/${players.length}`;
+  document.getElementById('impMjVoteList').innerHTML=players.map(p=>{
+    const voted=votes[p.id]!==undefined;
+    return `<div class="mj-player-row ${voted?'answered':'waiting'}">
+      <div class="mj-player-avatar"><span style="font-size:14px">${p.avatar||'👤'}</span></div>
+      <div class="mj-player-name">${esc(p.name)}</div>
+      <div class="mj-player-status">${voted?'✔️':'⏳'}</div>
+    </div>`;
+  }).join('');
+}
+
+window.revealImposteur = async function(){
+  const r=G.room,players=Object.values(r.players||{}),votes=r.gameData?.votes||{};
+  const imposteurId=r.gameData?.imposteurId;
+  // Tally des votes
+  const tally={};
+  players.forEach(p=>tally[p.id]=0);
+  Object.values(votes).forEach(suspectId=>{ if(tally[suspectId]!==undefined) tally[suspectId]++; });
+  let topId=null,topCount=-1,tie=false;
+  Object.entries(tally).forEach(([pid,count])=>{
+    if(count>topCount){topCount=count;topId=pid;tie=false;}
+    else if(count===topCount && count>0){tie=true;}
+  });
+  const caught = !tie && topId===imposteurId && topCount>0;
+
+  const scores={...(r.scores||{})};
+  players.forEach(p=>{
+    if(p.id===imposteurId){
+      if(!caught) scores[p.id]=(scores[p.id]||0)+2;
+    }else{
+      if(caught) scores[p.id]=(scores[p.id]||0)+1;
+    }
+  });
+
+  await dbSet('rooms/'+G.roomCode,{...r,phase:'reveal',scores,gameData:{...r.gameData,tally,caught,topId}});
+};
+
+function renderMJImposteurReveal(){
+  const r=G.room,players=Object.values(r.players||{});
+  const imp=players.find(p=>p.id===r.gameData?.imposteurId);
+  const caught=r.gameData?.caught,tally=r.gameData?.tally||{};
+  document.getElementById('impMjRolePhase').style.display='none';
+  document.getElementById('impMjVotePhase').style.display='none';
+  document.getElementById('impMjRevealPhase').style.display='block';
+  document.getElementById('impMjResultBanner').innerHTML=caught
+    ?'🎉 L\'imposteur a été démasqué !'
+    :'😈 L\'imposteur s\'en sort indemne...';
+  document.getElementById('impMjRevealName').textContent=imp?`${imp.avatar} ${imp.name}`:'?';
+  document.getElementById('impMjVoteTally').innerHTML=players
+    .sort((a,b)=>(tally[b.id]||0)-(tally[a.id]||0))
+    .map(p=>`<div class="mj-player-row"><div class="mj-player-avatar"><span style="font-size:14px">${p.avatar||'👤'}</span></div>
+      <div class="mj-player-name">${esc(p.name)}${p.id===r.gameData?.imposteurId?' 🕵️':''}</div>
+      <div class="mj-player-status">${tally[p.id]||0} vote${(tally[p.id]||0)>1?'s':''}</div></div>`).join('');
+  document.getElementById('btnImpNext').textContent = r.currentQ>=r.questions.length-1 ? '🏆 Voir les scores' : '➡️ Manche suivante';
+  show('screenMJImposteur');
+}
+
+window.doNextRoundImposteur = async function(){
+  const r=G.room;
+  if(r.currentQ>=r.questions.length-1){
+    await dbSet('rooms/'+G.roomCode+'/phase','scores');
+    return;
+  }
+  const players=Object.values(r.players||{});
+  const imposteurId=players[Math.floor(Math.random()*players.length)].id;
+  const next=r.currentQ+1;
+  await dbSet('rooms/'+G.roomCode,{...r,phase:'role',currentQ:next,gameData:{imposteurId,votes:{}}});
+};
+
+// Joueur : phase "rôle"
+function renderPlayerImposteurRole(){
+  const r=G.room;
+  const isImp=G.player?.id===r.gameData?.imposteurId;
+  document.getElementById('impPRolePhase').style.display='flex';
+  document.getElementById('impPVotePhase').style.display='none';
+  document.getElementById('impPRevealPhase').style.display='none';
+  document.getElementById('impPRoleEmoji').textContent=isImp?'🕵️':'🤫';
+  document.getElementById('impPRoleSub').textContent=isImp?"Tu es L'IMPOSTEUR — tu ne connais pas le mot, fais semblant !":'Le mot secret est';
+  document.getElementById('impPRoleWord').textContent=isImp?'???':impCurrentWord();
+  document.getElementById('impPRoleCard').style.borderColor=isImp?'var(--orange)':'';
+}
+
+// Joueur : phase "vote"
+window.castVote = async function(suspectId){
+  await dbSet('rooms/'+G.roomCode+'/gameData/votes/'+G.player.id, suspectId);
+  document.querySelectorAll('#impPVoteList [data-vote]').forEach(b=>{
+    b.classList.toggle('active', b.dataset.vote===suspectId);
+    b.disabled=true;
+  });
+  document.getElementById('impPVoteConfirm').style.display='block';
+};
+
+function renderPlayerImposteurVote(){
+  const r=G.room,players=Object.values(r.players||{});
+  const myVote=r.gameData?.votes?.[G.player?.id];
+  document.getElementById('impPRolePhase').style.display='none';
+  document.getElementById('impPVotePhase').style.display='flex';
+  document.getElementById('impPRevealPhase').style.display='none';
+  document.getElementById('impPVoteList').innerHTML=players
+    .filter(p=>p.id!==G.player?.id)
+    .map(p=>`<button class="chip${myVote===p.id?' active':''}" data-vote="${p.id}" ${myVote?'disabled':''} style="width:100%;justify-content:flex-start;padding:12px 16px;font-size:15px">${p.avatar} ${esc(p.name)}</button>`)
+    .join('');
+  document.getElementById('impPVoteList').querySelectorAll('[data-vote]').forEach(b=>{
+    b.addEventListener('click',()=>window.castVote(b.dataset.vote));
+  });
+  document.getElementById('impPVoteConfirm').style.display=myVote?'block':'none';
+}
+
+function renderPlayerImposteurReveal(){
+  const r=G.room,players=Object.values(r.players||{});
+  const imp=players.find(p=>p.id===r.gameData?.imposteurId);
+  const caught=r.gameData?.caught;
+  const wasImpostor=G.player?.id===r.gameData?.imposteurId;
+  document.getElementById('impPRolePhase').style.display='none';
+  document.getElementById('impPVotePhase').style.display='none';
+  document.getElementById('impPRevealPhase').style.display='flex';
+  document.getElementById('impPResultBanner').textContent=caught
+    ?(wasImpostor?'😅 Démasqué ! +0 pour toi':'🎉 Démasqué ! +1 point pour toi')
+    :(wasImpostor?'😈 Tu t\'en sors indemne ! +2 points':'😢 Il/elle s\'en sort... +0 pour toi');
+  document.getElementById('impPRevealName').textContent=imp?`${imp.avatar} ${imp.name}`:'?';
 }
 
 // ── TIMER ────────────────────────────────────────────────
