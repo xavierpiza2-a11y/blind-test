@@ -6,10 +6,12 @@
 <meta name="theme-color" content="#1a0533">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Blind Test">
+<meta name="apple-mobile-web-app-title" content="Piza-House">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="manifest" href="manifest.json">
-<title>🎵 Blind Test Famille</title>
+<link rel="icon" href="icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<title>🍕 Piza-House</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@700;800&display=swap" rel="stylesheet">
 <style>
 /* ═══════════════════════════════════════════
@@ -561,7 +563,7 @@ button.chip:disabled{opacity:.55;cursor:not-allowed}
 ══════════════════════════════════════════ -->
 <div id="screenLogin" class="screen active">
   <div class="login-hero">
-    <h1>🎵 BLIND TEST</h1>
+    <img src="logo.png" alt="Piza-House" style="max-width:240px;width:70%;margin:0 auto 12px;display:block;filter:drop-shadow(0 4px 20px rgba(239,68,68,.35))">
     <p>La soirée qui va diviser les familles 😅</p>
   </div>
   <div id="loginLoading" style="text-align:center;color:var(--muted);padding:24px 0;font-size:14px">
@@ -600,7 +602,7 @@ button.chip:disabled{opacity:.55;cursor:not-allowed}
       </div>
       <div style="flex:1">
         <div style="font-family:var(--ft);font-weight:900;font-size:16px" id="homeProfileName">Bienvenue</div>
-        <div style="font-size:11px;color:var(--muted)">Blind Test Famille · <button onclick="window.editSelfProfile()" style="color:var(--orange);font-size:11px;font-weight:600;background:none;border:none;cursor:pointer;padding:0">Modifier mon profil</button></div>
+        <div style="font-size:11px;color:var(--muted)">Piza-House · <button onclick="window.editSelfProfile()" style="color:var(--orange);font-size:11px;font-weight:600;background:none;border:none;cursor:pointer;padding:0">Modifier mon profil</button></div>
       </div>
       <button onclick="window.doLogout()" style="color:var(--muted);font-size:12px;padding:6px 10px;background:rgba(255,255,255,.07);border-radius:10px;border:1px solid rgba(255,255,255,.1)">⬅ Quitter</button>
     </div>
@@ -665,7 +667,7 @@ button.chip:disabled{opacity:.55;cursor:not-allowed}
 
     <!-- Nom + save -->
     <div style="display:flex;gap:8px;margin-bottom:14px">
-      <input class="inp" id="setupTitle" placeholder="Nom de la soirée" value="Blind Test Famille" style="margin-bottom:0;flex:1">
+      <input class="inp" id="setupTitle" placeholder="Nom de la soirée" value="Piza-House" style="margin-bottom:0;flex:1">
       <button id="saveBtn" title="Sauvegarder" style="flex-shrink:0;padding:10px 16px;background:rgba(16,185,129,.15);border:1.5px solid rgba(16,185,129,.3);color:var(--green);border-radius:12px;font-size:18px;cursor:pointer">💾</button>
     </div>
 
@@ -1063,7 +1065,7 @@ function renderGamePicker(){
   el.querySelectorAll('[data-game]:not(.disabled)').forEach(b=>b.addEventListener('click',()=>{
     G.gameType=b.dataset.game;
     G.saveId=null;setupQs=[newQ()];renderSetupQs();
-    document.getElementById('setupTitle').value=G.gameType==='quiz'?'Quiz Culture Générale':G.gameType==='imposteur'?'Le Saboteur':'Blind Test Famille';
+    document.getElementById('setupTitle').value=G.gameType==='quiz'?'Quiz Culture Générale':G.gameType==='imposteur'?'Le Saboteur':'Piza-House';
     show('screenSetup');
   }));
 }
@@ -1678,7 +1680,7 @@ window.adminDelGame = async function(id){
 
 // ── Onglet Config ──
 async function renderAdminConfig(el){
-  const cfg = await dbGet(CONFIG_REF) || {timer:20, rounds:10, title:'Blind Test Famille'};
+  const cfg = await dbGet(CONFIG_REF) || {timer:20, rounds:10, title:'Piza-House'};
   window._adminPromptGame = window._adminPromptGame || 'blindtest';
   const pg = window._adminPromptGame;
   const isQuizPg = pg==='quiz';
