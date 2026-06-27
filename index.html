@@ -1293,9 +1293,9 @@ document.getElementById('btnLaunch').addEventListener('click',doLaunch);
 document.getElementById('btnMjStop').addEventListener('click',doMjStop);
 document.getElementById('btnNextRound').addEventListener('click',doNextRound);
 document.getElementById('btnInterludeContinue').addEventListener('click',doActualNextRound);
-document.getElementById('btnImpLaunchVote').addEventListener('click',window.launchImposteurVote);
-document.getElementById('btnImpReveal').addEventListener('click',window.revealImposteur);
-document.getElementById('btnImpNext').addEventListener('click',window.doNextRoundImposteur);
+document.getElementById('btnImpLaunchVote').addEventListener('click',()=>window.launchImposteurVote());
+document.getElementById('btnImpReveal').addEventListener('click',()=>window.revealImposteur());
+document.getElementById('btnImpNext').addEventListener('click',()=>window.doNextRoundImposteur());
 document.getElementById('scoresRestartBtn').addEventListener('click',()=>{stopWatch();stopTimer();setupQs=[newQ()];renderSetupQs();show('screenSetup');});
 document.getElementById('btnScoresHome').addEventListener('click',()=>{stopWatch();stopTimer();clearSession();G.isMJ=false;G.roomCode=null;G.room=null;G.player=null;show('screenHome');});
 document.getElementById('btnReconnectDismiss').addEventListener('click',()=>{
