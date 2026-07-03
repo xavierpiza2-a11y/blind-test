@@ -505,6 +505,20 @@ button.chip:disabled{opacity:.55;cursor:not-allowed}
 .color-opt.selected{border-color:white;transform:scale(1.15)}
 .modal-actions{display:flex;gap:10px;margin-top:4px}
 
+/* ── HOST FAB ── */
+#hostFab{position:fixed;bottom:24px;right:16px;z-index:300;display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+#hostFabToggle{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#f97316,#dc2626);border:none;font-size:22px;cursor:pointer;box-shadow:0 4px 16px rgba(249,115,22,.5);display:flex;align-items:center;justify-content:center;transition:transform .15s}
+#hostFabToggle:active{transform:scale(.9)}
+#hostFabPanel{background:rgba(20,6,40,.97);border:1.5px solid rgba(249,115,22,.35);border-radius:16px;padding:12px;min-width:220px;display:flex;flex-direction:column;gap:8px;box-shadow:0 8px 32px rgba(0,0,0,.6)}
+#hostFabPanel .fab-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--orange);margin-bottom:2px}
+#hostFabPanel .fab-info{font-size:13px;color:var(--muted2);text-align:center;padding:4px 0}
+.host-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(249,115,22,.18);border:1px solid rgba(249,115,22,.4);color:var(--orange);font-size:11px;font-weight:700;padding:3px 8px;border-radius:8px}
+#lobbyHostStartBtn{display:none}
+
+/* ── SETUP AUTO MODE ── */
+.setup-manual-section{transition:opacity .2s}
+.setup-manual-section.hidden-section{display:none}
+
 /* ── GÉNÉRATEUR IA ── */
 .ai-diff-btn,.ai-count-btn{
   padding:6px 10px;border-radius:10px;font-size:11px;font-weight:700;cursor:pointer;
@@ -704,7 +718,7 @@ button.chip:disabled{opacity:.55;cursor:not-allowed}
       </div>
 
       <!-- Bouton générer -->
-      <button class="btn btn-purple" id="btnAiGenerate" onclick="window.generateFromAI()" style="margin-bottom:0">✨ Générer la partie</button>
+      <button class="btn btn-purple" id="btnAiGenerate" style="margin-bottom:0">✨ Générer la partie</button>
 
       <!-- Spinner pendant génération -->
       <div id="aiGenLoading" style="display:none;text-align:center;padding:16px 0">
@@ -713,9 +727,11 @@ button.chip:disabled{opacity:.55;cursor:not-allowed}
       </div>
     </div>
 
-    <div class="divider">ou ajoute manuellement</div>
-    <div id="setupQuestions"></div>
-    <button class="btn btn-secondary" id="btnAddQ">➕ Ajouter une manche</button>
+    <div class="setup-manual-section" id="setupManualSection">
+      <div class="divider">ou ajoute manuellement</div>
+      <div id="setupQuestions"></div>
+      <button class="btn btn-secondary" id="btnAddQ">➕ Ajouter une manche</button>
+    </div>
     <button class="btn btn-pink" id="btnLaunch">🚀 Ouvrir la salle !</button>
   </div>
 </div>
@@ -802,8 +818,9 @@ button.chip:disabled{opacity:.55;cursor:not-allowed}
         <p class="card-title" id="playerLobbyCount">En attente...</p>
         <div class="chips" id="playerLobbyChips"></div>
       </div>
-      <div class="waiting-dots"><div class="waiting-dot"></div><div class="waiting-dot"></div><div class="waiting-dot"></div></div>
-      <p style="color:rgba(255,255,255,.4);font-size:13px">Le MJ prépare la soirée... 🎲</p>
+      <div class="waiting-dots" id="playerLobbyWaiting"><div class="waiting-dot"></div><div class="waiting-dot"></div><div class="waiting-dot"></div></div>
+      <p style="color:rgba(255,255,255,.4);font-size:13px" id="playerLobbyWaitTxt">Le MJ prépare la soirée... 🎲</p>
+      <button class="btn btn-pink" id="lobbyHostStartBtn" style="display:none;max-width:340px;width:100%;margin-top:16px">🎮 Démarrer la partie !</button>
     </div>
   </div>
 </div>
@@ -967,6 +984,14 @@ button.chip:disabled{opacity:.55;cursor:not-allowed}
 </div>
 
 <!-- ══════════════════════════════════════════
+     HOST FAB (hôte-joueur uniquement)
+══════════════════════════════════════════ -->
+<div id="hostFab" style="display:none">
+  <div id="hostFabPanel" style="display:none"></div>
+  <button id="hostFabToggle" title="Contrôles hôte">👑</button>
+</div>
+
+<!-- ══════════════════════════════════════════
      FIREBASE + APP
 ══════════════════════════════════════════ -->
 <script type="module">
@@ -1039,7 +1064,8 @@ function randItem(arr){return arr[Math.floor(Math.random()*arr.length)];}
 
 // ── GLOBAL STATE ─────────────────────────────────────────
 const G={
-  isMJ:false,roomCode:null,room:null,player:null,
+  isMJ:false,isHost:false,autoMode:false,
+  roomCode:null,room:null,player:null,
   timerInt:null,watchRef:null,saveId:null,
   pendingNextRound:false,gameType:'blindtest'
 };
@@ -1064,6 +1090,7 @@ function renderGamePicker(){
     </button>`).join('');
   el.querySelectorAll('[data-game]:not(.disabled)').forEach(b=>b.addEventListener('click',()=>{
     G.gameType=b.dataset.game;
+    G.autoMode=(G.gameType==='quiz'||G.gameType==='imposteur');
     G.saveId=null;setupQs=[newQ()];renderSetupQs();
     document.getElementById('setupTitle').value=G.gameType==='quiz'?'Quiz Culture Générale':G.gameType==='imposteur'?'Le Saboteur':'Piza-House';
     show('screenSetup');
@@ -1085,6 +1112,21 @@ function show(id){
     document.getElementById('aiTheme').placeholder=isQuiz?'Ex : Histoire de France, Géographie, Cinéma…':isImp?'Ex : Animaux, Métiers, Pays du monde…':'Ex : variété française des années 80, hits Pop 2010…';
     document.getElementById('aiCountLabel').textContent=isQuiz?'Questions':isImp?'Mots':'Manches';
     document.getElementById('btnAddQ').textContent=isQuiz?'➕ Ajouter une question':isImp?'➕ Ajouter un mot':'➕ Ajouter une manche';
+    // Mode auto : quiz & imposteur → masquer saisie manuelle, changer les boutons
+    const manualSection=document.getElementById('setupManualSection');
+    const btnAiGen=document.getElementById('btnAiGenerate');
+    const btnLaunch=document.getElementById('btnLaunch');
+    if(G.autoMode){
+      manualSection.classList.add('hidden-section');
+      btnAiGen.textContent='✨ Générer & Lancer !';
+      btnAiGen.onclick=()=>window.generateAndLaunch();
+      btnLaunch.style.display='none';
+    }else{
+      manualSection.classList.remove('hidden-section');
+      btnAiGen.textContent='✨ Générer la partie';
+      btnAiGen.onclick=()=>window.generateFromAI();
+      btnLaunch.style.display='';
+    }
   }
 }
 
@@ -1298,8 +1340,9 @@ document.getElementById('btnInterludeContinue').addEventListener('click',doActua
 document.getElementById('btnImpLaunchVote').addEventListener('click',()=>window.launchImposteurVote());
 document.getElementById('btnImpReveal').addEventListener('click',()=>window.revealImposteur());
 document.getElementById('btnImpNext').addEventListener('click',()=>window.doNextRoundImposteur());
-document.getElementById('scoresRestartBtn').addEventListener('click',()=>{stopWatch();stopTimer();setupQs=[newQ()];renderSetupQs();show('screenSetup');});
-document.getElementById('btnScoresHome').addEventListener('click',()=>{stopWatch();stopTimer();clearSession();G.isMJ=false;G.roomCode=null;G.room=null;G.player=null;show('screenHome');});
+document.getElementById('scoresRestartBtn').addEventListener('click',()=>{stopWatch();stopTimer();showHostFab(false);G.isHost=false;G.isMJ=false;setupQs=[newQ()];renderSetupQs();show('screenSetup');});
+document.getElementById('btnScoresHome').addEventListener('click',()=>{stopWatch();stopTimer();clearSession();showHostFab(false);G.isMJ=false;G.isHost=false;G.roomCode=null;G.room=null;G.player=null;show('screenHome');});
+document.getElementById('hostFabToggle').addEventListener('click',toggleFab);
 document.getElementById('btnReconnectDismiss').addEventListener('click',()=>{
   clearSession();
   document.getElementById('reconnectBanner').classList.remove('visible');
@@ -1336,6 +1379,23 @@ async function doReconnect(){
   if(!room||room.phase==='scores'){clearSession();alert('Cette partie est déjà terminée.');return;}
   G.roomCode=sess.code;G.room=room;G.gameType=room.gameType||'blindtest';
 
+  if(sess.role==='host'){
+    G.isHost=true;G.isMJ=false;
+    const fbPlayer=room.players?.[sess.playerId];
+    G.player={id:sess.playerId,name:sess.name,avatar:fbPlayer?.avatar||sess.avatar,isHost:true};
+    if(!fbPlayer){await dbSet('rooms/'+sess.code+'/players/'+sess.playerId,G.player);}
+    if(room.phase==='lobby'){renderPlayerLobby();show('screenPlayerLobby');}
+    else if(room.gameType==='imposteur'){
+      if(room.phase==='role'){show('screenPlayerImposteur');renderPlayerImposteurRole();}
+      else if(room.phase==='vote'){show('screenPlayerImposteur');renderPlayerImposteurVote();}
+      else if(room.phase==='reveal'){show('screenPlayerImposteur');renderPlayerImposteurReveal();}
+    }else{
+      renderPlayerGame();show('screenPlayerGame');
+      if(room.phase==='music')startTimer();
+    }
+    updateHostFab();startWatch();
+    return;
+  }
   if(sess.role==='mj'){
     G.isMJ=true;G.saveId=sess.saveId||null;
     if(sess.saveId){const saved=getGame(sess.saveId);if(saved)setupQs=saved.questions.map(q=>({...q}));}
@@ -2388,6 +2448,45 @@ Génère exactement ${_aiCount} objets.`;
   }
 };
 
+// ── GENERATE & LAUNCH (mode hôte-joueur) ─────────────────
+window.generateAndLaunch = async function(){
+  const theme=document.getElementById('aiTheme').value.trim();
+  if(!theme){document.getElementById('aiTheme').focus();return;}
+  // 1. Générer les questions avec l'IA (réutilise generateFromAI)
+  await window.generateFromAI();
+  // generateFromAI remplit setupQs — si ça a planté, setupQs sera vide
+  const valid=G.gameType==='imposteur'
+    ? setupQs.filter(q=>q.title.trim())
+    : setupQs.filter(q=>q.title.trim()&&q.choices.every(c=>c.trim()));
+  if(!valid.length)return; // generateFromAI a déjà affiché l'erreur
+  // 2. Créer la salle
+  const title=document.getElementById('setupTitle').value.trim()||(G.gameType==='quiz'?'Quiz Culture G.':'Le Saboteur');
+  const code=genCode();
+  const room={title,gameType:G.gameType,questions:valid,phase:'lobby',currentQ:0,players:{},answers:{},scores:{},musicStartedAt:null,createdAt:ts(),interludeComment:null,finalComments:null,autoMode:true};
+  await dbSet('rooms/'+code,room);
+  // 3. Rejoindre comme hôte-joueur
+  await joinAsHost(code,room);
+};
+
+async function joinAsHost(code,room){
+  const pid=AUTH.user?.uid?('u'+AUTH.user.uid):('p'+ts()+Math.random().toString(36).slice(2,5));
+  const name=AUTH.profile?.displayName||AUTH.user?.displayName||'Hôte';
+  const avatar=AUTH.profile?.avatar||randAvatar();
+  const playerData={id:pid,name,avatar,color:AUTH.profile?.color||'#f97316',photoURL:AUTH.profile?.photoURL||'',customPhoto:AUTH.profile?.customPhoto||'',isHost:true};
+  G.player=playerData;
+  G.isMJ=false;
+  G.isHost=true;
+  G.roomCode=code;
+  G.gameType=room.gameType;
+  G.room={...room,players:{[pid]:playerData}};
+  G.saveId=null;
+  await dbSet('rooms/'+code+'/players/'+pid,playerData);
+  saveSession({role:'host',code,playerId:pid,name,avatar});
+  renderPlayerLobby();
+  show('screenPlayerLobby');
+  startWatch();
+}
+
 // ── SETUP ────────────────────────────────────────────────
 function newQ(){return{id:ts()+Math.random(),url:'',title:'',choices:['','','',''],answer:0};}
 function tid(url){const m=(url||'').match(/track\/(\d+)/);return m?m[1]:null;}
@@ -2557,6 +2656,101 @@ async function doJoin(){
   startWatch();
 }
 
+// ── HOST START ────────────────────────────────────────────
+async function doHostStart(){
+  const players=Object.values(G.room?.players||{});
+  if(players.length<1){alert('Attends qu\'au moins un autre joueur rejoigne !');return;}
+  const btn=document.getElementById('lobbyHostStartBtn');
+  btn.textContent='⏳ Démarrage...';btn.disabled=true;
+  try{
+    let update;
+    if(G.gameType==='imposteur'){
+      const imposteurId=players[Math.floor(Math.random()*players.length)].id;
+      update={...G.room,phase:'role',currentQ:0,scores:{},gameData:{imposteurId,votes:{}}};
+    }else{
+      update={...G.room,phase:'music',currentQ:0,answers:{},scores:{},musicStartedAt:ts()};
+    }
+    await dbSet('rooms/'+G.roomCode,update);
+    G.room=update;
+  }catch(e){
+    btn.textContent='🎮 Démarrer la partie !';btn.disabled=false;
+    alert('Erreur : '+e.message);
+  }
+}
+
+// ── HOST FAB ─────────────────────────────────────────────
+function showHostFab(visible){
+  document.getElementById('hostFab').style.display=visible?'flex':'none';
+}
+
+let _fabOpen=false;
+function toggleFab(){
+  _fabOpen=!_fabOpen;
+  document.getElementById('hostFabPanel').style.display=_fabOpen?'flex':'none';
+}
+
+function updateHostFab(){
+  if(!G.isHost)return;
+  const r=G.room;
+  if(!r||r.phase==='lobby'||r.phase==='scores'){showHostFab(false);return;}
+  showHostFab(true);
+  const panel=document.getElementById('hostFabPanel');
+  const isImp=r.gameType==='imposteur';
+  const isLast=r.currentQ>=r.questions.length-1;
+
+  if(isImp){
+    if(r.phase==='role'){
+      const imp=Object.values(r.players||{}).find(p=>p.id===r.gameData?.imposteurId);
+      panel.innerHTML=`
+        <div class="fab-label">🕵️ Manche ${r.currentQ+1}/${r.questions.length}</div>
+        <div class="fab-info">Mot : <strong>${esc(r.questions[r.currentQ]?.title)}</strong></div>
+        <div class="fab-info" style="color:var(--orange)">Imposteur : ${imp?imp.avatar+' '+esc(imp.name):'?'}</div>
+        <button class="btn btn-pink" style="margin-top:4px" onclick="window.hostLaunchVote()">🗳️ Lancer le vote</button>`;
+    }else if(r.phase==='vote'){
+      const votes=r.gameData?.votes||{};
+      const nbVoted=Object.keys(votes).length;
+      const total=Object.keys(r.players||{}).length;
+      panel.innerHTML=`
+        <div class="fab-label">🗳️ Vote en cours</div>
+        <div class="fab-info">${nbVoted}/${total} votes reçus</div>
+        <button class="btn btn-pink" style="margin-top:4px" onclick="window.hostReveal()">🔎 Révéler l'imposteur</button>`;
+    }else if(r.phase==='reveal'){
+      panel.innerHTML=`
+        <div class="fab-label">🔎 Révélation</div>
+        <button class="btn btn-pink" onclick="${isLast?'window.hostFinalScores()':'window.hostNextRoundImp()'}">
+          ${isLast?'🏆 Scores finals':'➡️ Manche suivante'}</button>`;
+    }
+  }else{
+    // Quiz / Blind Test en mode hôte
+    if(r.phase==='music'){
+      const ans=Object.keys(r.answers?.[r.currentQ]||{}).length;
+      const total=Object.keys(r.players||{}).length;
+      panel.innerHTML=`
+        <div class="fab-label">🎮 Manche ${r.currentQ+1}/${r.questions.length}</div>
+        <div class="fab-info">${ans}/${total} réponses reçues</div>
+        <button class="btn btn-red" style="margin-top:4px" onclick="window.hostStop()">⏹ Révéler les réponses</button>`;
+    }else if(r.phase==='reveal'){
+      panel.innerHTML=`
+        <div class="fab-label">📊 Révélation</div>
+        <button class="btn btn-pink" onclick="window.hostNextRound()">
+          ${isLast?'🏆 Scores finals':'⏭️ Manche suivante'}</button>`;
+    }else if(r.phase==='interlude'){
+      panel.innerHTML=`
+        <div class="fab-label">🎙️ Interlude</div>
+        <button class="btn btn-pink" onclick="window.hostContinueInterlude()">➡️ Continuer</button>`;
+    }
+  }
+}
+
+// Actions hôte (wrappent les fonctions MJ existantes en forçant isMJ=true momentanément)
+window.hostLaunchVote    = async()=>{ await dbSet('rooms/'+G.roomCode+'/phase','vote'); _fabOpen=false; document.getElementById('hostFabPanel').style.display='none'; };
+window.hostReveal        = async()=>{ const _mj=G.isMJ; G.isMJ=true; await window.revealImposteur(); G.isMJ=_mj; _fabOpen=false; document.getElementById('hostFabPanel').style.display='none'; };
+window.hostNextRoundImp  = async()=>{ const _mj=G.isMJ; G.isMJ=true; await window.doNextRoundImposteur(); G.isMJ=_mj; _fabOpen=false; document.getElementById('hostFabPanel').style.display='none'; };
+window.hostFinalScores   = async()=>{ await dbSet('rooms/'+G.roomCode+'/phase','scores'); _fabOpen=false; document.getElementById('hostFabPanel').style.display='none'; };
+window.hostStop          = async()=>{ stopTimer(); await dbSet('rooms/'+G.roomCode+'/phase','reveal'); _fabOpen=false; document.getElementById('hostFabPanel').style.display='none'; };
+window.hostNextRound     = async()=>{ const _mj=G.isMJ; G.isMJ=true; await doNextRound(); G.isMJ=_mj; _fabOpen=false; document.getElementById('hostFabPanel').style.display='none'; };
+window.hostContinueInterlude = async()=>{ const _mj=G.isMJ; G.isMJ=true; await doActualNextRound(); G.isMJ=_mj; _fabOpen=false; document.getElementById('hostFabPanel').style.display='none'; };
+
 // ── WATCH ────────────────────────────────────────────────
 function startWatch(){stopWatch();G.watchRef=dbOn('rooms/'+G.roomCode,onRoom);}
 function stopWatch(){dbOff(G.watchRef);G.watchRef=null;}
@@ -2565,6 +2759,10 @@ async function onRoom(fresh){
   if(!fresh)return;
   const prev=G.room;G.room=fresh;
   const pc=prev?.phase!==fresh.phase,qc=prev?.currentQ!==fresh.currentQ;
+
+  // Mise à jour du FAB hôte à chaque changement
+  if(G.isHost) updateHostFab();
+
   if(fresh.gameType==='imposteur'){
     if(G.isMJ){
       if(fresh.phase==='lobby')updateMJLobby();
@@ -2573,7 +2771,7 @@ async function onRoom(fresh){
       else if(fresh.phase==='reveal'&&pc)renderMJImposteurReveal();
       else if(fresh.phase==='scores'&&prev?.phase!=='scores'){stopTimer();showFinalScores();}
     }else{
-      if(fresh.phase==='lobby')renderPlayerLobbyChips();
+      if(fresh.phase==='lobby'){renderPlayerLobbyChips(); if(G.isHost) renderPlayerLobby();}
       else if(fresh.phase==='role'&&(pc||qc)){show('screenPlayerImposteur');renderPlayerImposteurRole();}
       else if(fresh.phase==='vote'&&pc){show('screenPlayerImposteur');renderPlayerImposteurVote();}
       else if(fresh.phase==='reveal'&&pc){show('screenPlayerImposteur');renderPlayerImposteurReveal();}
@@ -2590,7 +2788,7 @@ async function onRoom(fresh){
     else if(fresh.phase==='reveal'&&(pc||qc)){stopTimer();renderMJGame();}
     else if(fresh.phase==='scores'&&prev?.phase!=='scores'){stopTimer();showFinalScores();}
   }else{
-    if(fresh.phase==='lobby')renderPlayerLobbyChips();
+    if(fresh.phase==='lobby'){renderPlayerLobbyChips(); if(G.isHost) renderPlayerLobby();}
     else if(fresh.phase==='music'){
       if(pc||qc){stopTimer();renderPlayerGame();show('screenPlayerGame');startTimer();}
       else renderPlayerGame();
@@ -2598,7 +2796,6 @@ async function onRoom(fresh){
     else if(fresh.phase==='reveal'&&(pc||qc)){stopTimer();renderPlayerGame();}
     else if(fresh.phase==='scores'&&prev?.phase!=='scores'){stopTimer();showFinalScores();}
     else if(fresh.phase==='interlude'&&prev?.phase!=='interlude'){
-      // Le joueur affiche le même écran interlude que le MJ
       show('screenInterlude');
       await showInterlude(fresh.currentQ, fresh.currentQ+1);
     }
@@ -2842,8 +3039,9 @@ async function showInterlude(currentQIdx,nextQIdx){
 
   // Stocker le next index pour le bouton "continuer"
   G.pendingNextRound=nextQIdx;
-  document.getElementById('btnInterludeContinue').style.display = G.isMJ ? 'flex' : 'none';
-  document.getElementById('interludeWaitLbl').style.display = G.isMJ ? 'none' : 'block';
+  const isController = G.isMJ || G.isHost;
+  document.getElementById('btnInterludeContinue').style.display = isController ? 'flex' : 'none';
+  document.getElementById('interludeWaitLbl').style.display = isController ? 'none' : 'block';
 }
 
 async function doActualNextRound(){
@@ -2856,8 +3054,21 @@ async function doActualNextRound(){
 function renderPlayerLobby(){
   const p=G.player,r=G.room;
   document.getElementById('playerLobbyAvatar').textContent=p.avatar;
-  document.getElementById('playerLobbyName').textContent=p.name;
+  document.getElementById('playerLobbyName').innerHTML=G.isHost
+    ?`${esc(p.name)} <span class="host-badge">👑 Hôte</span>`
+    :esc(p.name);
   document.getElementById('playerLobbyTitle').textContent=r.title;
+  // Bouton démarrer visible seulement pour l'hôte
+  const startBtn=document.getElementById('lobbyHostStartBtn');
+  const waitTxt=document.getElementById('playerLobbyWaitTxt');
+  if(G.isHost){
+    startBtn.style.display='block';
+    waitTxt.style.display='none';
+    startBtn.onclick=()=>doHostStart();
+  }else{
+    startBtn.style.display='none';
+    waitTxt.style.display='block';
+  }
   renderPlayerLobbyChips();
 }
 function renderPlayerLobbyChips(){
@@ -3081,6 +3292,7 @@ function renderMJImposteurVote(){
 function updateMJImposteurVoteTally(){
   const r=G.room,players=Object.values(r.players||{}),votes=r.gameData?.votes||{};
   const nbVoted=Object.keys(votes).length;
+  if(G.isHost&&!G.isMJ){updateHostFab();return;} // hôte : tout est dans le FAB
   document.getElementById('impMjVoteCount').textContent=`${nbVoted}/${players.length}`;
   document.getElementById('impMjVoteList').innerHTML=players.map(p=>{
     const voted=votes[p.id]!==undefined;
