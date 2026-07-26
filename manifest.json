@@ -6,8 +6,8 @@
   "scope": "/blind-test/",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#1a0533",
-  "theme_color": "#1a0533",
+  "background_color": "#F07050",
+  "theme_color": "#F07050",
   "icons": [
     {
       "src": "icons/icon-192.png",
