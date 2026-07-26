@@ -608,7 +608,7 @@ select.inp{appearance:none}
     </div>
   </div>
   <div style="padding:0 16px calc(24px + env(safe-area-inset-bottom));flex-shrink:0;max-width:440px;width:100%;margin:0 auto">
-    <button class="btn btn-primary" id="lobbyStartBtn" style="opacity:.5">🎵 Démarrer !</button>
+    <button class="btn btn-primary" id="lobbyStartBtn" style="opacity:.5" onclick="window.doStartGame()">🎵 Démarrer !</button>
     <button class="btn btn-danger btn-sm" id="lobbyQuitBtn" style="width:100%">✕ Fermer la salle</button>
   </div>
 </div>
@@ -1304,7 +1304,6 @@ document.getElementById('joinName').addEventListener('keydown',e=>{if(e.key==='E
 document.getElementById('joinCode').addEventListener('keydown',e=>{if(e.key==='Enter')doJoin();});
 document.getElementById('joinCode').addEventListener('input',e=>{e.target.value=e.target.value.toUpperCase();});
 document.getElementById('joinBtn').addEventListener('click',doJoin);
-document.getElementById('lobbyStartBtn').addEventListener('click',doStartGame);
 }catch(e){console.error('Binding error:',e);}
 
 // ═══════════════════════════ HÔTE : ouvrir setup ═══════════════════════════
@@ -1565,17 +1564,25 @@ async function doStartGame(){
   if(!players.length){ alert("Attends qu'au moins un joueur rejoigne la salle !"); return; }
   btn.style.opacity='.6'; btn.style.pointerEvents='none'; btn.textContent='⏳ Démarrage…';
   try{
+    // Priorité aux questions déjà stockées dans la salle (quiz IA + blind test)
     let questions;
-    if(setupQs&&setupQs.length&&(setupQs[0].url?.trim()||setupQs[0].title?.trim())) questions=setupQs;
-    else if(G.room?.questions?.length) questions=G.room.questions;
+    if(G.room?.questions?.length) questions=G.room.questions;
+    else if(setupQs&&setupQs.length&&(setupQs[0].url?.trim()||setupQs[0].title?.trim())) questions=setupQs;
     else throw new Error('Aucune question disponible.');
     const update={...G.room,questions,phase:'music',currentQ:0,answers:{},scores:{},musicStartedAt:ts()};
     await dbSet('rooms/'+G.roomCode,update); G.room=update;
+    // Transition immédiate — ne dépend pas uniquement du watcher temps réel
+    if(update.hostPlays){ renderPlayerGame(); show('screenPlayerGame'); renderHostFab(); }
+    else { renderMJGame(); show('screenMJGame'); }
+    startTimer();
   }catch(e){
-    btn.style.opacity='1'; btn.style.pointerEvents='auto'; btn.textContent='🎵 Démarrer !';
+    console.error('doStartGame:',e);
     alert('Erreur au démarrage : '+e.message);
+  }finally{
+    btn.style.opacity='1'; btn.style.pointerEvents='auto'; btn.textContent='🎵 Démarrer !';
   }
 }
+window.doStartGame=doStartGame;
 
 // ═══════════════════════════ JEU HÔTE (Blind Test) ═══════════════════════════
 function renderMJGame(){
