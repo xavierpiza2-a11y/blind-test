@@ -546,6 +546,7 @@ select.inp{appearance:none}
 
     <div style="display:flex;gap:8px;margin-bottom:14px">
       <input class="inp" id="setupTitle" placeholder="Nom de la partie" value="Piza-House" style="margin-bottom:0;flex:1">
+      <button id="loadBtn" title="Parties enregistrées" class="btn-deezer" style="border-radius:14px">📂</button>
       <button id="saveBtn" title="Sauvegarder" class="btn-deezer" style="border-radius:14px">💾</button>
     </div>
 
@@ -735,6 +736,15 @@ select.inp{appearance:none}
     <div class="modal-header"><span class="modal-title">🔍 Recherche Deezer</span><button class="modal-close" id="btnModalClose">✕</button></div>
     <div class="modal-search-row"><input class="inp" id="modalSearchInput" placeholder="Artiste ou titre…" style="margin-bottom:0"><button class="btn-deezer" id="btnModalSearch">🔍</button></div>
     <div class="modal-body" id="modalBody"><div class="search-empty">Tape un artiste ou un titre 🎵</div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════ PARTIES ENREGISTRÉES ══════════════════════════════════════════ -->
+<div id="savedModal" class="modal-overlay hidden" onclick="if(event.target===this)window.closeSavedModal()">
+  <div class="modal-box">
+    <div class="modal-title" style="text-align:center;margin-bottom:16px">📂 Parties enregistrées</div>
+    <div id="savedModalList"></div>
+    <div class="modal-actions" style="margin-top:14px"><button class="btn btn-secondary" onclick="window.closeSavedModal()">Fermer</button></div>
   </div>
 </div>
 
@@ -1280,6 +1290,7 @@ document.getElementById('saveBtn').addEventListener('click',async()=>{
   const id=G.saveId||('s'+ts()); G.saveId=id; await saveGame(id,title,setupQs);
   const b=document.getElementById('saveBtn'); b.textContent='✅'; setTimeout(()=>b.textContent='💾',1500);
 });
+document.getElementById('loadBtn').addEventListener('click',()=>window.openSavedModal());
 document.getElementById('btnLaunch').addEventListener('click',doLaunch);
 document.getElementById('btnMjStop').addEventListener('click',doMjStop);
 document.getElementById('btnNextRound').addEventListener('click',doNextRound);
@@ -1382,6 +1393,17 @@ window.generateBlind=async function(){
   finally{ clearInterval(tmr); stopAiLoading(); }
 };
 
+async function launchQuizWithQuestions(title,questions){
+  if(!ensureName()) return;
+  const code=genCode(), idn=myIdentity(), hostPlayer=playerFromIdentity();
+  const room={ title, gameType:'quiz', hostPlays:true, hostId:idn.id,
+    questions, phase:'lobby', currentQ:0, players:{[idn.id]:hostPlayer}, answers:{}, scores:{}, musicStartedAt:null,
+    createdAt:ts(), interludeComment:null, finalComments:null };
+  await dbSet('rooms/'+code,room);
+  G.isMJ=true; G.roomCode=code; G.room=room; G.gameType='quiz'; G.player=hostPlayer;
+  saveSession({role:'mj',code,playerId:idn.id,hostPlays:true,saveId:null,title});
+  setLobbyUI(room); show('screenMJLobby'); updateMJLobby(); startWatch();
+}
 window.createQuizGame=async function(){
   const theme=document.getElementById('aiTheme').value.trim();
   if(!theme){document.getElementById('aiTheme').focus();return;}
@@ -1389,19 +1411,42 @@ window.createQuizGame=async function(){
   const tmr=startAiLoading();
   try{
     const questions=await generateQuestions('quiz',theme);
-    const code=genCode();
-    const idn=myIdentity();
-    const hostPlayer=playerFromIdentity();
-    const room={ title:theme.charAt(0).toUpperCase()+theme.slice(1), gameType:'quiz', hostPlays:true, hostId:idn.id,
-      questions, phase:'lobby', currentQ:0, players:{[idn.id]:hostPlayer}, answers:{}, scores:{}, musicStartedAt:null,
-      createdAt:ts(), interludeComment:null, finalComments:null };
-    await dbSet('rooms/'+code,room);
-    G.isMJ=true; G.roomCode=code; G.room=room; G.gameType='quiz'; G.player=hostPlayer;
-    saveSession({role:'mj',code,playerId:idn.id,hostPlays:true,saveId:null,title:room.title});
-    setLobbyUI(room); show('screenMJLobby'); updateMJLobby(); startWatch();
+    await launchQuizWithQuestions(theme.charAt(0).toUpperCase()+theme.slice(1),questions);
   }catch(e){ alert('Erreur de génération. Réessaie !'); console.error(e); }
   finally{ clearInterval(tmr); stopAiLoading(); }
 };
+
+// ── Parties enregistrées (blind test + quiz) ──
+window.openSavedModal=async function(){
+  const list=document.getElementById('savedModalList');
+  list.innerHTML='<div class="spin-load"><span class="spin-icon">⏳</span></div>';
+  document.getElementById('savedModal').classList.remove('hidden');
+  const idx=await getSavedIdx();
+  if(!idx.length){ list.innerHTML='<div style="text-align:center;color:var(--txt2);padding:24px;font-weight:700">Aucune partie enregistrée 😢</div>'; return; }
+  list.innerHTML=idx.sort((a,b)=>b.savedAt-a.savedAt).map(g=>{
+    const gone=g.gameType==='imposteur';
+    const g2=GAMES[g.gameType]||GAMES.blindtest;
+    return `<div class="a-item"${gone?' style="opacity:.5"':''}><div style="font-size:22px">${gone?'🚫':g2.emoji}</div>
+      <div class="a-item-info"${gone?'':` data-load="${esc(g.id)}" style="cursor:pointer"`}>
+        <div class="a-item-name">${esc(g.title)}</div>
+        <div class="a-item-meta">${gone?'Jeu retiré — à supprimer':g2.name+' · '+g.count+' manche'+(g.count>1?'s':'')+' · '+fmtDate(g.savedAt)}</div>
+      </div>
+      <button class="btn-icon" data-del="${esc(g.id)}">🗑</button></div>`;
+  }).join('');
+  list.querySelectorAll('[data-load]').forEach(d=>d.addEventListener('click',()=>loadSavedGame(d.dataset.load)));
+  list.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',async()=>{ if(!confirm('Supprimer cette partie ?'))return; await delGame(b.dataset.del); openSavedModal(); }));
+};
+window.closeSavedModal=function(){document.getElementById('savedModal').classList.add('hidden');};
+async function loadSavedGame(id){
+  const game=await getGame(id); if(!game){alert('Introuvable');return;}
+  const gt=game.gameType||'blindtest';
+  const questions=(game.questions||[]).map(q=>({...q,id:q.id||ts()+Math.random()}));
+  closeSavedModal();
+  if(gt==='quiz'){ await launchQuizWithQuestions(game.title||'Quiz',questions); return; }
+  G.gameType='blindtest'; G.saveId=id; setupQs=questions;
+  document.getElementById('setupTitle').value=game.title||'Partie';
+  show('screenSetup'); applySetupMode(); renderSetupQs();
+}
 
 // ═══════════════════════════ SETUP (manuel — Blind Test) ═══════════════════════════
 function newQ(){return{id:ts()+Math.random(),url:'',title:'',choices:['','','',''],answer:0};}
