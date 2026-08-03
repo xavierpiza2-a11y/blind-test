@@ -48,6 +48,40 @@ button{cursor:pointer;border:none;background:none;color:inherit}
   100% { opacity: 1; transform: translateY(0) scale(1); }
 }
 
+/* Arcade Arena Custom Styles */
+.arcade-container { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; max-width: 440px; padding: 10px 0; gap: 10px; margin: 0 auto; }
+.arcade-header { text-align: center; margin-bottom: 4px; }
+.arcade-badge { display: inline-block; padding: 4px 12px; background: rgba(236, 72, 153, 0.25); border: 1.5px solid rgba(236, 72, 153, 0.6); color: #f472b6; border-radius: 20px; font-size: 11px; font-weight: 900; letter-spacing: 0.5px; margin-bottom: 4px; text-transform: uppercase; }
+.arcade-title { font-size: 19px; font-weight: 900; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.4); }
+.arcade-desc { font-size: 12px; color: var(--txt2); margin-top: 2px; font-weight: 700; }
+
+.reflex-btn { width: 200px; height: 200px; border-radius: 50%; border: none; font-size: 18px; font-weight: 900; color: #fff; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); user-select: none; -webkit-tap-highlight-color: transparent; transition: transform 0.1s ease, background 0.2s ease, box-shadow 0.2s ease; }
+.reflex-btn.waiting { background: linear-gradient(135deg, #ef4444, #991b1b); box-shadow: 0 0 30px rgba(239, 68, 68, 0.6); }
+.reflex-btn.ready { background: linear-gradient(135deg, #10b981, #047857); box-shadow: 0 0 45px rgba(16, 185, 129, 0.9); animation: pulseArcadeReady 0.35s ease infinite alternate; }
+.reflex-btn:active { transform: scale(0.94); }
+@keyframes pulseArcadeReady { 0% { transform: scale(1); } 100% { transform: scale(1.07); } }
+
+.target-arena { width: 100%; max-width: 380px; height: 210px; background: rgba(15, 23, 42, 0.85); border: 2px solid rgba(255, 255, 255, 0.15); border-radius: 20px; position: relative; overflow: hidden; box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.6); }
+.target-item { position: absolute; width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 26px; cursor: pointer; user-select: none; transform: translate(-50%, -50%); transition: transform 0.1s; box-shadow: 0 4px 14px rgba(0,0,0,0.4); }
+.target-item:active { transform: translate(-50%, -50%) scale(0.85); }
+
+.bomb-timer-display { font-size: 44px; font-weight: 900; font-family: monospace; color: #f59e0b; text-shadow: 0 0 20px rgba(245, 158, 11, 0.7); margin-bottom: 6px; }
+.bomb-btn { width: 100%; max-width: 280px; padding: 16px 20px; background: linear-gradient(135deg, #f59e0b, #d97706); border-radius: 18px; border: none; color: #fff; font-size: 17px; font-weight: 900; box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4); cursor: pointer; transition: transform 0.1s; }
+.bomb-btn:active { transform: scale(0.95); }
+
+.pattern-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 210px; height: 210px; }
+.pattern-pad { border-radius: 18px; border: none; font-size: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 6px 16px rgba(0,0,0,0.3); transition: transform 0.1s, opacity 0.15s, filter 0.15s; user-select: none; }
+.pattern-pad.p-0 { background: #ef4444; }
+.pattern-pad.p-1 { background: #3b82f6; }
+.pattern-pad.p-2 { background: #10b981; }
+.pattern-pad.p-3 { background: #f59e0b; }
+.pattern-pad.active { transform: scale(1.08); box-shadow: 0 0 25px #fff; filter: brightness(1.4); }
+.pattern-pad:active { transform: scale(0.92); }
+
+.arcade-live-leaderboard { width: 100%; max-width: 380px; background: rgba(0,0,0,0.35); border-radius: 16px; padding: 10px 14px; border: 1px solid rgba(255,255,255,0.08); }
+.arcade-live-row { display: flex; align-items: center; justify-content: space-between; font-size: 13px; font-weight: 800; padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
+.arcade-live-row:last-child { border-bottom: none; }
+
 .screen {
   display: none;
   min-height: 100dvh;
@@ -741,10 +775,11 @@ body.theme-gold {
           <span class="pc-icon">💡</span>
           <div><div class="pc-title">Quiz</div><div class="pc-sub">Culture G.</div></div>
         </button>
-        <div class="play-card soon">
-          <span class="pc-icon">🎲</span>
-          <div><div class="pc-title">Bientôt</div><div class="pc-sub">Nouveau jeu</div></div>
-        </div>
+        <button class="play-card quiz" onclick="window.openHost('arcade')" style="background:linear-gradient(135deg, #ec4899, #8b5cf6)">
+          <span class="pc-badge" style="background:#ec4899">ARCADE</span>
+          <span class="pc-icon">🕹️</span>
+          <div><div class="pc-title">Arcade Mini-Jeux</div><div class="pc-sub">Multi • L'hôte joue aussi</div></div>
+        </button>
       </div>
     </div>
 
@@ -824,9 +859,24 @@ body.theme-gold {
     </div>
 
     <div class="ai-panel">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px"><span style="font-size:18px">✨</span><div style="font-weight:800;font-size:14px">Générer avec l'IA (Xav)</div></div>
-      <div class="lbl">Thème</div>
-      <input class="inp" id="aiTheme" placeholder="Ex : variété FR 80s, Pop 2010…">
+      <div id="aiThemeGroup">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px"><span style="font-size:18px">✨</span><div style="font-weight:800;font-size:14px">Générer avec l'IA (Xav)</div></div>
+        <div class="lbl">Thème</div>
+        <input class="inp" id="aiTheme" placeholder="Ex : variété FR 80s, Pop 2010…">
+      </div>
+
+      <div id="arcadeModeGroup" style="display:none;margin-bottom:14px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px"><span style="font-size:18px">🕹️</span><div style="font-weight:800;font-size:14px">Choix du Mini-Jeu Arcade</div></div>
+        <div class="lbl">Mode de jeu</div>
+        <div class="pill-row" style="flex-wrap:wrap">
+          <button class="pill active" data-arcade="mix" onclick="window.setArcadeMode('mix')">🎲 Arcade Mix</button>
+          <button class="pill" data-arcade="reflex" onclick="window.setArcadeMode('reflex')">⚡ Éclair Reflex</button>
+          <button class="pill" data-arcade="target" onclick="window.setArcadeMode('target')">🎯 Target Rush</button>
+          <button class="pill" data-arcade="bomb" onclick="window.setArcadeMode('bomb')">💣 Bouton Chrono</button>
+          <button class="pill" data-arcade="pattern" onclick="window.setArcadeMode('pattern')">🔮 Pattern Rush</button>
+        </div>
+      </div>
+
       <div style="display:grid;grid-template-columns:1fr;gap:14px;margin-bottom:14px">
         <div>
           <div class="lbl">Difficulté</div>
@@ -848,6 +898,7 @@ body.theme-gold {
       </div>
       <button class="btn btn-primary" id="btnAiGenerate" onclick="window.generateBlind()" style="margin-bottom:0">✨ Générer les manches</button>
       <button class="btn btn-primary" id="btnCreateQuiz" onclick="window.createQuizGame()" style="margin-bottom:0;display:none">✨ Créer la partie</button>
+      <button class="btn btn-primary" id="btnCreateArcade" onclick="window.createArcadeGame()" style="margin-bottom:0;display:none;background:linear-gradient(135deg,#ec4899,#8b5cf6)">🚀 Créer l'Arcade Arena</button>
       <div id="aiGenLoading" style="display:none;text-align:center;padding:16px 0">
         <span class="spin-icon">⏳</span>
         <div style="font-size:13px;color:var(--txt2);margin-top:8px;font-weight:700" id="aiGenLoadingTxt">Xav prépare tout… 🎵</div>
@@ -960,6 +1011,7 @@ body.theme-gold {
       <p class="playing-txt">La musique joue chez l'hôte…</p>
     </div>
     <div id="pQuizQuestionBox" class="quiz-q-box" style="display:none;margin:0 4px 10px;max-width:440px;width:100%"></div>
+    <div id="pArcadeWrap" class="arcade-container" style="display:none"></div>
     <div class="status-box" id="pStatusBox"></div>
     <div class="ans-list-card">
       <div class="ans-bar-label"><span>Réponses</span><span id="pAnsBarLabel">0/0</span></div>
@@ -1324,6 +1376,15 @@ let GUEST = null;
 const GAMES={
   blindtest:{ id:'blindtest', name:'Blind Test', emoji:'🎤', hostPlays:false },
   quiz:     { id:'quiz',      name:'Quiz Culture G.', emoji:'💡', hostPlays:true },
+  arcade:   { id:'arcade',    name:'Arcade Arena', emoji:'🕹️', hostPlays:true },
+};
+
+const ARCADE_MODES = {
+  mix:     { id: 'mix',     name: 'Arcade Mix', emoji: '🎲', desc: 'Enchaîne les 4 mini-jeux au fil des manches !' },
+  reflex:  { id: 'reflex',  name: 'Éclair Reflex', emoji: '⚡', desc: 'Tape sur le bouton dès qu\'il passe au VERT !', duration: 10 },
+  target:  { id: 'target',  name: 'Target Rush', emoji: '🎯', desc: 'Attrape les cibles musicales, évite les bombes !', duration: 15 },
+  bomb:    { id: 'bomb',    name: 'Bouton Chrono', emoji: '💣', desc: 'Arrête le chrono au plus proche de 0.00s !', duration: 12 },
+  pattern: { id: 'pattern', name: 'Pattern Rush', emoji: '🔮', desc: 'Mémorise et répète la séquence de 4 sons !', duration: 15 }
 };
 
 // ── IDENTITÉ (invité + connecté) ──
@@ -1931,22 +1992,29 @@ document.getElementById('joinBtn').addEventListener('click',doJoin);
 }catch(e){console.error('Binding error:',e);}
 
 // ═══════════════════════════ HÔTE : ouvrir setup ═══════════════════════════
+let _selectedArcadeMode='mix';
+window.setArcadeMode=function(m){_selectedArcadeMode=m;document.querySelectorAll('.pill[data-arcade]').forEach(b=>b.classList.toggle('active',b.dataset.arcade===m));};
+
 window.openHost=function(gameType){
   G.gameType=gameType; G.saveId=null; setupQs=[newQ()];
-  document.getElementById('setupTitle').value = gameType==='quiz'?'Quiz Culture Générale':'Piza-House';
+  document.getElementById('setupTitle').value = gameType==='arcade'?'Arcade Arena':(gameType==='quiz'?'Quiz Culture Générale':'Piza-House');
   document.getElementById('aiTheme').value='';
   renderSetupQs();
   show('screenSetup');
 };
 function applySetupMode(){
   const isQuiz=G.gameType==='quiz';
-  document.getElementById('setupHeaderTitle').textContent=isQuiz?'💡 Nouveau Quiz':'🎤 Nouveau Blind Test';
+  const isArcade=G.gameType==='arcade';
+  document.getElementById('setupHeaderTitle').textContent=isArcade?'🕹️ Nouveau Mini-Jeu Arcade':(isQuiz?'💡 Nouveau Quiz':'🎤 Nouveau Blind Test');
+  document.getElementById('aiThemeGroup').style.display=isArcade?'none':'block';
+  document.getElementById('arcadeModeGroup').style.display=isArcade?'block':'none';
   document.getElementById('aiTheme').placeholder=isQuiz?'Ex : Histoire de France, Cinéma, Géo…':'Ex : variété FR 80s, Pop 2010…';
-  document.getElementById('aiCountLabel').textContent=isQuiz?'Questions':'Manches';
-  document.getElementById('blindExtra').style.display=isQuiz?'none':'block';
-  document.getElementById('btnAiGenerate').style.display=isQuiz?'none':'flex';
+  document.getElementById('aiCountLabel').textContent=isQuiz?'Questions':(isArcade?'Manches Arcade':'Manches');
+  document.getElementById('blindExtra').style.display=(isQuiz||isArcade)?'none':'block';
+  document.getElementById('btnAiGenerate').style.display=(isQuiz||isArcade)?'none':'flex';
   document.getElementById('btnCreateQuiz').style.display=isQuiz?'flex':'none';
-  document.getElementById('saveBtn').style.display=isQuiz?'none':'block';
+  document.getElementById('btnCreateArcade').style.display=isArcade?'flex':'none';
+  document.getElementById('saveBtn').style.display=(isQuiz||isArcade)?'none':'block';
 }
 
 // ═══════════════════════════ GÉNÉRATION IA ═══════════════════════════
@@ -2037,6 +2105,53 @@ window.createQuizGame=async function(){
     await launchQuizWithQuestions(theme.charAt(0).toUpperCase()+theme.slice(1),questions);
   }catch(e){ alert('Erreur de génération. Réessaie !'); console.error(e); }
   finally{ clearInterval(tmr); stopAiLoading(); }
+};
+
+window.createArcadeGame=async function(){
+  if(!ensureName()) return;
+  const arcadeMode = _selectedArcadeMode || 'mix';
+  const numRounds = _aiCount || 10;
+  const modeInfo = ARCADE_MODES[arcadeMode] || ARCADE_MODES.mix;
+  const title = modeInfo.name;
+
+  const rounds = [];
+  const modesList = ['reflex', 'target', 'bomb', 'pattern'];
+  for (let i = 0; i < numRounds; i++) {
+    const mode = arcadeMode === 'mix' ? modesList[i % modesList.length] : arcadeMode;
+    const info = ARCADE_MODES[mode];
+    rounds.push({
+      id: ts() + '_' + i,
+      mode: mode,
+      title: `${info.emoji} ${info.name} — Manche ${i + 1}`,
+      desc: info.desc,
+      duration: info.duration || 15,
+      choices: ['Arcade'],
+      answer: 0
+    });
+  }
+
+  const code = genCode(), idn = myIdentity(), hostPlayer = playerFromIdentity();
+  const room = {
+    title,
+    gameType: 'arcade',
+    hostPlays: true,
+    hostId: idn.id,
+    questions: rounds,
+    phase: 'lobby',
+    currentQ: 0,
+    players: { [idn.id]: hostPlayer },
+    answers: {},
+    scores: {},
+    musicStartedAt: null,
+    createdAt: ts(),
+    interludeComment: null,
+    finalComments: null
+  };
+
+  await dbSet('rooms/' + code, room);
+  G.isMJ = true; G.roomCode = code; G.room = room; G.gameType = 'arcade'; G.player = hostPlayer;
+  saveSession({ role: 'mj', code, playerId: idn.id, hostPlays: true, saveId: null, title });
+  setLobbyUI(room); show('screenMJLobby'); updateMJLobby(); startWatch();
 };
 
 // ── Parties enregistrées (blind test + quiz) ──
@@ -2332,18 +2447,312 @@ function renderPlayerLobbyChips(){
   document.getElementById('playerLobbyChips').innerHTML=players.map(p=>`<div class="chip">${p.avatar||'👤'} ${esc(p.name)}${p.lvl?' '+p.lvl:''}${p.guest?'<span class="badge-guest">Invité</span>':''}</div>`).join('');
 }
 
+// ═══════════════════════════ ARCADE ENGINE ═══════════════════════════
+let _reflexStartTs = 0;
+let _reflexReady = false;
+let _reflexTimer = null;
+let _targetScore = 0;
+let _targetCombo = 1;
+let _targetInterval = null;
+let _patternSeq = [];
+let _patternUserStep = 0;
+
+async function submitArcadeScore(pts, text) {
+  if (!G.roomCode || !G.player) return;
+  const currentQ = G.room.currentQ;
+  const pid = G.player.id;
+  const currentRoomScore = G.room.scores?.[pid] || 0;
+  await dbSet('rooms/' + G.roomCode + '/answers/' + currentQ + '/' + pid, { choice: 0, points: pts, text, ts: ts() });
+  await dbSet('rooms/' + G.roomCode + '/scores/' + pid, currentRoomScore + pts);
+}
+
+function initReflexGame(roundKey) {
+  const btn = document.getElementById('reflexBtn');
+  if (!btn || btn.dataset.inited) return;
+  btn.dataset.inited = 'true';
+
+  _reflexReady = false;
+  const delay = 1500 + Math.random() * 2000;
+  _reflexTimer = setTimeout(() => {
+    _reflexReady = true;
+    _reflexStartTs = Date.now();
+    const b = document.getElementById('reflexBtn');
+    if (b) {
+      b.className = 'reflex-btn ready';
+      const icon = document.getElementById('reflexBtnIcon');
+      const txt = document.getElementById('reflexBtnTxt');
+      if (icon) icon.textContent = '⚡';
+      if (txt) txt.textContent = 'TAPE !!!';
+    }
+  }, delay);
+
+  btn.onclick = async () => {
+    clearTimeout(_reflexTimer);
+    if (!_reflexReady) {
+      await submitArcadeScore(0, '💥 Faux départ !');
+    } else {
+      const reactionMs = Date.now() - _reflexStartTs;
+      const pts = Math.max(100, Math.round(1000 - reactionMs * 1.6));
+      await submitArcadeScore(pts, `⚡ ${reactionMs} ms ! (+${pts} pts)`);
+      if (typeof launchConfetti === 'function') launchConfetti(30);
+    }
+  };
+}
+
+function initTargetGame(roundKey) {
+  const arena = document.getElementById('targetArena');
+  if (!arena || arena.dataset.inited) return;
+  arena.dataset.inited = 'true';
+  _targetScore = 0;
+  _targetCombo = 1;
+
+  const items = ['🍕', '💿', '⭐', '💣'];
+  const spawnItem = () => {
+    const curArena = document.getElementById('targetArena');
+    if (!curArena) { clearInterval(_targetInterval); return; }
+    const item = document.createElement('div');
+    const type = Math.random() < 0.25 ? '💣' : items[Math.floor(Math.random() * 3)];
+    item.className = 'target-item';
+    item.textContent = type;
+    item.style.left = (15 + Math.random() * 70) + '%';
+    item.style.top = (15 + Math.random() * 70) + '%';
+    curArena.appendChild(item);
+
+    setTimeout(() => { if (item.parentNode) item.remove(); }, 1800);
+
+    item.onclick = (e) => {
+      e.stopPropagation();
+      item.remove();
+      if (type === '💣') {
+        _targetScore = Math.max(0, _targetScore - 80);
+        _targetCombo = 1;
+      } else {
+        const val = type === '⭐' ? 100 : (type === '💿' ? 70 : 50);
+        _targetScore += val * _targetCombo;
+        _targetCombo = Math.min(5, _targetCombo + 1);
+      }
+      const scoreVal = document.getElementById('targetScoreVal');
+      const comboVal = document.getElementById('targetComboVal');
+      if (scoreVal) scoreVal.textContent = _targetScore;
+      if (comboVal) comboVal.textContent = 'Combo x' + _targetCombo;
+
+      dbSet('rooms/' + G.roomCode + '/scores/' + G.player.id, (G.room.scores?.[G.player.id] || 0) + _targetScore);
+      dbSet('rooms/' + G.roomCode + '/answers/' + roundKey + '/' + G.player.id, { choice: 0, points: _targetScore, text: `🎯 ${_targetScore} pts` });
+    };
+  };
+
+  if (_targetInterval) clearInterval(_targetInterval);
+  _targetInterval = setInterval(spawnItem, 650);
+}
+
+function initBombGame(q, room, player) {
+  const btn = document.getElementById('bombTapBtn');
+  if (!btn || btn.dataset.inited) return;
+  btn.dataset.inited = 'true';
+
+  btn.onclick = async () => {
+    const left = Math.max(0, (q.duration || 12) - (ts() - room.musicStartedAt) / 1000);
+    if (left <= 0) {
+      await submitArcadeScore(0, '💥 BOOM ! Trop tard !');
+    } else {
+      const pts = Math.round(1000 - left * 75);
+      await submitArcadeScore(pts, `💣 Arrêté à ${left.toFixed(2)}s (+${pts} pts)`);
+      if (typeof launchConfetti === 'function') launchConfetti(30);
+    }
+  };
+}
+
+function initPatternGame(roundKey) {
+  const pads = document.querySelectorAll('.pattern-pad');
+  if (!pads.length || pads[0].dataset.inited) return;
+  pads[0].dataset.inited = 'true';
+
+  _patternSeq = [Math.floor(Math.random() * 4), Math.floor(Math.random() * 4), Math.floor(Math.random() * 4)];
+  _patternUserStep = 0;
+
+  let i = 0;
+  const timer = setInterval(() => {
+    if (i >= _patternSeq.length) {
+      clearInterval(timer);
+      const txt = document.getElementById('patternStatusTxt');
+      if (txt) txt.textContent = 'À TOI ! Répète la séquence 👇';
+      return;
+    }
+    const padIdx = _patternSeq[i];
+    const pad = document.querySelector(`.pattern-pad.p-${padIdx}`);
+    if (pad) {
+      pad.classList.add('active');
+      setTimeout(() => pad.classList.remove('active'), 400);
+    }
+    i++;
+  }, 700);
+
+  pads.forEach((pad, padIdx) => {
+    pad.onclick = async () => {
+      if (_patternSeq[_patternUserStep] === padIdx) {
+        _patternUserStep++;
+        if (_patternUserStep >= _patternSeq.length) {
+          await submitArcadeScore(850, '🔮 Séquence Parfaite ! (+850 pts)');
+          if (typeof launchConfetti === 'function') launchConfetti(35);
+        }
+      } else {
+        await submitArcadeScore(0, '❌ Mauvaise séquence ! (0 pt)');
+      }
+    };
+  });
+}
+
+function renderArcadeGame(q, room, player, myAns) {
+  const arcadeWrap = document.getElementById('pArcadeWrap');
+  if (!arcadeWrap) return;
+
+  const mode = q.mode || 'reflex';
+  const players = Object.values(room.players || {});
+  const answers = room.answers?.[room.currentQ] || {};
+  const currentRoundKey = room.currentQ;
+
+  let html = `
+    <div class="arcade-header">
+      <span class="arcade-badge">${q.title}</span>
+      <div class="arcade-desc">${esc(q.desc)}</div>
+    </div>`;
+
+  if (room.phase === 'music') {
+    if (mode === 'reflex') {
+      const isAnswered = answers[player.id] !== undefined;
+      if (isAnswered) {
+        const a = answers[player.id];
+        html += `
+          <div style="text-align:center;padding:20px;background:rgba(255,255,255,0.08);border-radius:20px;width:100%">
+            <div style="font-size:36px;margin-bottom:8px">${a.points > 0 ? '⚡' : '💥'}</div>
+            <div style="font-size:18px;font-weight:900;color:#fff">${a.text || (a.points + ' pts')}</div>
+            <p style="font-size:12px;color:var(--txt2);margin-top:4px">Score enregistré ! En attente des autres joueurs…</p>
+          </div>`;
+      } else {
+        html += `
+          <button id="reflexBtn" class="reflex-btn waiting">
+            <span id="reflexBtnIcon" style="font-size:36px">🚨</span>
+            <span id="reflexBtnTxt">ATTENDS...</span>
+          </button>`;
+      }
+    } else if (mode === 'target') {
+      html += `
+        <div style="display:flex;justify-content:space-between;align-items:center;width:100%;padding:0 8px">
+          <span style="font-size:14px;font-weight:800;color:#ffd700">🎯 Mon score: <b id="targetScoreVal">${_targetScore}</b></span>
+          <span style="font-size:13px;font-weight:800;color:#ec4899" id="targetComboVal">Combo x${_targetCombo}</span>
+        </div>
+        <div id="targetArena" class="target-arena"></div>`;
+    } else if (mode === 'bomb') {
+      const isAnswered = answers[player.id] !== undefined;
+      if (isAnswered) {
+        const a = answers[player.id];
+        html += `
+          <div style="text-align:center;padding:20px;background:rgba(255,255,255,0.08);border-radius:20px;width:100%">
+            <div style="font-size:36px;margin-bottom:8px">${a.points > 0 ? '💣' : '💥'}</div>
+            <div style="font-size:18px;font-weight:900;color:#fff">${a.text || (a.points + ' pts')}</div>
+            <p style="font-size:12px;color:var(--txt2);margin-top:4px">Chrono arrêté !</p>
+          </div>`;
+      } else {
+        const left = Math.max(0, (q.duration || 12) - (ts() - room.musicStartedAt) / 1000);
+        html += `
+          <div class="bomb-timer-display" id="bombDisplay">${left.toFixed(2)}s</div>
+          <button class="bomb-btn" id="bombTapBtn">💥 DÉSAMORCER NOW !</button>`;
+      }
+    } else if (mode === 'pattern') {
+      const isAnswered = answers[player.id] !== undefined;
+      if (isAnswered) {
+        const a = answers[player.id];
+        html += `
+          <div style="text-align:center;padding:20px;background:rgba(255,255,255,0.08);border-radius:20px;width:100%">
+            <div style="font-size:36px;margin-bottom:8px">${a.points > 0 ? '🔮' : '❌'}</div>
+            <div style="font-size:18px;font-weight:900;color:#fff">${a.text || (a.points + ' pts')}</div>
+          </div>`;
+      } else {
+        html += `
+          <div id="patternStatusTxt" style="font-size:14px;font-weight:800;color:#ffd700;margin-bottom:6px">Observes la séquence… 🔮</div>
+          <div class="pattern-grid">
+            <button class="pattern-pad p-0" data-pad="0">🎵</button>
+            <button class="pattern-pad p-1" data-pad="1">🎸</button>
+            <button class="pattern-pad p-2" data-pad="2">🥁</button>
+            <button class="pattern-pad p-3" data-pad="3">🎹</button>
+          </div>`;
+      }
+    }
+  } else if (room.phase === 'reveal') {
+    const sortedRound = [...players].sort((a, b) => (answers[b.id]?.points || 0) - (answers[a.id]?.points || 0));
+    const winner = sortedRound[0];
+    const winPoints = answers[winner?.id]?.points || 0;
+
+    html += `
+      <div style="text-align:center;padding:16px;background:rgba(255,255,255,0.1);border-radius:18px;width:100%;margin-bottom:8px">
+        <div style="font-size:32px;margin-bottom:4px">🏆</div>
+        <div style="font-size:16px;font-weight:900;color:#fff">${winner ? esc(winner.name) : 'Ami'} gagne la manche !</div>
+        <div style="font-size:13px;color:#ffd700;font-weight:800;margin-top:2px">+${winPoints} points</div>
+      </div>`;
+  }
+
+  const liveSorted = [...players].sort((a, b) => (room.scores?.[b.id] || 0) - (room.scores?.[a.id] || 0));
+  html += `
+    <div class="arcade-live-leaderboard">
+      <div style="font-size:11px;font-weight:900;color:var(--txt2);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Classement Live</div>
+      ${liveSorted.map((pl, idx) => {
+        const roundPts = answers[pl.id]?.points;
+        const totalPts = room.scores?.[pl.id] || 0;
+        return `
+          <div class="arcade-live-row">
+            <div style="display:flex;align-items:center;gap:6px">
+              <span>${MEDALS[idx] || (idx + 1) + '.'}</span>
+              <span>${pl.avatar}</span>
+              <span>${esc(pl.name)}${pl.id === player.id ? ' (toi)' : ''}</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px">
+              ${roundPts !== undefined ? `<span style="font-size:11px;color:#10b981;font-weight:800">+${roundPts}</span>` : ''}
+              <span style="color:#fff">${totalPts} pts</span>
+            </div>
+          </div>`;
+      }).join('')}
+    </div>`;
+
+  arcadeWrap.innerHTML = html;
+
+  if (room.phase === 'music' && !answers[player.id]) {
+    if (mode === 'reflex') initReflexGame(currentRoundKey);
+    else if (mode === 'target') initTargetGame(currentRoundKey);
+    else if (mode === 'bomb') initBombGame(q, room, player);
+    else if (mode === 'pattern') initPatternGame(currentRoundKey);
+  }
+}
+
 // ═══════════════════════════ JEU JOUEUR ═══════════════════════════
 const KAH_ICONS=['▲','◆','●','■'];
 function renderPlayerGame(){
   const r=G.room, p=G.player, q=r.questions[r.currentQ];
   const myAns=r.answers?.[r.currentQ]?.[p.id];
   document.getElementById('pScore').textContent=r.scores?.[p.id]||0;
-  document.getElementById('pQLabel').textContent=r.gameType==='quiz'?'🧠 Ta réponse ?':'🎵 Quel artiste ?';
+  document.getElementById('pQLabel').textContent = r.gameType === 'arcade' ? '🕹️ Arcade Arena !' : (r.gameType === 'quiz' ? '🧠 Ta réponse ?' : '🎵 Quel artiste ?');
   document.getElementById('screenPlayerGame').classList.toggle('host-playing', isHostPlayer());
+
+  const choices = document.getElementById('pChoices');
+  const arcadeWrap = document.getElementById('pArcadeWrap');
+  const visual = document.getElementById('pMusicVisual');
+  const qBox = document.getElementById('pQuizQuestionBox');
+
+  if(r.gameType === 'arcade'){
+    visual.style.display = 'none';
+    qBox.style.display = 'none';
+    choices.style.display = 'none';
+    arcadeWrap.style.display = 'flex';
+    renderArcadeGame(q, r, p, myAns);
+    updateAnsBar();
+    return;
+  } else {
+    arcadeWrap.style.display = 'none';
+    choices.style.display = 'grid';
+  }
+
   if(r.phase==='music'){
     document.getElementById('pPhaseMusic').style.display='flex';
     document.getElementById('pPhaseReveal').style.display='none';
-    const visual=document.getElementById('pMusicVisual'), qBox=document.getElementById('pQuizQuestionBox');
     if(r.gameType==='quiz'){ visual.style.display='none'; qBox.style.display='block'; qBox.textContent='🧠 '+q.title; }
     else{ visual.style.display='flex'; qBox.style.display='none'; }
     const left=Math.max(0,ANSWER_TIME-(ts()-r.musicStartedAt)/1000);
@@ -2352,7 +2761,6 @@ function renderPlayerGame(){
     if(myAns!==undefined)sb.innerHTML='<div class="answered">✅ Réponse enregistrée !</div>';
     else if(left<=0)sb.innerHTML='<div class="expired">⏱️ Temps écoulé</div>';
     else sb.innerHTML='';
-    const choices=document.getElementById('pChoices');
     const isNew=!choices.dataset.round||choices.dataset.round!==String(r.currentQ);
     choices.dataset.round=r.currentQ;
     choices.innerHTML=q.choices.map((c,ci)=>{
@@ -2370,7 +2778,6 @@ function renderPlayerGame(){
     document.getElementById('pRevealAnswer').textContent=q.choices[q.answer];
     document.getElementById('pResultBanner').innerHTML=a?(ok?`<div class="result-win">🎉 Bravo ! +${a.points} points</div>`:`<div class="result-lose">😢 Raté ! C'était : ${esc(q.choices[q.answer])}</div>`):`<div class="result-lose">⏱️ Trop lent cette fois…</div>`;
     if(ok)launchConfetti(40);
-    const choices=document.getElementById('pChoices');
     choices.innerHTML=q.choices.map((c,ci)=>{
       const isCorrect=ci===q.answer, isChosen=a&&a.choice===ci;
       const cls=isCorrect?'correct':isChosen?'wrong':'dim';
