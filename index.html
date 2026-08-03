@@ -41,12 +41,35 @@ button{cursor:pointer;border:none;background:none;color:inherit}
 @keyframes spin{to{transform:rotate(360deg)}}
 
 /* ═══════════════════════════════════════════
-   SCREENS
+   SCREENS & TRANSITIONS
 ═══════════════════════════════════════════ */
-.screen{display:none;min-height:100dvh;flex-direction:column;position:relative}
-.screen.active{display:flex}
-.game-screen{height:100dvh;max-height:100dvh;overflow:hidden;background:var(--bg)}
-.game-screen.active{display:flex}
+@keyframes screenFadeIn {
+  0% { opacity: 0; transform: translateY(12px) scale(0.985); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.screen {
+  display: none;
+  min-height: 100dvh;
+  flex-direction: column;
+  position: relative;
+  opacity: 0;
+}
+.screen.active {
+  display: flex;
+  animation: screenFadeIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.game-screen {
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+  background: var(--bg);
+  opacity: 0;
+}
+.game-screen.active {
+  display: flex;
+  animation: screenFadeIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
 
 /* ── WRAP (écrans shell) ── */
 .wrap{max-width:520px;margin:0 auto;padding:20px 16px 100px;flex:1;display:flex;flex-direction:column;width:100%}
@@ -149,10 +172,10 @@ select.inp{appearance:none}
 ═══════════════════════════════════════════ */
 .bottom-nav{position:fixed;left:0;right:0;bottom:0;z-index:100;display:none;background:var(--bg2);padding:8px 4px calc(6px + env(safe-area-inset-bottom));box-shadow:0 -4px 24px rgba(0,0,0,.18)}
 .bottom-nav.visible{display:flex}
-.nav-tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:5px 2px;color:rgba(255,255,255,.55);font-size:10px;font-weight:800}
-.nav-tab .ico{font-size:21px;line-height:1}
+.nav-tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:5px 2px;color:rgba(255,255,255,.55);font-size:10px;font-weight:800;transition:color .2s ease}
+.nav-tab .ico{font-size:21px;line-height:1;transition:transform .2s cubic-bezier(.34,1.56,.64,1)}
 .nav-tab.active{color:#fff}
-.nav-tab.active .ico{transform:translateY(-1px)}
+.nav-tab.active .ico{transform:translateY(-2px) scale(1.12)}
 
 /* ═══════════════════════════════════════════
    PROFIL
@@ -189,6 +212,263 @@ select.inp{appearance:none}
 .placeholder .ph-icon{font-size:64px;margin-bottom:16px;opacity:.7}
 .placeholder h3{font-size:20px;font-weight:900;color:#fff;margin-bottom:8px}
 .placeholder p{font-size:14px;font-weight:700;max-width:280px;line-height:1.5}
+
+/* ═══════════════════════════════════════════
+   ANIMATION & THEMES DE BOUTIQUE
+═══════════════════════════════════════════ */
+@keyframes sparklePulse {
+  0%, 100% { filter: brightness(1) drop-shadow(0 0 3px rgba(245, 197, 24, 0.4)); }
+  50% { filter: brightness(1.2) drop-shadow(0 0 12px rgba(245, 197, 24, 0.8)); }
+}
+@keyframes neonGlow {
+  0%, 100% { box-shadow: 0 0 15px rgba(42, 191, 191, 0.4), inset 0 0 10px rgba(42, 191, 191, 0.2); }
+  50% { box-shadow: 0 0 25px rgba(236, 72, 153, 0.7), inset 0 0 15px rgba(236, 72, 153, 0.4); }
+}
+@keyframes discoShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Thèmes spécifiques appliqués au body */
+body.theme-scintillant {
+  --bg: #1a162b;
+  --bg2: #282240;
+  --quiz: #FFD700;
+  --blind: #e0a53a;
+  background: linear-gradient(135deg, #1f1a30 0%, #2a1f45 50%, #151022 100%);
+  position: relative;
+}
+body.theme-scintillant::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(2px 2px at 20px 30px, #ffd700, rgba(0,0,0,0)),
+                    radial-gradient(2px 2px at 40px 70px, #ffffff, rgba(0,0,0,0)),
+                    radial-gradient(3px 3px at 80px 120px, #ffd700, rgba(0,0,0,0)),
+                    radial-gradient(2px 2px at 150px 40px, #ffb700, rgba(0,0,0,0));
+  background-repeat: repeat;
+  background-size: 200px 200px;
+  animation: sparklePulse 3s ease-in-out infinite;
+  z-index: 1;
+  opacity: 0.65;
+}
+
+body.theme-neon {
+  --bg: #0f172a;
+  --bg2: #1e293b;
+  --blind: #06b6d4;
+  --quiz: #ec4899;
+  background: radial-gradient(circle at top, #1e1b4b 0%, #0f172a 100%);
+}
+
+body.theme-sunset {
+  --bg: #2e1065;
+  --bg2: #3b0764;
+  --blind: #f43f5e;
+  --quiz: #fb923c;
+  background: linear-gradient(180deg, #2e1065 0%, #701a75 50%, #f43f5e 100%);
+}
+
+body.theme-cosmic {
+  --bg: #030712;
+  --bg2: #111827;
+  --blind: #6366f1;
+  --quiz: #38bdf8;
+  background: radial-gradient(ellipse at bottom, #1e1b4b 0%, #030712 100%);
+}
+
+body.theme-disco {
+  --bg: #4c1d95;
+  --bg2: #581c87;
+  --blind: #f43f5e;
+  --quiz: #eab308;
+  background: linear-gradient(-45deg, #4c1d95, #831843, #1e3a8a, #065f46);
+  background-size: 400% 400%;
+  animation: discoShift 12s ease infinite;
+}
+
+body.theme-gold {
+  --bg: #1c1917;
+  --bg2: #292524;
+  --blind: #eab308;
+  --quiz: #f59e0b;
+  background: radial-gradient(circle at center, #292524 0%, #0c0a09 100%);
+}
+
+/* Boutique UI */
+.shop-header-card {
+  background: var(--darkcard);
+  border-radius: 20px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+}
+.stars-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--dark);
+  padding: 8px 16px;
+  border-radius: 14px;
+  font-size: 18px;
+  font-weight: 900;
+  color: #ffd700;
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.25);
+}
+.shop-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.shop-card {
+  background: var(--whitecard);
+  border-radius: 18px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+  border: 1.5px solid rgba(255,255,255,0.12);
+}
+.shop-card.equipped {
+  border-color: #ffd700;
+  background: rgba(255, 215, 0, 0.12);
+}
+.shop-preview {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  flex-shrink: 0;
+  background: var(--darkcard);
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.3);
+  overflow: hidden;
+}
+.shop-info {
+  flex: 1;
+  min-width: 0;
+}
+.shop-title {
+  font-size: 15px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.shop-desc {
+  font-size: 12px;
+  color: var(--txt2);
+  margin-top: 2px;
+  line-height: 1.35;
+}
+.shop-tag {
+  font-size: 10px;
+  font-weight: 900;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: rgba(255,255,255,0.2);
+  text-transform: uppercase;
+}
+.shop-btn {
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 800;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+.shop-btn.buy {
+  background: #ffd700;
+  color: #1a1a2e;
+}
+.shop-btn.equipped {
+  background: rgba(255,255,255,0.2);
+  color: #fff;
+  cursor: default;
+}
+.shop-btn.activate {
+  background: #fff;
+  color: var(--bg);
+}
+.shop-btn.locked {
+  background: rgba(0,0,0,0.3);
+  color: rgba(255,255,255,0.5);
+}
+
+/* ═══════════════════════════════════════════
+   BADGES & SUCCÈS
+═══════════════════════════════════════════ */
+.badges-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+  margin-bottom: 24px;
+}
+.badge-card {
+  background: var(--darkcard);
+  border-radius: 16px;
+  padding: 12px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  border: 1.5px solid rgba(255,255,255,0.08);
+  opacity: 0.45;
+  filter: grayscale(0.8);
+  transition: all 0.25s ease;
+  position: relative;
+}
+.badge-card.unlocked {
+  opacity: 1;
+  filter: none;
+  background: rgba(255, 215, 0, 0.08);
+  border-color: rgba(255, 215, 0, 0.4);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+}
+.badge-icon {
+  font-size: 28px;
+  line-height: 1;
+  margin-bottom: 6px;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+}
+.badge-name {
+  font-size: 11px;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.25;
+}
+.badge-desc {
+  font-size: 9.5px;
+  color: var(--txt2);
+  margin-top: 3px;
+  line-height: 1.2;
+}
+.badge-status {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  font-size: 10px;
+}
+.xp-toast.badge-toast {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  margin-top: 6px;
+}
 
 /* ═══════════════════════════════════════════
    SETUP
@@ -512,14 +792,7 @@ select.inp{appearance:none}
 
 <!-- ══════════════════════════════════════════ BOUTIQUE ══════════════════════════════════════════ -->
 <div id="screenShop" class="screen">
-  <div class="wrap">
-    <div class="app-header"><div class="hdr-info"><div class="hdr-name">🛒 Boutique</div><div class="hdr-hi">Avatars, thèmes & bonus</div></div></div>
-    <div class="placeholder">
-      <div class="ph-icon">🛒</div>
-      <h3>Bientôt disponible</h3>
-      <p>Débloque des avatars exclusifs et des thèmes avec ton XP. Reste connecté !</p>
-    </div>
-  </div>
+  <div class="wrap" id="shopWrap"></div>
 </div>
 
 <!-- ══════════════════════════════════════════ PROFIL ══════════════════════════════════════════ -->
@@ -857,23 +1130,188 @@ function randomColor(){return COLORS[Math.floor(Math.random()*COLORS.length)];}
 function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
 function fmtDate(t){return new Date(t).toLocaleDateString('fr-FR',{day:'2-digit',month:'short'});}
 
-// ── XP / NIVEAUX ──
-const LEVELS=[
-  {min:0,    name:'Recrue',  icon:'🌱'},
-  {min:100,  name:'Joueur',  icon:'🎮'},
-  {min:300,  name:'Habitué', icon:'⭐'},
-  {min:600,  name:'Expert',  icon:'🔥'},
-  {min:1000, name:'Légende', icon:'💎'},
-  {min:1500, name:'Maître',  icon:'👑'},
+// ── XP / NIVEAUX (50 Niveaux avec courbe progressive) ──
+const LEVEL_TITLES = [
+  {lvl:1, name:'Recrue', icon:'🐣'},
+  {lvl:2, name:'Débutant', icon:'🎵'},
+  {lvl:3, name:'Amateur', icon:'🎧'},
+  {lvl:4, name:'Challenger', icon:'🎮'},
+  {lvl:5, name:'Mélomane', icon:'🎶'},
+  {lvl:6, name:'Initié', icon:'⭐'},
+  {lvl:7, name:'Régulier', icon:'🎯'},
+  {lvl:8, name:'Connaisseur', icon:'📻'},
+  {lvl:9, name:'Virtuose', icon:'🎻'},
+  {lvl:10, name:'As du Blind Test', icon:'🎤'},
+  {lvl:12, name:'Mélomane Averti', icon:'🎷'},
+  {lvl:15, name:'Maître des Salles', icon:'👑'},
+  {lvl:18, name:'Génie de la Pop', icon:'⚡'},
+  {lvl:20, name:'Légende Piza-House', icon:'💎'},
+  {lvl:25, name:'Phenom Musical', icon:'🔥'},
+  {lvl:30, name:'Empereur du Quiz', icon:'🌟'},
+  {lvl:35, name:'Oracle des Tubes', icon:'🔮'},
+  {lvl:40, name:'Dieu du Rythme', icon:'🔱'},
+  {lvl:45, name:'Titan de la Musique', icon:'🌌'},
+  {lvl:50, name:'Xav Suprême', icon:'🏆✨'}
 ];
+
 function levelFor(xp){
-  xp=xp||0;
-  let idx=0;
-  for(let i=0;i<LEVELS.length;i++){ if(xp>=LEVELS[i].min) idx=i; }
-  const cur=LEVELS[idx], next=LEVELS[idx+1]||null;
-  const curMin=cur.min, nextMin=next?next.min:cur.min;
-  const progress=next? Math.min(1,(xp-curMin)/(nextMin-curMin)) : 1;
-  return {level:idx+1, name:cur.name, icon:cur.icon, curMin, nextMin, progress, isMax:!next, xp};
+  xp = Math.max(0, xp || 0);
+  let lvl = 1;
+  while (lvl < 50) {
+    const nextXp = Math.floor(120 * Math.pow(lvl, 1.65));
+    if (xp >= nextXp) lvl++;
+    else break;
+  }
+  const curMin = lvl === 1 ? 0 : Math.floor(120 * Math.pow(lvl - 1, 1.65));
+  const nextMin = Math.floor(120 * Math.pow(lvl, 1.65));
+  const progress = lvl >= 50 ? 1 : Math.min(1, Math.max(0, (xp - curMin) / (nextMin - curMin)));
+
+  let titleObj = LEVEL_TITLES[0];
+  for (let i = 0; i < LEVEL_TITLES.length; i++) {
+    if (lvl >= LEVEL_TITLES[i].lvl) titleObj = LEVEL_TITLES[i];
+  }
+
+  return { level: lvl, name: titleObj.name, icon: titleObj.icon, curMin, nextMin, progress, isMax: lvl >= 50, xp };
+}
+
+// ── BOUTIQUE & AVATARS DESIGN ──
+const DESIGN_AVATARS = {
+  avatar_rockstar: {
+    id: 'avatar_rockstar', name: 'Cat Rockstar 🎸', price: 250, desc: 'Chat déjanté aux lunettes noires et guitare électrique.',
+    svg: (s) => `<svg width="${s}" height="${s}" viewBox="0 0 100 100"><circle cx="50" cy="50" r="48" fill="#1e1b4b"/><polygon points="20,25 35,5 45,30" fill="#f43f5e"/><polygon points="80,25 65,5 55,30" fill="#f43f5e"/><circle cx="50" cy="55" r="30" fill="#fb7185"/><rect x="25" y="42" width="50" height="18" rx="6" fill="#0f172a"/><circle cx="38" cy="51" r="5" fill="#38bdf8"/><circle cx="62" cy="51" r="5" fill="#38bdf8"/><path d="M45,68 Q50,76 55,68" stroke="#0f172a" stroke-width="3" fill="none"/><polygon points="70,60 90,85 82,90 65,70" fill="#ef4444"/></svg>`
+  },
+  avatar_cyberdj: {
+    id: 'avatar_cyberdj', name: 'Cyber DJ 🎧', price: 350, desc: 'Casque néon à résonance électro-spatiale.',
+    svg: (s) => `<svg width="${s}" height="${s}" viewBox="0 0 100 100"><circle cx="50" cy="50" r="48" fill="#0284c7"/><path d="M20,50 A30,30 0 0,1 80,50" fill="none" stroke="#38bdf8" stroke-width="8"/><rect x="12" y="42" width="16" height="28" rx="6" fill="#ec4899"/><rect x="72" y="42" width="16" height="28" rx="6" fill="#ec4899"/><circle cx="50" cy="56" r="22" fill="#0f172a"/><path d="M32,52 Q50,62 68,52" stroke="#22d3ee" stroke-width="4" fill="none"/></svg>`
+  },
+  avatar_pizachef: {
+    id: 'avatar_pizachef', name: 'Pizza Chef 🍕', price: 450, desc: 'La tranche sacrée de la Piza-House avec sa toque.',
+    svg: (s) => `<svg width="${s}" height="${s}" viewBox="0 0 100 100"><circle cx="50" cy="50" r="48" fill="#78350f"/><polygon points="50,22 18,82 82,82" fill="#f59e0b"/><polygon points="50,28 24,78 76,78" fill="#fef08a"/><circle cx="42" cy="50" r="6" fill="#dc2626"/><circle cx="58" cy="62" r="5" fill="#dc2626"/><circle cx="38" cy="68" r="4" fill="#dc2626"/><path d="M35,20 C35,10 65,10 65,20 C75,20 75,32 65,32 L35,32 C25,32 25,20 35,20 Z" fill="#ffffff"/></svg>`
+  },
+  avatar_goldmic: {
+    id: 'avatar_goldmic', name: 'Micro d\'Or 🎤', price: 600, desc: 'Microphone trophée serti de diamants.',
+    svg: (s) => `<svg width="${s}" height="${s}" viewBox="0 0 100 100"><circle cx="50" cy="50" r="48" fill="#1c1917"/><rect x="42" y="18" width="16" height="30" rx="8" fill="#f59e0b"/><rect x="44" y="20" width="12" height="26" rx="6" fill="#fef08a"/><path d="M32,36 A18,18 0 0,0 68,36" stroke="#fbbf24" stroke-width="5" fill="none"/><line x1="50" y1="54" x2="50" y2="76" stroke="#fbbf24" stroke-width="6"/><rect x="36" y="76" width="28" height="10" rx="4" fill="#d97706"/><polygon points="20,20 25,12 30,20" fill="#fef08a"/><polygon points="75,25 80,18 85,25" fill="#fef08a"/></svg>`
+  },
+  avatar_spaceastro: {
+    id: 'avatar_spaceastro', name: 'Astronaute 👨‍🚀', price: 750, desc: 'Casque galactique aux reflets nébuleux.',
+    svg: (s) => `<svg width="${s}" height="${s}" viewBox="0 0 100 100"><circle cx="50" cy="50" r="48" fill="#090d16"/><circle cx="50" cy="50" r="36" fill="#e2e8f0"/><ellipse cx="50" cy="48" rx="26" ry="20" fill="#1e1b4b"/><path d="M28,42 C38,30 62,30 72,42 C65,58 35,58 28,42 Z" fill="url(#astroGrad)"/><defs><linearGradient id="astroGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ec4899"/><stop offset="100%" stop-color="#3b82f6"/></linearGradient></defs></svg>`
+  },
+  avatar_dragon: {
+    id: 'avatar_dragon', name: 'Dragon de Feu 🐉', price: 1000, desc: 'Blason mythique cracheur d\'étincelles.',
+    svg: (s) => `<svg width="${s}" height="${s}" viewBox="0 0 100 100"><circle cx="50" cy="50" r="48" fill="#450a0a"/><path d="M30,75 C20,50 35,25 55,20 C70,16 85,25 80,45 C75,60 55,65 50,85 C40,75 35,80 30,75 Z" fill="#ef4444"/><path d="M40,65 C32,45 42,28 58,24 C68,22 75,30 72,42 Z" fill="#fbbf24"/><circle cx="62" cy="32" r="4" fill="#000"/></svg>`
+  },
+  avatar_robot: {
+    id: 'avatar_robot', name: 'Xav Robot 🤖', price: 1200, desc: 'L\'incarnation cybernétique de votre hôte favori.',
+    svg: (s) => `<svg width="${s}" height="${s}" viewBox="0 0 100 100"><circle cx="50" cy="50" r="48" fill="#0f172a"/><rect x="24" y="28" width="52" height="44" rx="10" fill="#94a3b8"/><rect x="30" y="34" width="40" height="22" rx="6" fill="#1e293b"/><circle cx="40" cy="45" r="5" fill="#22d3ee"/><circle cx="60" cy="45" r="5" fill="#22d3ee"/><rect x="38" y="60" width="24" height="4" rx="2" fill="#ef4444"/><line x1="50" y1="28" x2="50" y2="14" stroke="#94a3b8" stroke-width="4"/><circle cx="50" cy="12" r="5" fill="#f59e0b"/></svg>`
+  }
+};
+
+const SHOP_THEMES = [
+  { id: 'original', name: 'Piza Saumon 🍕', price: 0, desc: 'Le thème classique et emblématique de la Piza-House.', previewColor: 'linear-gradient(135deg, #F07050, #E85D3A)', tag: 'Gratuit' },
+  { id: 'scintillant', name: 'Or Scintillant ✨', price: 300, desc: 'Fond violet d’or avec pluie d’étoiles et paillettes animées !', previewColor: 'linear-gradient(135deg, #2a1f45, #ffd700)', tag: 'Animé ✨' },
+  { id: 'neon', name: 'Néon Cyberpunk ⚡', price: 500, desc: 'Inspiration néon cyan & magenta futuriste.', previewColor: 'linear-gradient(135deg, #0f172a, #ec4899)', tag: 'Lumière 💡' },
+  { id: 'sunset', name: 'Sunset Synthwave 🌅', price: 700, desc: 'Dégradé crépusculaire violet & orange californien.', previewColor: 'linear-gradient(135deg, #2e1065, #f43f5e)', tag: 'Chaud 🔥' },
+  { id: 'cosmic', name: 'Galaxie Cosmique 🌌', price: 900, desc: 'Plongée dans les profondeurs de l’espace sidéral.', previewColor: 'linear-gradient(135deg, #030712, #6366f1)', tag: 'Mystic 🔮' },
+  { id: 'disco', name: 'Disco Rétro 80s 🕺', price: 1200, desc: 'Animation dégradée arc-en-ciel multicolore en mouvement !', previewColor: 'linear-gradient(135deg, #4c1d95, #065f46)', tag: 'Animé ✨' },
+  { id: 'gold', name: 'Luxe & Diamant 💎', price: 1500, desc: 'Réservé à l’élite. Finition sombre impériale aux accents d’or.', previewColor: 'linear-gradient(135deg, #292524, #eab308)', tag: 'Prestige 🏆' }
+];
+
+function applyUserTheme(themeId) {
+  const tid = themeId || AUTH.profile?.equippedTheme || 'original';
+  document.body.className = tid !== 'original' ? 'theme-' + tid : '';
+}
+
+// ── SYSTÈME DE BADGES & SUCCÈS (23 BADGES) ──
+const BADGES = [
+  { id: 'first_game', icon: '🎵', name: 'Première Note', desc: 'Participer à sa 1ère partie.' },
+  { id: 'perfect_game', icon: '💯', name: 'Sans Faute !', desc: '100% de bonnes réponses dans 1 partie.' },
+  { id: 'night_owl', icon: '🌙', name: 'Joueur Nocturne', desc: 'Partie jouée entre 22h et 6h.' },
+  { id: 'early_bird', icon: '🌅', name: 'Lève-Tôt', desc: 'Partie jouée entre 6h et 9h.' },
+  { id: 'streak_3', icon: '🔥', name: 'Série de 3', desc: '3 bonnes réponses consécutives.' },
+  { id: 'streak_5', icon: '👑', name: 'Roi de la Série', desc: '5 bonnes réponses consécutives.' },
+  { id: 'streak_10', icon: '🚀', name: 'Inarrêtable', desc: '10 bonnes réponses consécutives.' },
+  { id: 'fast_draw', icon: '⚡', name: 'Éclair de Génie', desc: 'Réponse correcte en < 2s.' },
+  { id: 'speed_demon', icon: '⏱️', name: 'Doigts de Fée', desc: '3 réponses en < 3s dans 1 partie.' },
+  { id: 'victory_1', icon: '🏆', name: 'Premier Champion', desc: 'Terminer 1er de la partie.' },
+  { id: 'podium_3', icon: '🥉', name: 'Sur le Podium', desc: 'Finir dans le Top 3.' },
+  { id: 'veteran_10', icon: '🎮', name: 'Mélomane Accro', desc: 'Jouer au moins 10 parties.' },
+  { id: 'veteran_50', icon: '🛡️', name: 'Vétéran Piza', desc: 'Jouer au moins 50 parties.' },
+  { id: 'star_collector_50', icon: '⭐', name: 'Petite Étoile', desc: 'Cumuler 50 étoiles.' },
+  { id: 'star_collector_300', icon: '🌌', name: 'Constellation', desc: 'Cumuler 300 étoiles.' },
+  { id: 'shopaholic', icon: '🛒', name: 'Fashion Victim', desc: 'Acheter un article en boutique.' },
+  { id: 'theme_collector', icon: '🎨', name: 'Décorateur', desc: 'Posséder 3 thèmes de salle.' },
+  { id: 'avatar_vip', icon: '🎭', name: 'Look VIP', desc: 'Posséder un avatar stylisé.' },
+  { id: 'level_10', icon: '🎖️', name: 'Niveau 10', desc: 'Atteindre le Niveau 10.' },
+  { id: 'level_25', icon: '💎', name: 'Légende Vivante', desc: 'Atteindre le Niveau 25.' },
+  { id: 'correct_50', icon: '👂', name: 'Fine Oreille', desc: 'Cumuler 50 bonnes réponses.' },
+  { id: 'correct_200', icon: '📚', name: 'Encyclopédie', desc: 'Cumuler 200 bonnes réponses.' },
+  { id: 'high_scorer', icon: '💣', name: 'Score Explosif', desc: 'Obtenir > 100 points en 1 partie.' }
+];
+
+async function checkAndAwardBadges(gameStats = null) {
+  if (!AUTH.user || !AUTH.profile) return;
+  const prof = AUTH.profile;
+  const unlocked = new Set(prof.badges || []);
+  const initialCount = unlocked.size;
+  const nowHour = new Date().getHours();
+  const st = prof.stats || {};
+  const lvlObj = levelFor(prof.xp);
+
+  if ((st.games || 0) >= 1) unlocked.add('first_game');
+  if ((st.games || 0) >= 10) unlocked.add('veteran_10');
+  if ((st.games || 0) >= 50) unlocked.add('veteran_50');
+
+  if ((st.correct || 0) >= 50) unlocked.add('correct_50');
+  if ((st.correct || 0) >= 200) unlocked.add('correct_200');
+
+  if ((prof.stars || 0) >= 50) unlocked.add('star_collector_50');
+  if ((prof.stars || 0) >= 300) unlocked.add('star_collector_300');
+
+  const themesCount = (prof.unlockedThemes || ['original']).length;
+  const avatarsCount = (prof.unlockedAvatars || []).length;
+  if (themesCount >= 2 || avatarsCount >= 1) unlocked.add('shopaholic');
+  if (themesCount >= 3) unlocked.add('theme_collector');
+  if (avatarsCount >= 1) unlocked.add('avatar_vip');
+
+  if (lvlObj.level >= 10) unlocked.add('level_10');
+  if (lvlObj.level >= 25) unlocked.add('level_25');
+
+  if (gameStats) {
+    if (nowHour >= 22 || nowHour < 6) unlocked.add('night_owl');
+    if (nowHour >= 6 && nowHour < 9) unlocked.add('early_bird');
+
+    if (gameStats.rank === 0) unlocked.add('victory_1');
+    if (gameStats.rank !== undefined && gameStats.rank >= 0 && gameStats.rank <= 2) unlocked.add('podium_3');
+
+    if (gameStats.answered > 0 && gameStats.correct === gameStats.answered && gameStats.answered >= 3) {
+      unlocked.add('perfect_game');
+    }
+
+    if (gameStats.maxStreak >= 3) unlocked.add('streak_3');
+    if (gameStats.maxStreak >= 5) unlocked.add('streak_5');
+    if (gameStats.maxStreak >= 10) unlocked.add('streak_10');
+
+    if (gameStats.fastestTime > 0 && gameStats.fastestTime < 2) unlocked.add('fast_draw');
+    if (gameStats.fastCount >= 3) unlocked.add('speed_demon');
+
+    if (gameStats.score > 100) unlocked.add('high_scorer');
+  }
+
+  if (unlocked.size > initialCount) {
+    const updatedArray = Array.from(unlocked);
+    AUTH.profile.badges = updatedArray;
+    await dbSet(USERS_REF + '/' + AUTH.user.uid + '/badges', updatedArray);
+
+    const toast = document.getElementById('xpToast');
+    if (toast) {
+      const diff = unlocked.size - initialCount;
+      const txt = diff === 1 ? '🏆 Nouveau Badge Débloqué !' : `🏆 ${diff} Nouveaux Badges Débloqués !`;
+      const badgeElem = document.createElement('div');
+      badgeElem.className = 'xp-toast badge-toast';
+      badgeElem.textContent = txt;
+      toast.appendChild(badgeElem);
+    }
+  }
 }
 
 // ── GLOBAL STATE ──
@@ -898,10 +1336,11 @@ function myIdentity(){
   if(AUTH.user && AUTH.profile){
     return { id:'u'+AUTH.user.uid, name:AUTH.profile.name, avatar:AUTH.profile.avatar||'🎵',
       color:AUTH.profile.color||'#F5C518', photoURL:AUTH.profile.customPhoto||AUTH.profile.photoURL||'',
-      connected:true, lvl:levelFor(AUTH.profile.xp).icon };
+      connected:true, lvl:levelFor(AUTH.profile.xp).icon, stars:AUTH.profile.stars||0,
+      equippedTheme:AUTH.profile.equippedTheme||'original' };
   }
   const g=GUEST||loadGuest();
-  return { id:g.id, name:g.name||'Invité', avatar:g.avatar||randAvatar(), color:'#1A1A2E', photoURL:'', connected:false, guest:true };
+  return { id:g.id, name:g.name||'Invité', avatar:g.avatar||randAvatar(), color:'#1A1A2E', photoURL:'', connected:false, guest:true, stars:0, equippedTheme:'original' };
 }
 function ensureName(){
   const idn=myIdentity();
@@ -920,7 +1359,8 @@ function playerFromIdentity(nameOverride){
 }
 function avatarHtml(p,size){
   const s=size||28;
-  if(p && (p.photoURL||p.customPhoto)) return `<img src="${esc(p.customPhoto||p.photoURL)}" alt="">`;
+  if(p && (p.photoURL||p.customPhoto)) return `<img src="${esc(p.customPhoto||p.photoURL)}" alt="" style="width:100%;height:100%;object-fit:cover">`;
+  if(p && p.avatar && DESIGN_AVATARS[p.avatar]) return DESIGN_AVATARS[p.avatar].svg(s);
   return `<span style="font-size:${Math.round(s*0.55)}px">${(p&&p.avatar)||'👤'}</span>`;
 }
 
@@ -935,6 +1375,7 @@ function show(id){
   window.scrollTo(0,0);
   if(id==='screenHome'){ refreshHeader(); renderHomeRooms(); }
   if(id==='screenLeaderboard') renderLeaderboard();
+  if(id==='screenShop') renderShop();
   if(id==='screenProfile') renderProfile();
   if(id==='screenSetup') applySetupMode();
   renderHostFab();
@@ -1142,7 +1583,161 @@ async function renderLeaderboard(){
   }).join('');
 }
 
-// ═══════════════════════════ PROFIL ═══════════════════════════
+// ═══════════════════════════ PROFIL & BOUTIQUE ═══════════════════════════
+window.buyShopItem = async function(type, id) {
+  if (!AUTH.user || !AUTH.profile) {
+    alert("Connecte-toi pour faire des achats dans la boutique !");
+    return;
+  }
+  const prof = AUTH.profile;
+  const userStars = prof.stars || 0;
+  let item = null;
+  if (type === 'theme') item = SHOP_THEMES.find(t => t.id === id);
+  if (type === 'avatar') item = DESIGN_AVATARS[id];
+
+  if (!item) return;
+
+  const unlockedThemes = prof.unlockedThemes || ['original'];
+  const unlockedAvatars = prof.unlockedAvatars || [];
+
+  const isUnlocked = type === 'theme' ? unlockedThemes.includes(id) : unlockedAvatars.includes(id);
+
+  if (isUnlocked) {
+    if (type === 'theme') {
+      await dbSet(USERS_REF + '/' + AUTH.user.uid + '/equippedTheme', id);
+      AUTH.profile.equippedTheme = id;
+      applyUserTheme(id);
+    } else if (type === 'avatar') {
+      await dbSet(USERS_REF + '/' + AUTH.user.uid + '/avatar', id);
+      AUTH.profile.avatar = id;
+    }
+    refreshHeader();
+    renderShop();
+    renderProfile();
+    return;
+  }
+
+  if (userStars < item.price) {
+    alert(`Il te manque ${item.price - userStars} ⭐ étoiles pour débloquer cet article ! Joue des parties pour en gagner.`);
+    return;
+  }
+
+  if (!confirm(`Acheter "${item.name}" pour ${item.price} ⭐ étoiles ?`)) return;
+
+  const newStars = userStars - item.price;
+  if (type === 'theme') {
+    const newUnlocked = [...unlockedThemes, id];
+    await dbSet(USERS_REF + '/' + AUTH.user.uid + '/unlockedThemes', newUnlocked);
+    await dbSet(USERS_REF + '/' + AUTH.user.uid + '/equippedTheme', id);
+    await dbSet(USERS_REF + '/' + AUTH.user.uid + '/stars', newStars);
+    AUTH.profile.unlockedThemes = newUnlocked;
+    AUTH.profile.equippedTheme = id;
+    AUTH.profile.stars = newStars;
+    applyUserTheme(id);
+  } else if (type === 'avatar') {
+    const newUnlocked = [...unlockedAvatars, id];
+    await dbSet(USERS_REF + '/' + AUTH.user.uid + '/unlockedAvatars', newUnlocked);
+    await dbSet(USERS_REF + '/' + AUTH.user.uid + '/avatar', id);
+    await dbSet(USERS_REF + '/' + AUTH.user.uid + '/stars', newStars);
+    AUTH.profile.unlockedAvatars = newUnlocked;
+    AUTH.profile.avatar = id;
+    AUTH.profile.stars = newStars;
+  }
+
+  launchConfetti(50);
+  await checkAndAwardBadges();
+  refreshHeader();
+  renderShop();
+  renderProfile();
+};
+
+function renderShop() {
+  const el = document.getElementById('shopWrap');
+  if (!el) return;
+  const idn = myIdentity();
+  if (!idn.connected) {
+    el.innerHTML = `
+      <div class="app-header"><div class="hdr-info"><div class="hdr-name">🛒 Boutique</div><div class="hdr-hi">Débloque thèmes & avatars</div></div></div>
+      <div class="guest-banner" style="margin-top:8px">
+        <h3>🔒 Connecte-toi pour accéder à la boutique</h3>
+        <p>Gagne des ⭐ étoiles en jouant rapidement et en faisant des séries pour débloquer des thèmes animés et des avatars exclusifs !</p>
+        <button class="btn-signup" onclick="window.doGoogleLogin()">Continuer avec Google</button>
+      </div>`;
+    return;
+  }
+
+  const prof = AUTH.profile;
+  const stars = prof.stars || 0;
+  const equippedTheme = prof.equippedTheme || 'original';
+  const unlockedThemes = prof.unlockedThemes || ['original'];
+  const currentAvatar = prof.avatar || '🎵';
+  const unlockedAvatars = prof.unlockedAvatars || [];
+
+  let html = `
+    <div class="app-header">
+      <div class="hdr-info">
+        <div class="hdr-name">🛒 Boutique</div>
+        <div class="hdr-hi">Thèmes animés & Avatars VIP</div>
+      </div>
+      <div class="stars-badge">⭐ ${stars}</div>
+    </div>
+
+    <div class="shop-header-card">
+      <div>
+        <div style="font-weight:900;font-size:15px;color:#fff">Comment gagner des ⭐ ?</div>
+        <div style="font-size:12px;color:var(--txt2);margin-top:3px;line-height:1.4">Réponses sous 3s (+3⭐) · Séries de 3, 5, 10 (+8 à +40⭐) · Podium (+10 à +30⭐)</div>
+      </div>
+    </div>
+
+    <div class="sect-title" style="margin:16px 0 10px;font-weight:900;font-size:16px;color:#fff">🎨 Thèmes de Salle Animés</div>
+    <div class="shop-grid">`;
+
+  SHOP_THEMES.forEach(t => {
+    const isUnlocked = unlockedThemes.includes(t.id);
+    const isEquipped = equippedTheme === t.id;
+    html += `
+      <div class="shop-card${isEquipped ? ' equipped' : ''}">
+        <div class="shop-preview" style="background:${t.previewColor}">🎨</div>
+        <div class="shop-info">
+          <div class="shop-title">${esc(t.name)} <span class="shop-tag">${t.tag}</span></div>
+          <div class="shop-desc">${esc(t.desc)}</div>
+        </div>
+        ${isEquipped ?
+          `<button class="shop-btn equipped">✅ Équipé</button>` :
+          isUnlocked ?
+          `<button class="shop-btn activate" onclick="window.buyShopItem('theme','${t.id}')">Activer</button>` :
+          `<button class="shop-btn buy${stars < t.price ? ' locked' : ''}" onclick="window.buyShopItem('theme','${t.id}')">⭐ ${t.price}</button>`
+        }
+      </div>`;
+  });
+
+  html += `</div>
+    <div class="sect-title" style="margin:20px 0 10px;font-weight:900;font-size:16px;color:#fff">🎭 Avatars Stylisés VIP</div>
+    <div class="shop-grid">`;
+
+  Object.values(DESIGN_AVATARS).forEach(a => {
+    const isUnlocked = unlockedAvatars.includes(a.id);
+    const isEquipped = currentAvatar === a.id;
+    html += `
+      <div class="shop-card${isEquipped ? ' equipped' : ''}">
+        <div class="shop-preview">${a.svg(42)}</div>
+        <div class="shop-info">
+          <div class="shop-title">${esc(a.name)}</div>
+          <div class="shop-desc">${esc(a.desc)}</div>
+        </div>
+        ${isEquipped ?
+          `<button class="shop-btn equipped">✅ Équipé</button>` :
+          isUnlocked ?
+          `<button class="shop-btn activate" onclick="window.buyShopItem('avatar','${a.id}')">Porter</button>` :
+          `<button class="shop-btn buy${stars < a.price ? ' locked' : ''}" onclick="window.buyShopItem('avatar','${a.id}')">⭐ ${a.price}</button>`
+        }
+      </div>`;
+  });
+
+  html += `</div>`;
+  el.innerHTML = html;
+}
+
 function renderProfile(){
   const el=document.getElementById('profileWrap');
   const idn=myIdentity();
@@ -1150,22 +1745,43 @@ function renderProfile(){
     el.innerHTML=`<div class="app-header"><div class="hdr-info"><div class="hdr-name">👤 Profil</div><div class="hdr-hi">Mode invité</div></div></div>
       <div class="guest-banner" style="margin-top:8px">
         <h3>🔒 Connecte-toi pour ta progression</h3>
-        <p>En mode invité, ton XP et ton niveau ne sont pas sauvegardés. Crée un compte pour tout garder !</p>
+        <p>En mode invité, ton XP, ton niveau et tes badges ne sont pas sauvegardés. Crée un compte pour tout garder !</p>
         <button class="btn-signup" onclick="window.doGoogleLogin()">Continuer avec Google</button>
       </div>`;
     return;
   }
   const p=AUTH.profile, lv=levelFor(p.xp), st=p.stats||{};
   const taux=st.answered?Math.round(100*(st.correct||0)/st.answered):0;
-  const photo=p.customPhoto||p.photoURL||'';
+
+  const unlockedBadges = p.badges || [];
+  let badgesHtml = `
+    <div class="sect-title" style="margin:24px 0 10px;font-weight:900;font-size:16px;color:#fff;display:flex;align-items:center;justify-content:space-between">
+      <span>🏆 Badges & Succès</span>
+      <span style="font-size:13px;color:#ffd700;font-weight:800">${unlockedBadges.length} / ${BADGES.length}</span>
+    </div>
+    <div class="badges-grid">`;
+
+  BADGES.forEach(b => {
+    const isUnlocked = unlockedBadges.includes(b.id);
+    badgesHtml += `
+      <div class="badge-card${isUnlocked ? ' unlocked' : ''}">
+        <div class="badge-status">${isUnlocked ? '✅' : '🔒'}</div>
+        <div class="badge-icon">${b.icon}</div>
+        <div class="badge-name">${esc(b.name)}</div>
+        <div class="badge-desc">${esc(b.desc)}</div>
+      </div>`;
+  });
+  badgesHtml += `</div>`;
+
   el.innerHTML=`
     <div class="app-header"><div class="hdr-info"><div class="hdr-name">👤 Mon profil</div></div>
       <button class="hdr-btn ghost" onclick="window.openUserProfileModal()">✏️ Éditer</button></div>
     <div class="profile-hero">
-      <div class="profile-photo">${photo?`<img src="${esc(photo)}">`:`<span>${p.avatar||'🎵'}</span>`}</div>
+      <div class="profile-photo">${avatarHtml(p,110)}</div>
       <div class="profile-name">${esc(p.name)}</div>
       <div class="profile-email">${esc(p.email||'')}</div>
       <div class="level-badge"><span style="font-size:20px">${lv.icon}</span> ${lv.name} <span class="lvl-num">· Niv. ${lv.level}</span></div>
+      <div style="display:flex;align-items:center;gap:6px;font-size:16px;font-weight:900;color:#ffd700;margin-bottom:12px">⭐ ${p.stars||0} Étoiles</div>
       <div class="xp-bar-wrap">
         <div class="xp-bar-labels"><span>${p.xp||0} XP</span><span>${lv.isMax?'MAX':lv.nextMin+' XP'}</span></div>
         <div class="xp-bar-track"><div class="xp-bar-fill" id="xpFill"></div></div>
@@ -1176,8 +1792,11 @@ function renderProfile(){
       <div class="stat-box"><div class="sv">${taux}%</div><div class="sl">Bonnes rép.</div></div>
       <div class="stat-box"><div class="sv">${st.best||0}</div><div class="sl">Best score</div></div>
     </div>
-    ${p.isAdmin?`<button class="btn btn-dark" style="margin-top:18px" onclick="window.showAdminPanel()">⚙️ Panneau Admin</button>`:''}
-    <button class="btn btn-secondary" style="margin-top:${p.isAdmin?'0':'18px'}" onclick="window.doLogout()">⬅ Se déconnecter</button>`;
+
+    ${badgesHtml}
+
+    ${p.isAdmin?`<button class="btn btn-dark" style="margin-top:10px" onclick="window.showAdminPanel()">⚙️ Panneau Admin</button>`:''}
+    <button class="btn btn-secondary" style="margin-top:${p.isAdmin?'10px':'10px'}" onclick="window.doLogout()">⬅ Se déconnecter</button>`;
   setTimeout(()=>{ const f=document.getElementById('xpFill'); if(f) f.style.width=(lv.progress*100)+'%'; },100);
 }
 
@@ -1186,7 +1805,7 @@ window.doGoogleLogin=async function(){
   try{ await signInWithPopup(auth,gProvider); }
   catch(e){ if(e.code!=='auth/popup-closed-by-user') alert('Erreur de connexion : '+e.message); }
 };
-window.doLogout=async function(){ await signOut(auth); AUTH.user=null; AUTH.profile=null; refreshHeader(); window.goTab('home'); };
+window.doLogout=async function(){ await signOut(auth); AUTH.user=null; AUTH.profile=null; refreshHeader(); applyUserTheme('original'); window.goTab('home'); };
 
 async function ensureUserProfile(user){
   const existing=await dbGet(USERS_REF+'/'+user.uid);
@@ -1194,11 +1813,14 @@ async function ensureUserProfile(user){
     const isAdmin=user.email===ADMIN_EMAIL;
     const profile={ uid:user.uid, email:user.email, name:user.displayName||user.email.split('@')[0],
       photoURL:user.photoURL||'', customPhoto:'', color:isAdmin?'#F5C518':randomColor(), avatar:'🎵',
-      isAdmin, xp:0, stats:{games:0,correct:0,answered:0,best:0} };
+      isAdmin, xp:0, stars:0, unlockedThemes:['original'], unlockedAvatars:[], equippedTheme:'original', badges:[], stats:{games:0,correct:0,answered:0,best:0} };
     await dbSet(USERS_REF+'/'+user.uid,profile); return profile;
   }
   if(user.email===ADMIN_EMAIL && !existing.isAdmin){ await dbSet(USERS_REF+'/'+user.uid+'/isAdmin',true); existing.isAdmin=true; }
   if(existing.xp===undefined){ await dbSet(USERS_REF+'/'+user.uid+'/xp',0); existing.xp=0; }
+  if(existing.stars===undefined){ await dbSet(USERS_REF+'/'+user.uid+'/stars',0); existing.stars=0; }
+  if(!existing.unlockedThemes){ await dbSet(USERS_REF+'/'+user.uid+'/unlockedThemes',['original']); existing.unlockedThemes=['original']; }
+  if(!existing.badges){ await dbSet(USERS_REF+'/'+user.uid+'/badges',[]); existing.badges=[]; }
   return existing;
 }
 
@@ -1207,9 +1829,11 @@ onAuthStateChanged(auth, async (user)=>{
   if(user){
     const profile=await ensureUserProfile(user);
     AUTH.user=user; AUTH.profile=profile;
+    applyUserTheme(profile.equippedTheme);
+    await checkAndAwardBadges();
     dbSet(STATS_REF+'/lastLogin',{name:profile.name,at:ts()});
   } else {
-    AUTH.user=null; AUTH.profile=null; loadGuest();
+    AUTH.user=null; AUTH.profile=null; loadGuest(); applyUserTheme('original');
   }
   refreshHeader();
   // n'écrase pas un écran de jeu déjà actif (reconnexion en cours)
@@ -1842,28 +2466,92 @@ async function awardXP(sorted){
   if(lsGet(key)) return;
   const players=Object.values(r.players||{});
   if(!players.find(p=>p.id===myId)) return;
-  let earned=0, correct=0, answered=0;
+
+  let earned=0, correct=0, answered=0, fastCount=0, currentStreak=0, maxStreak=0;
   const nQ=r.questions.length;
   for(let i=0;i<nQ;i++){
     const a=r.answers?.[i]?.[myId];
-    if(a){ answered++; earned+=5; if(a.choice===r.questions[i].answer){ correct++; earned+=(a.time!=null&&a.time<5)?15:10; } }
+    if(a){
+      answered++;
+      earned+=5;
+      if(a.choice===r.questions[i].answer){
+        correct++;
+        currentStreak++;
+        if(currentStreak>maxStreak) maxStreak=currentStreak;
+        const timeTaken = a.time || 0;
+        if(timeTaken>0 && timeTaken < 3){ fastCount++; earned+=15; }
+        else if(timeTaken>0 && timeTaken < 5){ earned+=12; }
+        else { earned+=10; }
+      } else {
+        currentStreak=0;
+      }
+    } else {
+      currentStreak=0;
+    }
   }
+
   const rank=sorted.findIndex(p=>p.id===myId);
-  if(rank===0)earned+=50; else if(rank===1)earned+=30; else if(rank===2)earned+=20;
-  if(earned<=0){ lsSet(key,true); return; }
+  if(rank===0) earned+=50;
+  else if(rank===1) earned+=30;
+  else if(rank===2) earned+=20;
+
+  // Calcul des ÉTOILES ⭐
+  let earnedStars = 0;
+  earnedStars += fastCount * 3;
+
+  if(maxStreak >= 10) earnedStars += 40;
+  else if(maxStreak >= 5) earnedStars += 20;
+  else if(maxStreak >= 3) earnedStars += 8;
+
+  if(rank===0) earnedStars += 30;
+  else if(rank===1) earnedStars += 20;
+  else if(rank===2) earnedStars += 10;
+  else earnedStars += 5;
+
+  if(earned<=0 && earnedStars<=0){ lsSet(key,true); return; }
+
   const prof=AUTH.profile;
   const prevLvl=levelFor(prof.xp).level;
   const newXP=(prof.xp||0)+earned;
+  const newStars=(prof.stars||0)+earnedStars;
+
   const st=prof.stats||{games:0,correct:0,answered:0,best:0};
-  st.games=(st.games||0)+1; st.correct=(st.correct||0)+correct; st.answered=(st.answered||0)+answered;
+  st.games=(st.games||0)+1;
+  st.correct=(st.correct||0)+correct;
+  st.answered=(st.answered||0)+answered;
   st.best=Math.max(st.best||0, r.scores?.[myId]||0);
-  await dbSet(USERS_REF+'/'+AUTH.user.uid+'/xp',newXP);
-  await dbSet(USERS_REF+'/'+AUTH.user.uid+'/stats',st);
-  AUTH.profile.xp=newXP; AUTH.profile.stats=st;
+
+  await dbSet(USERS_REF+'/'+AUTH.user.uid+'/xp', newXP);
+  await dbSet(USERS_REF+'/'+AUTH.user.uid+'/stars', newStars);
+  await dbSet(USERS_REF+'/'+AUTH.user.uid+'/stats', st);
+
+  AUTH.profile.xp=newXP;
+  AUTH.profile.stars=newStars;
+  AUTH.profile.stats=st;
   lsSet(key,true);
+
+  let fastestTime = 99;
+  for (let i = 0; i < nQ; i++) {
+    const a = r.answers?.[i]?.[myId];
+    if (a && a.time != null && a.time > 0 && a.time < fastestTime) fastestTime = a.time;
+  }
+
+  await checkAndAwardBadges({
+    rank,
+    maxStreak,
+    fastestTime: fastestTime === 99 ? 0 : fastestTime,
+    fastCount,
+    answered,
+    correct,
+    score: r.scores?.[myId] || 0
+  });
+
   const newLvl=levelFor(newXP);
   const toast=document.getElementById('xpToast');
-  if(toast) toast.innerHTML=`<div class="xp-toast">✨ +${earned} XP${newLvl.level>prevLvl?` · Niveau ${newLvl.level} ${newLvl.icon} !`:''}</div>`;
+  if(toast){
+    const baseHtml = `<div class="xp-toast">✨ +${earned} XP · ⭐ +${earnedStars} Étoiles${newLvl.level>prevLvl?` · Niveau ${newLvl.level} ${newLvl.icon} !`:''}</div>`;
+    toast.innerHTML = baseHtml + toast.innerHTML;
+  }
 }
 
 // ═══════════════════════════ TIMER ═══════════════════════════
@@ -1931,13 +2619,18 @@ window.openUserProfileModal=function(){
   _upColor=p.color||'#F5C518'; _upPhoto=p.customPhoto||p.photoURL||''; _upEmoji=p.avatar||'🎵';
   document.getElementById('upModalPhoto').src=_upPhoto||'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><rect width="40" height="40" rx="20" fill="%23444"/></svg>';
   document.getElementById('upModalName').value=p.name||'';
-  document.getElementById('upModalEmojis').innerHTML=EMOJIS.map(e=>`<button class="emoji-opt ${e===_upEmoji?'selected':''}" onclick="window.upSelectEmoji('${e}')">${e}</button>`).join('');
+  const unlockedAvs = (p.unlockedAvatars||[]).map(id=>DESIGN_AVATARS[id]).filter(Boolean);
+  let emojiHtml = EMOJIS.map(e=>`<button class="emoji-opt ${e===_upEmoji?'selected':''}" data-id="${e}" onclick="window.upSelectEmoji('${e}')">${e}</button>`).join('');
+  if (unlockedAvs.length) {
+    emojiHtml += unlockedAvs.map(a=>`<button class="emoji-opt ${a.id===_upEmoji?'selected':''}" data-id="${a.id}" style="width:36px;height:36px;padding:2px" onclick="window.upSelectEmoji('${a.id}')">${a.svg(28)}</button>`).join('');
+  }
+  document.getElementById('upModalEmojis').innerHTML=emojiHtml;
   document.getElementById('upModalColors').innerHTML=COLORS.map(c=>`<div class="color-opt ${c===_upColor?'selected':''}" style="background:${c}" onclick="window.upSelectColor('${c}')"></div>`).join('');
   document.getElementById('userProfileModal').classList.remove('hidden');
 };
 window.closeUserProfileModal=function(){document.getElementById('userProfileModal').classList.add('hidden');};
 window.upSelectColor=function(c){_upColor=c;document.querySelectorAll('#upModalColors .color-opt').forEach(el=>el.classList.toggle('selected',el.style.background===c));};
-window.upSelectEmoji=function(e){_upEmoji=e;document.querySelectorAll('#upModalEmojis .emoji-opt').forEach(el=>el.classList.toggle('selected',el.textContent===e));};
+window.upSelectEmoji=function(e){_upEmoji=e;document.querySelectorAll('#upModalEmojis .emoji-opt').forEach(el=>el.classList.toggle('selected',el.dataset.id===e||el.textContent===e));};
 window.useGooglePhoto=function(){const url=AUTH.user?.photoURL||'';_upPhoto=url;document.getElementById('upModalPhoto').src=url;};
 window.handlePhotoUpload=async function(e){
   const file=e.target.files[0]; if(!file||!AUTH.user)return;
