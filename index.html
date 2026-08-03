@@ -1542,10 +1542,15 @@ async function onRoom(fresh){
   }
   else if(fresh.phase==='reveal'&&(pc||qc)){stopTimer();renderPlayerGame();show('screenPlayerGame');renderHostFab();}
   else if(fresh.phase==='scores'&&prev?.phase!=='scores'){stopTimer();showFinalScores();}
-  else if(fresh.phase==='interlude'&&prev?.phase!=='interlude'){
-    show('screenInterlude');
+  else if(fresh.phase==='interlude'){
     const roundIdx=(fresh.interludeRound!==undefined)?fresh.interludeRound:fresh.currentQ;
-    await showInterlude(roundIdx,roundIdx+1);
+    if(prev?.phase!=='interlude'){
+      show('screenInterlude');
+      await showInterlude(roundIdx,roundIdx+1);
+    }else if(fresh.interludeComment?.comment && (fresh.interludeComment.round===undefined || fresh.interludeComment.round===roundIdx)){
+      document.getElementById('interludeEmoji').textContent=fresh.interludeComment.emoji||'🎵';
+      document.getElementById('interludeComment').textContent=fresh.interludeComment.comment;
+    }
   }
 }
 
@@ -1641,9 +1646,9 @@ async function doNextRound(){
   const interludeActive=APP_CONFIG.interludeEnabled!==false;
   const isFreqRound=(next%freq===0);
   if(interludeActive && isFreqRound){
-    // ✅ Écriture ATOMIQUE : phase + interludeRound en une seule opération
-    await dbSet('rooms/'+G.roomCode,{...G.room,phase:'interlude',interludeRound:r.currentQ});
-    G.room={...G.room,phase:'interlude',interludeRound:r.currentQ};
+    // ✅ Écriture ATOMIQUE : phase + interludeRound en une seule opération (avec reset du commentaire précédent)
+    await dbSet('rooms/'+G.roomCode,{...G.room,phase:'interlude',interludeRound:r.currentQ,interludeComment:null});
+    G.room={...G.room,phase:'interlude',interludeRound:r.currentQ,interludeComment:null};
     show('screenInterlude'); await showInterlude(r.currentQ,next);
   }else{
     await dbSet('rooms/'+G.roomCode,{...G.room,phase:'music',currentQ:next,musicStartedAt:ts()});
@@ -1660,7 +1665,7 @@ async function showInterlude(currentQIdx,nextQIdx){
   document.getElementById('interludeComment').textContent='Xav prépare son commentaire… 🎤';
   if(G.isMJ){
     const result=await generateInterludeComment(currentQIdx+1,r.scores||{},players,correctAnswer,answeredCorrectly,r.gameType);
-    const data={ emoji:result?.emoji||'🎵', comment:result?.comment||`Bonne réponse : ${correctAnswer} !` };
+    const data={ emoji:result?.emoji||'🎵', comment:result?.comment||`Bonne réponse : ${correctAnswer} !`, round:currentQIdx };
     await dbSet('rooms/'+G.roomCode+'/interludeComment',data);
     document.getElementById('interludeEmoji').textContent=data.emoji;
     document.getElementById('interludeComment').textContent=data.comment;
@@ -1668,7 +1673,10 @@ async function showInterlude(currentQIdx,nextQIdx){
     let waited=0;
     const poll=async()=>{
       const data=await dbGet('rooms/'+G.roomCode+'/interludeComment');
-      if(data?.comment){ document.getElementById('interludeEmoji').textContent=data.emoji||'🎵'; document.getElementById('interludeComment').textContent=data.comment; }
+      if(data?.comment && (data.round===undefined || data.round===currentQIdx)){
+        document.getElementById('interludeEmoji').textContent=data.emoji||'🎵';
+        document.getElementById('interludeComment').textContent=data.comment;
+      }
       else if(waited<10000){ waited+=800; setTimeout(poll,800); }
       else{ document.getElementById('interludeEmoji').textContent='🎵'; document.getElementById('interludeComment').textContent=`Bonne réponse : ${correctAnswer} !`; }
     };
