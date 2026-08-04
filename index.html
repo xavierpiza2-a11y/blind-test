@@ -743,11 +743,11 @@ body.theme-gold {
 .reveal-pts{font-weight:900}
 
 /* ── FAB hôte-joueur (Quiz) ── */
-.host-fab{position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:120;display:none;flex-direction:column;gap:8px;align-items:flex-end;max-width:60vw}
+.host-fab{position:fixed;top:72px;right:14px;z-index:120;display:none;flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:8px;max-width:85vw}
 .host-fab.show{display:flex}
 .host-fab .fab-info{background:var(--dark);color:#fff;border-radius:14px;padding:8px 14px;font-weight:800;font-size:13px;box-shadow:0 6px 18px rgba(0,0,0,.3)}
-.host-fab .fab-btn{background:#fff;color:var(--bg);font-weight:900;border-radius:16px;padding:14px 20px;font-size:15px;box-shadow:0 6px 18px rgba(0,0,0,.3);display:flex;align-items:center;gap:8px}
-#screenPlayerGame.host-playing .choices{padding-bottom:96px}
+.host-fab .fab-btn{background:#fff;color:var(--bg);font-weight:900;border-radius:16px;padding:12px 16px;font-size:14px;box-shadow:0 6px 18px rgba(0,0,0,.3);display:flex;align-items:center;gap:6px}
+#screenPlayerGame.host-playing .choices{padding-bottom:12px}
 
 /* ── Interlude ── */
 .interlude{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center}
@@ -1776,8 +1776,9 @@ const GAMES={
 };
 
 function getAnswerTime(){
-  if(G.room && G.room.gameType && GAMES[G.room.gameType] && GAMES[G.room.gameType].timer){
-    return GAMES[G.room.gameType].timer;
+  const gt = G.room?.gameType || G.gameType;
+  if(gt && GAMES[gt] && GAMES[gt].timer){
+    return GAMES[gt].timer;
   }
   return 20;
 }
@@ -1794,11 +1795,15 @@ function getPlayerStreak(room, playerId, uptoRound) {
 }
 
 function isEliminated(room, playerId) {
-  if (room.gameType !== 'survie') return false;
-  for (let i = 0; i < room.currentQ; i++) {
-    const q = room.questions[i];
+  if (!room || room.gameType !== 'survie') return false;
+  for (let i = 0; i <= room.currentQ; i++) {
+    const q = room.questions?.[i];
     const ans = room.answers?.[i]?.[playerId];
-    if (!ans || !q || ans.choice !== q.answer) return true;
+    if (i < room.currentQ) {
+      if (!ans || !q || ans.choice !== q.answer) return true;
+    } else {
+      if (ans && q && ans.choice !== q.answer) return true;
+    }
   }
   return false;
 }
@@ -1841,10 +1846,11 @@ function avatarHtml(p,size){
     if(DESIGN_AVATARS[p]) return DESIGN_AVATARS[p].svg(s);
     return `<span style="font-size:${Math.round(s*0.55)}px">${esc(p)}</span>`;
   }
-  if(p.photoURL||p.customPhoto) return `<img src="${esc(p.customPhoto||p.photoURL)}" alt="" style="width:100%;height:100%;object-fit:cover">`;
-  const av=p.avatar||'👤';
-  if(DESIGN_AVATARS[av]) return DESIGN_AVATARS[av].svg(s);
-  return `<span style="font-size:${Math.round(s*0.55)}px">${esc(av)}</span>`;
+  const av=p.avatar;
+  if(av && DESIGN_AVATARS[av]) return DESIGN_AVATARS[av].svg(s);
+  if(p.photoURL||p.customPhoto) return `<img src="${esc(p.customPhoto||p.photoURL)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+  if(av) return `<span style="font-size:${Math.round(s*0.55)}px">${esc(av)}</span>`;
+  return `<span style="font-size:${Math.round(s*0.55)}px">👤</span>`;
 }
 
 // ── SCREEN NAV ──
@@ -2474,14 +2480,15 @@ async function generateQuestions(gameType,theme){
   let prompt,system;
   if(isIntrus){
     prompt=`[SEED:${seed}]
-Génère exactement ${_aiCount} questions du jeu "L'Intrus". Thème : "${theme}". Difficulté : ${_aiDiff}.
-Chaque question présente une catégorie ou un thème, et l'objectif du joueur est d'identifier L'INTRUS (la seule proposition fausse/hors sujet parmi les choix).
+Génère exactement ${_aiCount} questions pour le jeu "L'Intrus". Thème : "${theme}". Difficulté : ${_aiDiff}.
+Dans chaque question, 3 choix sont des mots/termes qui appartiennent au thème, et 1 seul choix est L'INTRUS (le piège hors-sujet).
+Le but du joueur est de repérer et cliquer sur L'INTRUS parmi 4 mots !
 Pour chaque question :
-- "question" : l'énoncé clair (ex: "Lequel de ces films N'EST PAS réalisé par Steven Spielberg ?")
-- "answer" : L'INTRUS exact (la bonne réponse à cocher)
-- "choices" : tableau de 3 propositions VRAIES qui appartiennent au thème (les pièges)
+- "question" : Le thème du groupe (ex: "Films de Disney — Trouve l'intrus !" ou "Capitales du monde — Quel est l'intrus ?")
+- "answer" : L'INTRUS exact (la seule mauvaise réponse/le seul mot intrus)
+- "choices" : tableau de 3 mots/termes VRAIS qui appartiennent bien au groupe
 Réponds UNIQUEMENT avec un tableau JSON valide, sans markdown.
-Format : [{"question":"...","answer":"L'intrus","choices":["Vrai1","Vrai2","Vrai3"]},...]`;
+Format : [{"question":"...","answer":"L'intrus","choices":["MotVrai1","MotVrai2","MotVrai3"]},...]`;
     system="Tu es un générateur de quiz d'intrus. Tu réponds UNIQUEMENT avec un tableau JSON valide.";
   } else if(isQuizLike){
     let modeInstruction = "";
@@ -2547,12 +2554,13 @@ window.generateBlind=async function(){
 
 async function launchQuizWithQuestions(title,questions){
   if(!ensureName()) return;
+  const gt = G.gameType || 'quiz';
   const code=genCode(), idn=myIdentity(), hostPlayer=playerFromIdentity();
-  const room={ title, gameType:'quiz', hostPlays:true, hostId:idn.id,
+  const room={ title, gameType:gt, hostPlays:true, hostId:idn.id,
     questions, phase:'lobby', currentQ:0, players:{[idn.id]:hostPlayer}, answers:{}, scores:{}, musicStartedAt:null,
     createdAt:ts(), interludeComment:null, finalComments:null };
   await dbSet('rooms/'+code,room);
-  G.isMJ=true; G.roomCode=code; G.room=room; G.gameType='quiz'; G.player=hostPlayer;
+  G.isMJ=true; G.roomCode=code; G.room=room; G.gameType=gt; G.player=hostPlayer;
   saveSession({role:'mj',code,playerId:idn.id,hostPlays:true,saveId:null,title});
   setLobbyUI(room); show('screenMJLobby'); updateMJLobby(); startWatch();
 }
@@ -2562,7 +2570,7 @@ window.createQuizGame=async function(){
   if(!ensureName()) return;
   const tmr=startAiLoading();
   try{
-    const questions=await generateQuestions('quiz',theme);
+    const questions=await generateQuestions(G.gameType || 'quiz', theme);
     await launchQuizWithQuestions(theme.charAt(0).toUpperCase()+theme.slice(1),questions);
   }catch(e){ alert('Erreur de génération. Réessaie !'); console.error(e); }
   finally{ clearInterval(tmr); stopAiLoading(); }
@@ -2894,6 +2902,8 @@ function renderPlayerGame(){
         const streak = getPlayerStreak(r, p.id, r.currentQ);
         if (streak >= 3) qText = `🔥 (COMBO x3!) ${q.title}`;
         else if (streak >= 1) qText = `⚡ (COMBO x2!) ${q.title}`;
+      } else if (r.gameType === 'intrus') {
+        if (!qText.toLowerCase().includes('intrus')) qText = `🎭 ${qText} — Trouve l'intrus !`;
       }
       qBox.textContent = qText;
     } else {
